@@ -61,7 +61,12 @@ files, so provide the translation via a resource pack; otherwise the theme id is
 | Command | Description |
 |---|---|
 | `/architectstrials theme list` | Lists all loaded themes |
-| `/architectstrials theme tp <theme>` | Teleports you into a theme's dimension (void world — use creative/spectator) |
+| `/architectstrials theme tp <theme>` | Teleports you into a theme's dimension (void world — use creative/spectator); stores your entry point, keeps your game mode |
+| `/architectstrials enter <theme>` | Debug entry into a theme like a real challenge: stores your entry point, switches to Adventure |
+| `/architectstrials exit [targets]` | Leaves any Architect's Trials dimension: back to the entry point, or to the respawn point / world spawn if none is stored |
+
+Players always return to the exact point they entered from, with their previous game mode. Players who log
+in inside a challenge dimension whose challenge is over are returned automatically.
 
 ## For developers
 

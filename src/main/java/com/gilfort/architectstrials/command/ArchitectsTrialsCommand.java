@@ -28,6 +28,8 @@ public final class ArchitectsTrialsCommand {
     static void onRegisterCommands(RegisterCommandsEvent event) {
         event.getDispatcher().register(Commands.literal(ROOT)
                 .requires(Commands.hasPermission(Commands.LEVEL_GAMEMASTERS))
-                .then(ThemeCommand.build()));
+                .then(ThemeCommand.build())
+                .then(TravelCommand.buildEnter())
+                .then(TravelCommand.buildExit()));
     }
 }

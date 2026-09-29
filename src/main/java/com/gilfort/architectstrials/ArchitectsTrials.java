@@ -2,6 +2,7 @@ package com.gilfort.architectstrials;
 
 import org.slf4j.Logger;
 
+import com.gilfort.architectstrials.registry.ModAttachments;
 import com.gilfort.architectstrials.registry.ModBlocks;
 import com.gilfort.architectstrials.registry.ModCreativeModeTabs;
 import com.gilfort.architectstrials.registry.ModItems;
@@ -38,6 +39,7 @@ public final class ArchitectsTrials {
         ModBlocks.register(modEventBus);
         ModItems.register(modEventBus);
         ModCreativeModeTabs.register(modEventBus);
+        ModAttachments.register(modEventBus);
 
         modEventBus.addListener(this::commonSetup);
     }
