@@ -1,10 +1,10 @@
 package com.gilfort.architectstrials.command;
 
 import java.util.Collection;
-import java.util.Set;
 
 import com.gilfort.architectstrials.theme.ChallengeTheme;
 import com.gilfort.architectstrials.theme.ChallengeThemes;
+import com.gilfort.architectstrials.travel.ChallengeTravel;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
@@ -19,12 +19,14 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.phys.Vec3;
 
 /**
  * Debug commands for challenge themes:
  * <ul>
  * <li>{@code /architectstrials theme list} — lists all loaded themes</li>
- * <li>{@code /architectstrials theme tp <theme>} — teleports the executing player into a theme's dimension</li>
+ * <li>{@code /architectstrials theme tp <theme>} — teleports the executing player into a theme's dimension,
+ * storing the entry point but keeping the game mode</li>
  * </ul>
  */
 final class ThemeCommand {
@@ -80,6 +82,9 @@ final class ThemeCommand {
 
     /**
      * Teleports the executing player to the origin of the theme's dimension.
+     * <p>
+     * Uses {@link ChallengeTravel#enter} so the entry point is stored and {@code /architectstrials exit}
+     * returns the player to where they came from. Unlike {@code enter}, the game mode is left unchanged.
      *
      * @param context the command context
      * @return {@code 1} on success
@@ -95,7 +100,7 @@ final class ThemeCommand {
             throw UNKNOWN_THEME.create(id);
         }
 
-        player.teleportTo(level, 0.5, TELEPORT_Y, 0.5, Set.of(), player.getYRot(), player.getXRot(), true);
+        ChallengeTravel.enter(player, level, new Vec3(0.5, TELEPORT_Y, 0.5), player.getYRot(), player.getXRot(), false);
         source.sendSuccess(() -> Component.translatable("commands.architectstrials.theme.tp.success",
                 player.getDisplayName(), theme.displayName()), true);
         if (!player.isCreative() && !player.isSpectator()) {
