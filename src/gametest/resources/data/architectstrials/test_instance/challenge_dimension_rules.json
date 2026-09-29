@@ -1,0 +1,8 @@
+{
+  "type": "minecraft:function",
+  "environment": "minecraft:default",
+  "dimension": "minecraft:the_nether",
+  "function": "architectstrials:challenge_dimension_rules",
+  "max_ticks": 20,
+  "structure": "minecraft:empty"
+}

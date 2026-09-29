@@ -1,3 +1,12 @@
 {
-  "itemGroup.architectstrials.main": "Architect's Trials"
+  "itemGroup.architectstrials.main": "Architect's Trials",
+
+  "commands.architectstrials.theme.unknown": "Unknown challenge theme: %s",
+  "commands.architectstrials.theme.list.empty": "No challenge themes are loaded.",
+  "commands.architectstrials.theme.list.header": "Loaded challenge themes (%s):",
+  "commands.architectstrials.theme.list.entry": " - %s (%s)",
+  "commands.architectstrials.theme.tp.success": "Teleported %s to challenge theme %s",
+  "commands.architectstrials.theme.tp.void_warning": "Careful: challenge dimensions are empty void worlds.",
+
+  "message.architectstrials.challenge_dimension.bed_disabled": "You cannot sleep or set your spawn point in a challenge dimension"
 }
