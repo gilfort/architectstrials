@@ -14,6 +14,7 @@
   "commands.architectstrials.exit.not_inside": "%s is not inside an Architect's Trials dimension.",
 
   "message.architectstrials.returned_on_login": "Your challenge is over – you have been returned.",
+  "message.architectstrials.ward.saved": "The Dimension Ward saved you from death (%s) and brought you back.",
 
   "message.architectstrials.challenge_dimension.bed_disabled": "You cannot sleep or set your spawn point in a challenge dimension"
 }

@@ -4,6 +4,7 @@ import com.gilfort.architectstrials.registry.ModAttachments;
 import com.gilfort.architectstrials.theme.ChallengeThemes;
 import com.gilfort.architectstrials.travel.ChallengeTravel;
 
+import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.food.FoodConstants;
 
@@ -39,13 +40,15 @@ public final class DimensionWard {
 
     /**
      * Saves a player from death: clears all effects and fire, restores full health and hunger, plays the
-     * totem animation, grants a short grace period and returns the player to their entry point.
+     * totem animation, grants a short grace period, returns the player to their entry point and tells them
+     * what would have killed them.
      * <p>
      * The caller is responsible for canceling the death itself.
      *
      * @param player the player to save
      */
     public static void trigger(ServerPlayer player) {
+        Component cause = player.getCombatTracker().getDeathMessage();
         player.stopRiding();
         player.removeAllEffects();
         player.clearFire();
@@ -55,6 +58,7 @@ public final class DimensionWard {
         player.level().broadcastEntityEvent(player, TOTEM_ANIMATION_EVENT);
         player.setData(ModAttachments.WARD_GRACE_UNTIL, (long) player.level().getServer().getTickCount() + GRACE_TICKS);
         ChallengeTravel.returnToEntryPoint(player);
+        player.sendSystemMessage(Component.translatable("message.architectstrials.ward.saved", cause));
     }
 
     /**
