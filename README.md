@@ -68,6 +68,16 @@ files, so provide the translation via a resource pack; otherwise the theme id is
 Players always return to the exact point they entered from, with their previous game mode. Players who log
 in inside a challenge dimension whose challenge is over are returned automatically.
 
+### Death protection (Dimension Ward)
+
+Nobody ever truly dies inside a challenge. When a player with a stored entry point would die in a challenge
+dimension — from any cause, including the void and `/kill` — they are returned to their entry point with
+their full inventory, full health and hunger, all effects removed and a short damage immunity. The vanilla
+totem animation plays. Real totems (and other mods' death protection) always take precedence.
+
+The protection is a state, not a status effect: it cannot be removed by milk or commands and has no icon.
+Communicate it to players via your modpack's questbook or wiki. A death never counts as a completed run.
+
 ## For developers
 
 ```bash
