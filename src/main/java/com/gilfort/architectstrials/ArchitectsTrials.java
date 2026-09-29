@@ -2,6 +2,7 @@ package com.gilfort.architectstrials;
 
 import org.slf4j.Logger;
 
+import com.gilfort.architectstrials.config.ArchitectsTrialsConfig;
 import com.gilfort.architectstrials.registry.ModAttachments;
 import com.gilfort.architectstrials.registry.ModBlocks;
 import com.gilfort.architectstrials.registry.ModCreativeModeTabs;
@@ -12,6 +13,7 @@ import net.minecraft.resources.Identifier;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.ModContainer;
 import net.neoforged.fml.common.Mod;
+import net.neoforged.fml.config.ModConfig;
 import net.neoforged.fml.event.lifecycle.FMLCommonSetupEvent;
 
 /**
@@ -40,6 +42,8 @@ public final class ArchitectsTrials {
         ModItems.register(modEventBus);
         ModCreativeModeTabs.register(modEventBus);
         ModAttachments.register(modEventBus);
+
+        modContainer.registerConfig(ModConfig.Type.SERVER, ArchitectsTrialsConfig.SPEC);
 
         modEventBus.addListener(this::commonSetup);
     }

@@ -63,10 +63,28 @@ files, so provide the translation via a resource pack; otherwise the theme id is
 | `/architectstrials theme list` | Lists all loaded themes |
 | `/architectstrials theme tp <theme>` | Teleports you into a theme's dimension (void world — use creative/spectator); stores your entry point, keeps your game mode |
 | `/architectstrials enter <theme>` | Debug entry into a theme like a real challenge: stores your entry point, switches to Adventure |
+| `/architectstrials slot list <theme>` | Lists occupied and clearing slots of a theme dimension |
+| `/architectstrials slot allocate <theme>` | Debug: allocates the next free slot |
+| `/architectstrials slot free <theme> <index>` | Debug: releases a slot; its content is cleared over the next ticks |
 | `/architectstrials exit [targets]` | Leaves any Architect's Trials dimension: back to the entry point, or to the respawn point / world spawn if none is stored |
 
 Players always return to the exact point they entered from, with their previous game mode. Players who log
 in inside a challenge dimension whose challenge is over are returned automatically.
+
+### Slots & server config
+
+Every challenge instance gets its own slot in its theme dimension. Slots lie on a square spiral around the
+origin, `slotSpacing` blocks apart, so parallel groups never see each other. A slot owns a 160 × 160 area
+(maximum structure footprint 128 × 128 plus margin). Released slots are cleared over several ticks
+(blocks, block entities and entities, without drops) before they are reused; clearing interrupted by a
+server stop resumes on the next start.
+
+`serverconfig/architectstrials-server.toml` (per world, also editable via the Mods menu in singleplayer):
+
+| Option | Default | Description |
+|---|---|---|
+| `slotSpacing` | 2048 | Distance between slots. Only applies to theme dimensions without instances, so existing instances never move. |
+| `maxConcurrentInstances` | 0 | Maximum simultaneous instances per theme dimension; `0` = unlimited. |
 
 ### Death protection (Dimension Ward)
 
