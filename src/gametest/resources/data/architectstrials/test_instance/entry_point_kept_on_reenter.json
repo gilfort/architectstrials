@@ -1,0 +1,8 @@
+{
+  "type": "minecraft:function",
+  "environment": "minecraft:default",
+  "function": "architectstrials:entry_point_kept_on_reenter",
+  "max_ticks": 20,
+  "structure": "minecraft:empty",
+  "padding": 4
+}

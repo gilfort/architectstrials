@@ -32,10 +32,12 @@ final class ThemeCommand {
     /** Y level players are teleported to; challenge dimensions are void worlds without terrain. */
     private static final double TELEPORT_Y = 64.0;
 
-    private static final DynamicCommandExceptionType UNKNOWN_THEME = new DynamicCommandExceptionType(
+    /** Error thrown when a theme id does not match any loaded theme. */
+    static final DynamicCommandExceptionType UNKNOWN_THEME = new DynamicCommandExceptionType(
             id -> Component.translatable("commands.architectstrials.theme.unknown", String.valueOf(id)));
 
-    private static final SuggestionProvider<CommandSourceStack> THEME_SUGGESTIONS = (context, builder) ->
+    /** Suggests the ids of all loaded themes. */
+    static final SuggestionProvider<CommandSourceStack> THEME_SUGGESTIONS = (context, builder) ->
             SharedSuggestionProvider.suggestResource(ChallengeThemes.all().stream().map(ChallengeTheme::id), builder);
 
     private ThemeCommand() {

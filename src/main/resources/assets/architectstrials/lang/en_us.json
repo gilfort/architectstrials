@@ -7,6 +7,13 @@
   "commands.architectstrials.theme.list.entry": " - %s (%s)",
   "commands.architectstrials.theme.tp.success": "Teleported %s to challenge theme %s",
   "commands.architectstrials.theme.tp.void_warning": "Careful: challenge dimensions are empty void worlds.",
+  "commands.architectstrials.enter.success": "%s entered challenge theme %s",
+  "commands.architectstrials.enter.already_inside": "You are already inside an Architect's Trials dimension.",
+  "commands.architectstrials.exit.entry_point": "Returned %s to their entry point",
+  "commands.architectstrials.exit.spawn_point": "No entry point stored – sent %s to their spawn point",
+  "commands.architectstrials.exit.not_inside": "%s is not inside an Architect's Trials dimension.",
+
+  "message.architectstrials.returned_on_login": "Your challenge is over – you have been returned.",
 
   "message.architectstrials.challenge_dimension.bed_disabled": "You cannot sleep or set your spawn point in a challenge dimension"
 }
