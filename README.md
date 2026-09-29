@@ -1,25 +1,80 @@
+# Architect's Trials
 
-Installation information
-=======
+A NeoForge mod for Minecraft 26.3. Players open portals with scrolls into themed challenge dimensions,
+fight and loot inside hand-built structures and always return without losing their inventory.
+All content (themes, structures, tiers) is defined by modpack creators via datapacks and an in-game
+editor — no Java code required.
 
-This template repository can be directly cloned to get you started with a new
-mod. Simply create a new repository cloned from this one, by following the
-instructions provided by [GitHub](https://docs.github.com/en/repositories/creating-and-managing-repositories/creating-a-repository-from-a-template).
+## For modpack creators
 
-Once you have your clone, simply open the repository in the IDE of your choice. The usual recommendation for an IDE is either IntelliJ IDEA or Eclipse.
+### Challenge themes
 
-If at any point you are missing libraries in your IDE, or you've run into problems you can
-run `gradlew --refresh-dependencies` to refresh the local cache. `gradlew clean` to reset everything 
-{this does not affect your code} and then start the process again.
+A challenge theme **is** a dimension. The dimension defines the thematic environment (sky, fog, light,
+biome ambience); all challenge instances of the theme are placed inside it.
 
-Mapping Names:
-============
-By default, the MDK is configured to use the official mapping names from Mojang for methods and fields 
-in the Minecraft codebase. These names are covered by a specific license. All modders should be aware of this
-license. For the latest license text, refer to the mapping file itself, or the reference copy here:
-https://github.com/NeoForged/NeoForm/blob/main/Mojang.md
+Defining a theme takes two files in a datapack:
 
-Additional Resources: 
-==========
-Community Documentation: https://docs.neoforged.net/  
-NeoForged Discord: https://discord.neoforged.net/
+**1. The dimension** — `data/<namespace>/dimension/<theme>.json` (vanilla format, one file per dimension):
+
+```json
+{
+  "type": "architectstrials:challenge",
+  "generator": {
+    "type": "minecraft:flat",
+    "settings": {
+      "biome": "minecraft:the_void",
+      "features": false,
+      "lakes": false,
+      "layers": [],
+      "structure_overrides": []
+    }
+  }
+}
+```
+
+`architectstrials:challenge` is the default dimension type shipped with the mod: fixed time of day,
+no weather, beds and respawn anchors do not work. You may use your own `dimension_type` instead,
+e.g. to give a Nether theme a Nether sky. Choose a biome for its ambience (particles, sounds); natural mob
+spawning is always disabled in challenge dimensions — enemies only come from the structure's spawn markers.
+
+**2. The theme list** — `data/<namespace>/architectstrials/challenge_dimensions.json`:
+
+```json
+{
+  "replace": false,
+  "values": ["<namespace>:<theme>"]
+}
+```
+
+All list files of all active datapacks are merged like tags. `"replace": true` discards entries from
+lower-priority packs. Entries pointing to a dimension that does not exist are logged and skipped.
+
+> **Restart required:** Minecraft only creates datapack dimensions on server start. After adding a new
+> theme dimension, restart the server (or reopen the singleplayer world). `/reload` only picks up changes
+> to the theme list.
+
+**Display name:** themes use the lang key `dimension.<namespace>.<theme>`. Datapacks cannot ship lang
+files, so provide the translation via a resource pack; otherwise the theme id is shown.
+
+### Commands (operators only)
+
+| Command | Description |
+|---|---|
+| `/architectstrials theme list` | Lists all loaded themes |
+| `/architectstrials theme tp <theme>` | Teleports you into a theme's dimension (void world — use creative/spectator) |
+
+## For developers
+
+```bash
+./gradlew build              # mod jar -> build/libs/
+./gradlew runClient
+./gradlew runGameTestServer  # runs all GameTests headless
+```
+
+GameTests and their test datapack live in `src/gametest` and are never included in the mod jar.
+The dev test datapack also defines the dimension `architectstrials:gametest_theme` for manual testing in
+`runClient` (`/architectstrials theme tp architectstrials:gametest_theme`).
+
+## License
+
+GPL-3.0 — see [LICENSE](LICENSE).
