@@ -33,6 +33,13 @@ public final class ModAttachments {
                     .copyOnDeath()
                     .build());
 
+    /**
+     * Server tick until which a player is immune to all damage after the Dimension Ward has triggered.
+     * Transient (not persisted); {@code 0} means no grace period.
+     */
+    public static final Supplier<AttachmentType<Long>> WARD_GRACE_UNTIL = ATTACHMENT_TYPES.register("ward_grace_until",
+            () -> AttachmentType.builder(() -> 0L).build());
+
     private ModAttachments() {
     }
 
