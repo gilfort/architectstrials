@@ -1,0 +1,8 @@
+{
+  "type": "minecraft:function",
+  "environment": "minecraft:default",
+  "function": "architectstrials:bonus_marker_survives_structure_save",
+  "max_ticks": 20,
+  "structure": "minecraft:empty",
+  "padding": 8
+}

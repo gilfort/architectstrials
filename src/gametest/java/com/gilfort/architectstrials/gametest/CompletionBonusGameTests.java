@@ -20,8 +20,10 @@ import com.gilfort.architectstrials.theme.ChallengeThemes;
 
 import net.minecraft.advancements.AdvancementHolder;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Vec3i;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.gametest.framework.GameTestHelper;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
@@ -29,8 +31,11 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Mirror;
 import net.minecraft.world.level.block.Rotation;
+import net.minecraft.world.level.levelgen.structure.templatesystem.StructurePlaceSettings;
+import net.minecraft.world.level.levelgen.structure.templatesystem.StructureTemplate;
 import net.minecraft.world.level.storage.loot.LootTable;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.bus.api.SubscribeEvent;
@@ -65,6 +70,8 @@ public final class CompletionBonusGameTests {
             register(helper, "bonus_convention_and_advancements", CompletionBonusGameTests::conventionAndAdvancements);
             register(helper, "bonus_exit_override", CompletionBonusGameTests::exitOverride);
             register(helper, "bonus_marker_carries_override", CompletionBonusGameTests::markerCarriesOverride);
+            register(helper, "bonus_marker_survives_structure_save", CompletionBonusGameTests::markerSurvivesStructureSave);
+            register(helper, "bonus_dev_theme_convention", CompletionBonusGameTests::devThemeConvention);
         });
     }
 
@@ -137,6 +144,41 @@ public final class CompletionBonusGameTests {
         helper.assertTrue(helper.getLevel().getBlockEntity(marker) instanceof ChallengeExitBlockEntity exit
                 && exit.lootTableReference().equals(Optional.of(OVERRIDE)), "Exit marker override was not carried over");
         helper.succeed();
+    }
+
+    /**
+     * A loot table set on an exit marker is saved into a structure template and restored when the template is
+     * placed again (the path editor save → pool → placement takes).
+     */
+    private static void markerSurvivesStructureSave(GameTestHelper helper) {
+        ServerLevel level = helper.getLevel();
+        BlockPos source = helper.absolutePos(new BlockPos(1, 1, 1));
+        level.setBlockAndUpdate(source, ModBlocks.EXIT_MARKER.get().defaultBlockState());
+        ((ExitMarkerBlockEntity) level.getBlockEntity(source)).setLootTableReference(Optional.of(OVERRIDE));
+
+        StructureTemplate template = new StructureTemplate();
+        template.fillFromWorld(level, source, new Vec3i(1, 1, 1), false, List.of());
+        StructureTemplate reloaded = new StructureTemplate();
+        reloaded.load(level.holderLookup(Registries.BLOCK), template.save(new CompoundTag()));
+
+        BlockPos target = helper.absolutePos(new BlockPos(4, 1, 1));
+        reloaded.placeInWorld(level, target, target, new StructurePlaceSettings(), level.getRandom(), Block.UPDATE_ALL);
+        helper.assertTrue(level.getBlockEntity(target) instanceof ExitMarkerBlockEntity placed
+                && placed.lootTableReference().equals(Optional.of(OVERRIDE)), "Exit marker loot table was lost in the structure");
+        helper.succeed();
+    }
+
+    /**
+     * The dev datapack's convention bonus for {@code architectstrials:gametest_theme} tier 1 (5 emeralds) loads.
+     * The theme dimension itself does not exist on the GameTest server, so a fake instance is used.
+     */
+    private static void devThemeConvention(GameTestHelper helper) {
+        ServerPlayer player = TestPlayers.atStart(helper, GameType.SURVIVAL);
+        ChallengeInstance devInstance = new ChallengeInstance(UUID.randomUUID(), ArchitectsTrials.id("gametest_theme"), 1,
+                ArchitectsTrials.id("dummy"), 0, BlockPos.ZERO, Rotation.NONE, Mirror.NONE, List.of(), List.of());
+        CompletionBonus.grant(player, devInstance, Optional.empty());
+        helper.assertTrue(count(player, Items.EMERALD) == 5, "Dev convention bonus was not granted: " + count(player, Items.EMERALD));
+        TestPlayers.finish(helper, player);
     }
 
     private static ChallengeInstance createPlatform(GameTestHelper helper, ServerLevel nether) {

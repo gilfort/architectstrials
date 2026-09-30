@@ -1,0 +1,8 @@
+{
+  "type": "minecraft:function",
+  "environment": "minecraft:default",
+  "function": "architectstrials:bonus_dev_theme_convention",
+  "max_ticks": 20,
+  "structure": "minecraft:empty",
+  "padding": 8
+}
