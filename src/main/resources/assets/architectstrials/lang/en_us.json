@@ -84,6 +84,7 @@
   "architectstrials.configuration.defaultTimeLimitMinutes": "Default Time Limit (Minutes)",
   "architectstrials.configuration.defaultTimeLimitMinutes.tooltip": "Time limit in minutes for challenges whose scroll does not define one. Players still inside when it expires are sent back (the run does not count as completed).",
 
+  "bossbar.architectstrials.time_left": "Time left: %s",
   "message.architectstrials.time.remaining_minutes": "%s minute(s) left in this challenge!",
   "message.architectstrials.time.countdown": "Time left: %s",
   "message.architectstrials.time.expired": "Time is up – you have been sent back. The run does not count as completed.",

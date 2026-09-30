@@ -27,6 +27,7 @@ import net.minecraft.world.level.block.Rotation;
  * @param mirror      the applied mirroring
  * @param spawnPoints the player entry points recorded from the structure's player spawn markers
  * @param exits       the positions of the exit bases recorded from the structure's exit markers
+ * @param timeLimit   the total time limit in ticks (for progress displays)
  * @param deadline    the {@link ChallengeClock} value at which the time limit expires
  * @param portalDeadline the clock value until which the entry portal may still let players in, or {@code -1}
  *                    once the portal is closed
@@ -43,6 +44,7 @@ public record ChallengeInstance(
         Mirror mirror,
         List<SpawnPoint> spawnPoints,
         List<BlockPos> exits,
+        long timeLimit,
         long deadline,
         long portalDeadline,
         List<UUID> participants
@@ -60,6 +62,7 @@ public record ChallengeInstance(
             Mirror.CODEC.fieldOf("mirror").forGetter(ChallengeInstance::mirror),
             SpawnPoint.CODEC.listOf().optionalFieldOf("spawn_points", List.of()).forGetter(ChallengeInstance::spawnPoints),
             BlockPos.CODEC.listOf().optionalFieldOf("exits", List.of()).forGetter(ChallengeInstance::exits),
+            Codec.LONG.optionalFieldOf("time_limit", 0L).forGetter(ChallengeInstance::timeLimit),
             Codec.LONG.optionalFieldOf("deadline", 0L).forGetter(ChallengeInstance::deadline),
             Codec.LONG.optionalFieldOf("portal_deadline", -1L).forGetter(ChallengeInstance::portalDeadline),
             UUIDUtil.CODEC.listOf().optionalFieldOf("participants", List.of()).forGetter(ChallengeInstance::participants)
@@ -90,7 +93,7 @@ public record ChallengeInstance(
      */
     public ChallengeInstance withSpawnPoints(List<SpawnPoint> points) {
         return new ChallengeInstance(this.id, this.theme, this.tier, this.structure, this.slot, this.origin,
-                this.rotation, this.mirror, points, this.exits, this.deadline, this.portalDeadline, this.participants);
+                this.rotation, this.mirror, points, this.exits, this.timeLimit, this.deadline, this.portalDeadline, this.participants);
     }
 
     /**
@@ -101,7 +104,7 @@ public record ChallengeInstance(
      */
     public ChallengeInstance withExits(List<BlockPos> exitPositions) {
         return new ChallengeInstance(this.id, this.theme, this.tier, this.structure, this.slot, this.origin,
-                this.rotation, this.mirror, this.spawnPoints, exitPositions, this.deadline, this.portalDeadline, this.participants);
+                this.rotation, this.mirror, this.spawnPoints, exitPositions, this.timeLimit, this.deadline, this.portalDeadline, this.participants);
     }
 
     /**
@@ -112,7 +115,7 @@ public record ChallengeInstance(
      */
     public ChallengeInstance withDeadline(long newDeadline) {
         return new ChallengeInstance(this.id, this.theme, this.tier, this.structure, this.slot, this.origin,
-                this.rotation, this.mirror, this.spawnPoints, this.exits, newDeadline, this.portalDeadline, this.participants);
+                this.rotation, this.mirror, this.spawnPoints, this.exits, this.timeLimit, newDeadline, this.portalDeadline, this.participants);
     }
 
     /**
@@ -123,7 +126,7 @@ public record ChallengeInstance(
      */
     public ChallengeInstance withPortalDeadline(long newPortalDeadline) {
         return new ChallengeInstance(this.id, this.theme, this.tier, this.structure, this.slot, this.origin,
-                this.rotation, this.mirror, this.spawnPoints, this.exits, this.deadline, newPortalDeadline, this.participants);
+                this.rotation, this.mirror, this.spawnPoints, this.exits, this.timeLimit, this.deadline, newPortalDeadline, this.participants);
     }
 
     /**
@@ -134,7 +137,7 @@ public record ChallengeInstance(
      */
     public ChallengeInstance withParticipants(List<UUID> newParticipants) {
         return new ChallengeInstance(this.id, this.theme, this.tier, this.structure, this.slot, this.origin,
-                this.rotation, this.mirror, this.spawnPoints, this.exits, this.deadline, this.portalDeadline, newParticipants);
+                this.rotation, this.mirror, this.spawnPoints, this.exits, this.timeLimit, this.deadline, this.portalDeadline, newParticipants);
     }
 
     /** @return {@code true} while the entry portal may still let players in */

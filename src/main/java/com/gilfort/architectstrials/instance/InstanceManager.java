@@ -101,7 +101,7 @@ public final class InstanceManager {
         long portalOpenTicks = portalOpenTicks();
         ChallengeInstance placed = new ChallengeInstance(UUID.randomUUID(), theme.id(), tier, drawn.get(),
                 slot.get().index(), origin, rotation, mirror, List.of(), List.of(),
-                now + Math.max(timeLimitTicks, portalOpenTicks), now + portalOpenTicks, List.of());
+                Math.max(timeLimitTicks, portalOpenTicks), now + Math.max(timeLimitTicks, portalOpenTicks), now + portalOpenTicks, List.of());
 
         template.get().placeInWorld(level, origin, origin, settings, random, Block.UPDATE_CLIENTS);
         MarkerContext context = new MarkerContext(level, placed, random);
@@ -174,6 +174,10 @@ public final class InstanceManager {
             if (remaining.remove(player)) {
                 update(level, instance.withParticipants(remaining));
             }
+            ServerPlayer online = server.getPlayerList().getPlayer(player);
+            if (online != null) {
+                InstanceTimerBars.hideFrom(ref.id(), online);
+            }
         });
     }
 
@@ -219,6 +223,7 @@ public final class InstanceManager {
             return false;
         }
         data(level).remove(id);
+        InstanceTimerBars.remove(id);
         SlotManager.release(level, instance.get().slot());
         return true;
     }

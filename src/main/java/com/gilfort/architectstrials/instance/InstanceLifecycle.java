@@ -13,11 +13,12 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.neoforge.event.server.ServerStoppedEvent;
 import net.neoforged.neoforge.event.tick.ServerTickEvent;
 
 /**
- * Drives the lifecycle of all challenge instances: advances the {@link ChallengeClock}, warns participants
- * before the time limit, ejects them when it expires, and cleans up instances nobody belongs to anymore.
+ * Drives the lifecycle of all challenge instances: advances the {@link ChallengeClock}, shows participants the
+ * remaining time as a boss bar, warns them before the time limit, ejects them when it expires, and cleans up instances nobody belongs to anymore.
  * <p>
  * Cleanup rule (portal timer takes precedence): an instance is removed only when its portal is closed <em>and</em>
  * it has no participants, online or offline. Portals whose chunk is unloaded cannot close themselves, so an
@@ -54,6 +55,16 @@ public final class InstanceLifecycle {
     }
 
     /**
+     * Hides all timer bars when the server stops.
+     *
+     * @param event the server stopped event
+     */
+    @SubscribeEvent
+    static void onServerStopped(ServerStoppedEvent event) {
+        InstanceTimerBars.clear();
+    }
+
+    /**
      * Updates every instance of every theme: warnings, time limit, portal grace and cleanup.
      *
      * @param server the server
@@ -78,6 +89,7 @@ public final class InstanceLifecycle {
             return;
         }
         warn(level, instance, remaining);
+        InstanceTimerBars.update(instance, remaining, onlineParticipants(level, instance));
 
         ChallengeInstance current = instance;
         if (current.portalOpen() && now > current.portalDeadline() + PORTAL_GRACE_TICKS) {

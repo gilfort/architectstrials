@@ -109,7 +109,8 @@ missing or the scroll is used inside an Architect's Trials dimension. If nobody 
 
 ### Time limit & cleanup
 
-Every challenge has a time limit: the scroll's `architectstrials:time_limit` component (minutes), otherwise
+Every challenge has a time limit, shown to all participants as a boss bar ("Time left: mm:ss", red in the
+last minute): the scroll's `architectstrials:time_limit` component (minutes), otherwise
 `defaultTimeLimitMinutes` (default 60). It is never shorter than the portal's open time. Participants get chat
 warnings at 5 and 1 minute(s) and an action-bar countdown in the last 10 seconds; when time is up, everyone
 still inside is sent back — this does **not** count as a completed run.

@@ -10,6 +10,7 @@ import com.gilfort.architectstrials.instance.ChallengeInstance;
 import com.gilfort.architectstrials.instance.InstanceCreation;
 import com.gilfort.architectstrials.instance.InstanceLifecycle;
 import com.gilfort.architectstrials.instance.InstanceManager;
+import com.gilfort.architectstrials.instance.InstanceTimerBars;
 import com.gilfort.architectstrials.registry.ModAttachments;
 import com.gilfort.architectstrials.registry.ModDataComponents;
 import com.gilfort.architectstrials.scroll.ScrollActivation;
@@ -75,6 +76,10 @@ public final class LifecycleGameTests {
         InstanceManager.join(player, nether, instance);
         helper.assertTrue(InstanceManager.isParticipant(player), "Joined player is not a participant");
 
+        InstanceLifecycle.update(server);
+        helper.assertTrue(InstanceTimerBars.get(instance.id()) != null
+                && InstanceTimerBars.get(instance.id()).getPlayers().contains(player), "Timer bar is not shown to the participant");
+
         ChallengeInstance joined = InstanceManager.data(nether).get(instance.id()).orElseThrow();
         InstanceManager.update(nether, joined.withDeadline(ChallengeClock.now(server)));
         InstanceLifecycle.update(server);
@@ -85,6 +90,7 @@ public final class LifecycleGameTests {
         helper.assertTrue(InstanceManager.data(nether).get(instance.id()).isEmpty(), "Expired instance was not removed");
         helper.assertTrue(SlotManager.isClearing(nether, instance.slot()), "Slot of the expired instance is not being cleared");
         helper.assertFalse(InstanceManager.isParticipant(player), "Player still counts as participant of a removed instance");
+        helper.assertTrue(InstanceTimerBars.get(instance.id()) == null, "Timer bar of the removed instance still exists");
         TestPlayers.finish(helper, player);
     }
 
