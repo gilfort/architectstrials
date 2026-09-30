@@ -1,6 +1,5 @@
 package com.gilfort.architectstrials.instance;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -11,6 +10,7 @@ import com.gilfort.architectstrials.marker.MarkerContext;
 import com.gilfort.architectstrials.marker.MarkerResolvers;
 import com.gilfort.architectstrials.portal.ChallengePortal;
 import com.gilfort.architectstrials.registry.ModAttachments;
+import com.gilfort.architectstrials.scroll.ScrollOptions;
 import com.gilfort.architectstrials.slot.Slot;
 import com.gilfort.architectstrials.slot.SlotManager;
 import com.gilfort.architectstrials.structure.ChallengeStructure;
@@ -64,9 +64,11 @@ public final class InstanceManager {
      * @param tier   the tier
      * @param random the random source for structure selection and transformation
      * @param timeLimitTicks the time limit; raised to at least the portal open duration
+     * @param options the multiplayer options of the scroll, fixed into the instance
      * @return the outcome
      */
-    public static InstanceCreation create(ServerLevel level, ChallengeTheme theme, int tier, RandomSource random, long timeLimitTicks) {
+    public static InstanceCreation create(ServerLevel level, ChallengeTheme theme, int tier, RandomSource random,
+            long timeLimitTicks, ScrollOptions options) {
         Optional<Identifier> drawn = ChallengeStructures.draw(theme.id(), tier, random);
         if (drawn.isEmpty()) {
             return new InstanceCreation.Failure(Component.translatable("message.architectstrials.instance.pool_empty",
@@ -98,10 +100,11 @@ public final class InstanceManager {
                 slot.get().centerZ() - size.getZ() / 2);
         StructurePlaceSettings settings = placeSettings(size, rotation, mirror);
         long now = ChallengeClock.now(level.getServer());
-        long portalOpenTicks = portalOpenTicks();
+        long portalOpenTicks = portalOpenTicks(options, timeLimitTicks);
+        long timeLimit = Math.max(timeLimitTicks, portalOpenTicks);
         ChallengeInstance placed = new ChallengeInstance(UUID.randomUUID(), theme.id(), tier, drawn.get(),
                 slot.get().index(), origin, rotation, mirror, List.of(), List.of(),
-                Math.max(timeLimitTicks, portalOpenTicks), now + Math.max(timeLimitTicks, portalOpenTicks), now + portalOpenTicks, List.of());
+                timeLimit, now + timeLimit, now + portalOpenTicks, options, InstanceRoster.EMPTY);
 
         template.get().placeInWorld(level, origin, origin, settings, random, Block.UPDATE_CLIENTS);
         MarkerContext context = new MarkerContext(level, placed, random);
@@ -127,14 +130,43 @@ public final class InstanceManager {
     }
 
     /**
-     * Returns how long an entry portal stays open at most (forming phase plus unused timeout). The time limit of
-     * an instance is never shorter than this.
+     * Returns how long an active entry portal stays open according to the scroll options: the configured
+     * unused timeout for {@code portal_open_seconds = 0} (it closes earlier, on the first pass-through), the
+     * given seconds for positive values, or the whole time limit for {@code -1}.
      *
-     * @return the maximum portal open duration in ticks
+     * @param options        the scroll options
+     * @param timeLimitTicks the time limit of the instance
+     * @return the open duration in ticks, counted from the moment the portal becomes active
      */
-    public static long portalOpenTicks() {
-        return ChallengePortal.FORMING_TICKS
-                + (long) ArchitectsTrialsConfig.PORTAL_TIMEOUT_SECONDS.getAsInt() * ChallengeClock.TICKS_PER_SECOND;
+    public static long activePortalTicks(ScrollOptions options, long timeLimitTicks) {
+        if (options.portalOpenSeconds() == ScrollOptions.OPEN_UNTIL_TIME_LIMIT) {
+            return timeLimitTicks;
+        }
+        int seconds = options.portalOpenSeconds() == 0 ? ArchitectsTrialsConfig.PORTAL_TIMEOUT_SECONDS.getAsInt() : options.portalOpenSeconds();
+        return (long) seconds * ChallengeClock.TICKS_PER_SECOND;
+    }
+
+    /**
+     * Returns how long an entry portal exists at most (forming phase plus open duration). The time limit of an
+     * instance is never shorter than this.
+     *
+     * @param options        the scroll options
+     * @param timeLimitTicks the requested time limit
+     * @return the maximum portal lifetime in ticks
+     */
+    public static long portalOpenTicks(ScrollOptions options, long timeLimitTicks) {
+        return ChallengePortal.FORMING_TICKS + activePortalTicks(options, timeLimitTicks);
+    }
+
+    /**
+     * Records that a player completed the run of an instance; they can never re-enter it.
+     *
+     * @param level  the theme level
+     * @param id     the instance id
+     * @param player the player's UUID
+     */
+    public static void markCompleted(ServerLevel level, UUID id, UUID player) {
+        data(level).get(id).ifPresent(instance -> update(level, instance.withRoster(instance.roster().completedBy(player))));
     }
 
     /**
@@ -170,9 +202,8 @@ public final class InstanceManager {
             return;
         }
         data(level).get(ref.id()).ifPresent(instance -> {
-            List<UUID> remaining = new ArrayList<>(instance.participants());
-            if (remaining.remove(player)) {
-                update(level, instance.withParticipants(remaining));
+            if (instance.participants().contains(player)) {
+                update(level, instance.withRoster(instance.roster().left(player)));
             }
             ServerPlayer online = server.getPlayerList().getPlayer(player);
             if (online != null) {
@@ -231,7 +262,8 @@ public final class InstanceManager {
     /**
      * Moves a player into a ready instance, onto a spawn point chosen independently at random for this player.
      * The entry point is stored and bound to the instance, the player is switched to Adventure (see
-     * {@link ChallengeTravel#enter}) and becomes a participant.
+     * {@link ChallengeTravel#enter}) and becomes a participant and entrant. Admission rules (scroll options) are
+     * checked by the portal, not here.
      *
      * @param player   the player
      * @param level    the theme level of the instance
@@ -247,11 +279,7 @@ public final class InstanceManager {
         ChallengeTravel.enter(player, level, Vec3.atBottomCenterOf(point.pos()), point.facing().toYRot(), 0.0F, true);
         ChallengeTravel.bindInstance(player, new EntryPoint.InstanceRef(level.dimension(), instance.id()));
         ChallengeInstance current = data(level).get(instance.id()).orElse(instance);
-        if (!current.participants().contains(player.getUUID())) {
-            List<UUID> participants = new ArrayList<>(current.participants());
-            participants.add(player.getUUID());
-            update(level, current.withParticipants(participants));
-        }
+        update(level, current.withRoster(current.roster().entered(player.getUUID())));
         return true;
     }
 

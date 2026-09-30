@@ -5,6 +5,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 
 import com.gilfort.architectstrials.ArchitectsTrials;
+import com.gilfort.architectstrials.scroll.ScrollOptions;
 import com.gilfort.architectstrials.block.ChallengeExitBlock;
 import com.gilfort.architectstrials.block.ExitGroup;
 import com.gilfort.architectstrials.instance.ChallengeInstance;
@@ -76,7 +77,7 @@ public final class ExitGameTests {
     private static void redstoneLockAndCompletion(GameTestHelper helper) {
         ServerLevel nether = TestPlayers.challengeLevel(helper);
         InstanceCreation result = InstanceManager.create(nether, ChallengeThemes.get(Level.NETHER.identifier()).orElseThrow(),
-                PLATFORM_TIER, nether.getRandom(), InstanceManager.defaultTimeLimitTicks());
+                PLATFORM_TIER, nether.getRandom(), InstanceManager.defaultTimeLimitTicks(), ScrollOptions.DEFAULT);
         if (!(result instanceof InstanceCreation.Success(ChallengeInstance instance))) {
             helper.fail("Instance creation failed: " + ((InstanceCreation.Failure) result).reason().getString());
             return;

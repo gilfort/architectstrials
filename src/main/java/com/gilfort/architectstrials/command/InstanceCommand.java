@@ -10,6 +10,7 @@ import com.gilfort.architectstrials.instance.ChallengeClock;
 import com.gilfort.architectstrials.instance.ChallengeInstance;
 import com.gilfort.architectstrials.instance.InstanceCreation;
 import com.gilfort.architectstrials.instance.InstanceManager;
+import com.gilfort.architectstrials.scroll.ScrollOptions;
 import com.gilfort.architectstrials.theme.ChallengeTheme;
 import com.gilfort.architectstrials.theme.ChallengeThemes;
 import com.gilfort.architectstrials.travel.ChallengeTravel;
@@ -117,7 +118,7 @@ final class InstanceCommand {
         ChallengeTheme theme = ChallengeThemes.get(IdentifierArgument.getId(context, "theme")).orElseThrow();
         int tier = IntegerArgumentType.getInteger(context, "tier");
 
-        InstanceCreation result = InstanceManager.create(level, theme, tier, level.getRandom(), InstanceManager.defaultTimeLimitTicks());
+        InstanceCreation result = InstanceManager.create(level, theme, tier, level.getRandom(), InstanceManager.defaultTimeLimitTicks(), ScrollOptions.DEFAULT);
         if (result instanceof InstanceCreation.Failure(Component reason)) {
             source.sendFailure(reason);
             return 0;

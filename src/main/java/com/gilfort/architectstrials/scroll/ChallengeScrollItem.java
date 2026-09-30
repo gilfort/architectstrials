@@ -74,7 +74,23 @@ public class ChallengeScrollItem extends Item {
             return;
         }
         builder.accept(Component.translatable("tooltip.architectstrials.challenge_scroll.usage").withStyle(ChatFormatting.GRAY));
-        builder.accept(Component.translatable("tooltip.architectstrials.challenge_scroll.solo").withStyle(ChatFormatting.DARK_GRAY));
+        ScrollOptions options = stack.getOrDefault(ModDataComponents.SCROLL_OPTIONS.get(), ScrollOptions.DEFAULT);
+        if (options.equals(ScrollOptions.DEFAULT)) {
+            builder.accept(Component.translatable("tooltip.architectstrials.challenge_scroll.solo").withStyle(ChatFormatting.DARK_GRAY));
+        } else {
+            builder.accept((options.unlimitedPlayers()
+                    ? Component.translatable("tooltip.architectstrials.challenge_scroll.players_unlimited")
+                    : Component.translatable("tooltip.architectstrials.challenge_scroll.players", options.maxPlayers()))
+                    .withStyle(ChatFormatting.DARK_AQUA));
+            builder.accept((switch (options.portalOpenSeconds()) {
+                case 0 -> Component.translatable("tooltip.architectstrials.challenge_scroll.portal_first");
+                case ScrollOptions.OPEN_UNTIL_TIME_LIMIT -> Component.translatable("tooltip.architectstrials.challenge_scroll.portal_time_limit");
+                default -> Component.translatable("tooltip.architectstrials.challenge_scroll.portal_seconds", options.portalOpenSeconds());
+            }).withStyle(ChatFormatting.DARK_AQUA));
+            if (options.allowReentry()) {
+                builder.accept(Component.translatable("tooltip.architectstrials.challenge_scroll.reentry").withStyle(ChatFormatting.DARK_AQUA));
+            }
+        }
         int minutes = stack.getOrDefault(ModDataComponents.TIME_LIMIT.get(), ArchitectsTrialsConfig.DEFAULT_TIME_LIMIT_MINUTES.getAsInt());
         builder.accept(Component.translatable("tooltip.architectstrials.challenge_scroll.time_limit", minutes).withStyle(ChatFormatting.DARK_GRAY));
     }

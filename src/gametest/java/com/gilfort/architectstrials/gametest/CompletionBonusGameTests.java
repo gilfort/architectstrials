@@ -6,6 +6,8 @@ import java.util.UUID;
 import java.util.function.Consumer;
 
 import com.gilfort.architectstrials.ArchitectsTrials;
+import com.gilfort.architectstrials.instance.InstanceRoster;
+import com.gilfort.architectstrials.scroll.ScrollOptions;
 import com.gilfort.architectstrials.block.ChallengeExitBlockEntity;
 import com.gilfort.architectstrials.block.ExitMarkerBlock;
 import com.gilfort.architectstrials.block.ExitMarkerBlockEntity;
@@ -100,7 +102,7 @@ public final class CompletionBonusGameTests {
         helper.assertTrue(done(helper, player, "gametest/nether_twice"), "Criterion for two runs did not trigger after two runs");
 
         ChallengeInstance missingTier = new ChallengeInstance(UUID.randomUUID(), Level.NETHER.identifier(), 99, instance.structure(),
-                0, BlockPos.ZERO, Rotation.NONE, Mirror.NONE, List.of(), List.of(), 0L, 0L, -1L, List.of());
+                0, BlockPos.ZERO, Rotation.NONE, Mirror.NONE, List.of(), List.of(), 0L, 0L, -1L, ScrollOptions.DEFAULT, InstanceRoster.EMPTY);
         int items = player.getInventory().getContainerSize() - countEmpty(player);
         CompletionBonus.grant(player, missingTier, Optional.empty());
         helper.assertTrue(player.getInventory().getContainerSize() - countEmpty(player) == items, "A missing bonus loot table granted items");
@@ -139,7 +141,7 @@ public final class CompletionBonusGameTests {
         ((ExitMarkerBlockEntity) helper.getLevel().getBlockEntity(marker)).setLootTableReference(Optional.of(OVERRIDE));
 
         ChallengeInstance dummy = new ChallengeInstance(UUID.randomUUID(), Level.NETHER.identifier(), 1, ArchitectsTrials.id("dummy"),
-                0, marker, Rotation.NONE, Mirror.NONE, List.of(), List.of(), 0L, 0L, -1L, List.of());
+                0, marker, Rotation.NONE, Mirror.NONE, List.of(), List.of(), 0L, 0L, -1L, ScrollOptions.DEFAULT, InstanceRoster.EMPTY);
         ExitMarkerBlock.resolve(new MarkerContext(helper.getLevel(), dummy, helper.getLevel().getRandom()), marker);
         helper.assertTrue(helper.getLevel().getBlockEntity(marker) instanceof ChallengeExitBlockEntity exit
                 && exit.lootTableReference().equals(Optional.of(OVERRIDE)), "Exit marker override was not carried over");
@@ -175,7 +177,7 @@ public final class CompletionBonusGameTests {
     private static void devThemeConvention(GameTestHelper helper) {
         ServerPlayer player = TestPlayers.atStart(helper, GameType.SURVIVAL);
         ChallengeInstance devInstance = new ChallengeInstance(UUID.randomUUID(), ArchitectsTrials.id("gametest_theme"), 1,
-                ArchitectsTrials.id("dummy"), 0, BlockPos.ZERO, Rotation.NONE, Mirror.NONE, List.of(), List.of(), 0L, 0L, -1L, List.of());
+                ArchitectsTrials.id("dummy"), 0, BlockPos.ZERO, Rotation.NONE, Mirror.NONE, List.of(), List.of(), 0L, 0L, -1L, ScrollOptions.DEFAULT, InstanceRoster.EMPTY);
         CompletionBonus.grant(player, devInstance, Optional.empty());
         helper.assertTrue(count(player, Items.EMERALD) == 5, "Dev convention bonus was not granted: " + count(player, Items.EMERALD));
         TestPlayers.finish(helper, player);
@@ -183,7 +185,7 @@ public final class CompletionBonusGameTests {
 
     private static ChallengeInstance createPlatform(GameTestHelper helper, ServerLevel nether) {
         InstanceCreation result = InstanceManager.create(nether, ChallengeThemes.get(Level.NETHER.identifier()).orElseThrow(),
-                PLATFORM_TIER, nether.getRandom(), InstanceManager.defaultTimeLimitTicks());
+                PLATFORM_TIER, nether.getRandom(), InstanceManager.defaultTimeLimitTicks(), ScrollOptions.DEFAULT);
         if (result instanceof InstanceCreation.Success(ChallengeInstance instance)) {
             return instance;
         }

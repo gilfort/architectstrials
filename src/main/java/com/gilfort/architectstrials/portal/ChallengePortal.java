@@ -3,10 +3,10 @@ package com.gilfort.architectstrials.portal;
 import java.util.Optional;
 import java.util.UUID;
 
-import com.gilfort.architectstrials.config.ArchitectsTrialsConfig;
 import com.gilfort.architectstrials.instance.ChallengeInstance;
 import com.gilfort.architectstrials.instance.InstanceManager;
 import com.gilfort.architectstrials.registry.ModEntityTypes;
+import com.gilfort.architectstrials.scroll.ScrollOptions;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.UUIDUtil;
@@ -34,9 +34,10 @@ import net.minecraft.world.phys.Vec3;
  * clip into blocks.
  * <p>
  * Lifecycle: <em>forming</em> (particles, not enterable) → <em>active</em> once its instance is ready →
- * closed. In the solo default only the scroll user may enter and the portal closes after their first
- * pass-through. If nobody enters within the configured timeout, the portal collapses, the instance is
- * cleaned up and the scroll drops again with a 50 % chance.
+ * closed. Who may enter and how long the portal stays open is decided by the instance's {@link ScrollOptions}
+ * (solo default: only the scroll user, closing after their first pass-through). If nobody ever enters before
+ * the portal's time is up, it collapses, the instance is cleaned up and the scroll drops again with a 50 %
+ * chance.
  */
 public class ChallengePortal extends Entity {
 
@@ -129,25 +130,59 @@ public class ChallengePortal extends Entity {
             }
             return;
         }
-        for (ServerPlayer player : level.getEntitiesOfClass(ServerPlayer.class, this.getBoundingBox(), this::mayEnter)) {
-            if (InstanceManager.join(player, themeLevel, instance.get())) {
-                InstanceManager.closePortal(themeLevel, this.instanceId);
+        for (ServerPlayer player : level.getEntitiesOfClass(ServerPlayer.class, this.getBoundingBox(), ChallengePortal::canUsePortals)) {
+            ChallengeInstance current = InstanceManager.data(themeLevel).get(this.instanceId).orElse(instance.get());
+            ChallengeInstance.Admission admission = current.admission(player.getUUID(), this.owner);
+            if (admission != ChallengeInstance.Admission.ALLOWED) {
+                if (this.age % TICKS_PER_SECOND == 0) {
+                    player.sendOverlayMessage(Component.translatable(admission.messageKey()));
+                }
+                continue;
+            }
+            if (InstanceManager.join(player, themeLevel, current)) {
                 level.playSound(null, this.getX(), this.getY(), this.getZ(), SoundEvents.PORTAL_TRAVEL, SoundSource.BLOCKS, 0.4F, 1.6F);
-                this.discard();
-                return;
+                if (this.closesAfterEntry(InstanceManager.data(themeLevel).get(this.instanceId).orElse(current))) {
+                    this.close(themeLevel);
+                    return;
+                }
             }
         }
-        int timeoutTicks = ArchitectsTrialsConfig.PORTAL_TIMEOUT_SECONDS.getAsInt() * TICKS_PER_SECOND;
-        if (this.age - this.activeSince > timeoutTicks) {
-            this.expire(level, themeLevel);
+        ChallengeInstance current = InstanceManager.data(themeLevel).get(this.instanceId).orElse(instance.get());
+        if (this.age - this.activeSince > InstanceManager.activePortalTicks(current.options(), current.timeLimit())) {
+            if (current.roster().entrants().isEmpty()) {
+                this.expire(level, themeLevel);
+            } else {
+                this.close(themeLevel);
+            }
         }
     }
 
     /**
-     * Solo default: only the scroll user may enter, and not while on portal cooldown.
+     * Players may use portals unless dead, spectating or on portal cooldown (e.g. right after returning).
      */
-    private boolean mayEnter(ServerPlayer player) {
-        return player.getUUID().equals(this.owner) && player.isAlive() && !player.isSpectator() && !player.isOnPortalCooldown();
+    private static boolean canUsePortals(ServerPlayer player) {
+        return player.isAlive() && !player.isSpectator() && !player.isOnPortalCooldown();
+    }
+
+    /**
+     * Decides whether the portal closes right after a player entered: always for {@code portal_open_seconds = 0},
+     * and once {@code max_players} is reached unless re-entry must remain possible.
+     */
+    private boolean closesAfterEntry(ChallengeInstance instance) {
+        ScrollOptions options = instance.options();
+        if (options.portalOpenSeconds() == 0) {
+            return true;
+        }
+        boolean full = !options.unlimitedPlayers() && instance.roster().entrants().size() >= options.maxPlayers();
+        return full && !options.allowReentry();
+    }
+
+    /**
+     * Closes a used portal: the instance keeps running for its participants.
+     */
+    private void close(ServerLevel themeLevel) {
+        InstanceManager.closePortal(themeLevel, this.instanceId);
+        this.discard();
     }
 
     /**

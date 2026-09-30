@@ -5,6 +5,7 @@ import java.util.UUID;
 import java.util.function.Consumer;
 
 import com.gilfort.architectstrials.ArchitectsTrials;
+import com.gilfort.architectstrials.scroll.ScrollOptions;
 import com.gilfort.architectstrials.instance.ChallengeClock;
 import com.gilfort.architectstrials.instance.ChallengeInstance;
 import com.gilfort.architectstrials.instance.InstanceCreation;
@@ -158,7 +159,7 @@ public final class LifecycleGameTests {
 
     private static ChallengeInstance create(ServerLevel nether) {
         InstanceCreation result = InstanceManager.create(nether, ChallengeThemes.get(Level.NETHER.identifier()).orElseThrow(),
-                PLATFORM_TIER, nether.getRandom(), InstanceManager.defaultTimeLimitTicks());
+                PLATFORM_TIER, nether.getRandom(), InstanceManager.defaultTimeLimitTicks(), ScrollOptions.DEFAULT);
         if (result instanceof InstanceCreation.Success(ChallengeInstance instance)) {
             return instance;
         }

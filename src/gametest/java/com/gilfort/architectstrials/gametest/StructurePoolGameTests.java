@@ -5,6 +5,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 
 import com.gilfort.architectstrials.ArchitectsTrials;
+import com.gilfort.architectstrials.scroll.ScrollOptions;
 import com.gilfort.architectstrials.config.ArchitectsTrialsConfig;
 import com.gilfort.architectstrials.instance.ChallengeInstance;
 import com.gilfort.architectstrials.instance.InstanceCreation;
@@ -82,11 +83,11 @@ public final class StructurePoolGameTests {
                 "Tiers were not derived from the pool: " + ChallengeStructures.tiers(theme.id()));
 
         int occupiedBefore = SlotManager.data(nether).occupied().size();
-        InstanceCreation empty = InstanceManager.create(nether, theme, 99, nether.getRandom(), InstanceManager.defaultTimeLimitTicks());
+        InstanceCreation empty = InstanceManager.create(nether, theme, 99, nether.getRandom(), InstanceManager.defaultTimeLimitTicks(), ScrollOptions.DEFAULT);
         helper.assertTrue(empty instanceof InstanceCreation.Failure, "Empty pool did not fail");
         helper.assertTrue(SlotManager.data(nether).occupied().size() == occupiedBefore, "Failed creation left a slot occupied");
 
-        InstanceCreation result = InstanceManager.create(nether, theme, 1, nether.getRandom(), InstanceManager.defaultTimeLimitTicks());
+        InstanceCreation result = InstanceManager.create(nether, theme, 1, nether.getRandom(), InstanceManager.defaultTimeLimitTicks(), ScrollOptions.DEFAULT);
         if (!(result instanceof InstanceCreation.Success(ChallengeInstance instance))) {
             helper.fail("Instance creation failed: " + ((InstanceCreation.Failure) result).reason().getString());
             return;

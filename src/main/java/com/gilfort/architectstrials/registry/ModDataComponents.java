@@ -3,6 +3,7 @@ package com.gilfort.architectstrials.registry;
 import java.util.function.Supplier;
 
 import com.gilfort.architectstrials.ArchitectsTrials;
+import com.gilfort.architectstrials.scroll.ScrollOptions;
 import com.gilfort.architectstrials.scroll.ScrollTarget;
 
 import net.minecraft.core.component.DataComponentType;
@@ -31,6 +32,10 @@ public final class ModDataComponents {
      */
     public static final Supplier<DataComponentType<Integer>> TIME_LIMIT = DATA_COMPONENTS.registerComponentType(
             "time_limit", builder -> builder.persistent(ExtraCodecs.POSITIVE_INT).networkSynchronized(ByteBufCodecs.VAR_INT));
+
+    /** Multiplayer options of a scroll ({@code architectstrials:options}); absent = solo default. */
+    public static final Supplier<DataComponentType<ScrollOptions>> SCROLL_OPTIONS = DATA_COMPONENTS.registerComponentType(
+            "options", builder -> builder.persistent(ScrollOptions.CODEC).networkSynchronized(ScrollOptions.STREAM_CODEC));
 
     private ModDataComponents() {
     }
