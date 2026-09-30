@@ -110,6 +110,7 @@ public final class RunCompletion {
     public static void complete(ServerPlayer player, ChallengeInstance instance, Optional<ResourceKey<LootTable>> bonusOverride) {
         RunStatistics statistics = player.getData(ModAttachments.RUN_STATISTICS);
         statistics.increment(instance.theme(), instance.tier());
+        InstanceManager.markCompleted(player.level(), instance.id(), player.getUUID());
         ChallengeTravel.returnToEntryPoint(player);
         CompletionBonus.grant(player, instance, bonusOverride);
         ModCriteriaTriggers.RUN_COMPLETED.get().trigger(player, instance.theme(), instance.tier(), statistics);

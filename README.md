@@ -107,6 +107,33 @@ missing or the scroll is used inside an Architect's Trials dimension. If nobody 
 `portalTimeoutSeconds`, the portal collapses, the instance is cleaned up and the scroll drops again with a
 50 % chance.
 
+### Scroll options (multiplayer)
+
+The optional component `architectstrials:options` controls who may enter and how long the portal stays open.
+The options are fixed into the instance when the portal opens. All fields are optional; without the component
+a scroll is the solo default.
+
+| Field | Values | Default |
+|---|---|---|
+| `max_players` | `1` = only the scroll user, `n` = up to n distinct players, `0` = unlimited | `1` |
+| `portal_open_seconds` | `0` = closes after the first pass-through, `>0` = open that many seconds once active, `-1` = open until the time limit expires | `0` |
+| `allow_reentry` | `true` / `false` | `false` |
+
+```json
+"components": {
+  "architectstrials:challenge": { "theme": "mypack:nether", "tier": 2 },
+  "architectstrials:options": { "max_players": 4, "portal_open_seconds": 120, "allow_reentry": true }
+}
+```
+
+- Anyone may walk into an open portal until `max_players` is reached — there is no party system, and late
+  joiners are not rank-checked. Everyone lands on a random spawn marker; nothing is rebalanced.
+- The portal closes when its time is up or `max_players` is reached, whichever comes first. With
+  `allow_reentry` it stays open for its full time so players can come back.
+- Re-entry is for players who left without completing (e.g. after a defeat) and does not count against
+  `max_players`. Players who completed the run via an exit can never re-enter.
+- The time limit is automatically at least as long as the portal stays open.
+
 ### Time limit & cleanup
 
 Every challenge has a time limit, shown to all participants as a boss bar ("Time left: mm:ss", red in the

@@ -1,0 +1,8 @@
+{
+  "type": "minecraft:function",
+  "environment": "minecraft:default",
+  "function": "architectstrials:options_portal_closes_on_time",
+  "max_ticks": 40,
+  "structure": "minecraft:empty",
+  "padding": 8
+}

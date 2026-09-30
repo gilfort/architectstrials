@@ -1,9 +1,10 @@
 package com.gilfort.architectstrials.instance;
 
-import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.UUID;
 
+import com.gilfort.architectstrials.scroll.ScrollOptions;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 
@@ -15,23 +16,24 @@ import net.minecraft.world.level.block.Rotation;
 
 /**
  * A placed challenge instance. The structure is drawn once on creation; from then on the instance is fixed to
- * that structure, slot and transformation — later entries never re-roll.
+ * that structure, slot, transformation and scroll options — later entries never re-roll.
  *
- * @param id          the unique instance id
- * @param theme       the theme (dimension) id
- * @param tier        the tier
- * @param structure   the metadata id of the placed structure
- * @param slot        the slot index in the theme dimension
- * @param origin      the placement origin of the structure template
- * @param rotation    the applied rotation
- * @param mirror      the applied mirroring
- * @param spawnPoints the player entry points recorded from the structure's player spawn markers
- * @param exits       the positions of the exit bases recorded from the structure's exit markers
- * @param timeLimit   the total time limit in ticks (for progress displays)
- * @param deadline    the {@link ChallengeClock} value at which the time limit expires
+ * @param id             the unique instance id
+ * @param theme          the theme (dimension) id
+ * @param tier           the tier
+ * @param structure      the metadata id of the placed structure
+ * @param slot           the slot index in the theme dimension
+ * @param origin         the placement origin of the structure template
+ * @param rotation       the applied rotation
+ * @param mirror         the applied mirroring
+ * @param spawnPoints    the player entry points recorded from the structure's player spawn markers
+ * @param exits          the positions of the exit bases recorded from the structure's exit markers
+ * @param timeLimit      the total time limit in ticks (for progress displays)
+ * @param deadline       the {@link ChallengeClock} value at which the time limit expires
  * @param portalDeadline the clock value until which the entry portal may still let players in, or {@code -1}
- *                    once the portal is closed
- * @param participants the players belonging to the instance (online or offline); they keep it alive
+ *                       once the portal is closed
+ * @param options        the multiplayer options of the scroll that opened the instance
+ * @param roster         the players of the instance
  */
 public record ChallengeInstance(
         UUID id,
@@ -47,7 +49,8 @@ public record ChallengeInstance(
         long timeLimit,
         long deadline,
         long portalDeadline,
-        List<UUID> participants
+        ScrollOptions options,
+        InstanceRoster roster
 ) {
 
     /** Codec used to persist instances. */
@@ -65,14 +68,14 @@ public record ChallengeInstance(
             Codec.LONG.optionalFieldOf("time_limit", 0L).forGetter(ChallengeInstance::timeLimit),
             Codec.LONG.optionalFieldOf("deadline", 0L).forGetter(ChallengeInstance::deadline),
             Codec.LONG.optionalFieldOf("portal_deadline", -1L).forGetter(ChallengeInstance::portalDeadline),
-            UUIDUtil.CODEC.listOf().optionalFieldOf("participants", List.of()).forGetter(ChallengeInstance::participants)
+            ScrollOptions.CODEC.optionalFieldOf("options", ScrollOptions.DEFAULT).forGetter(ChallengeInstance::options),
+            InstanceRoster.CODEC.optionalFieldOf("roster", InstanceRoster.EMPTY).forGetter(ChallengeInstance::roster)
     ).apply(instance, ChallengeInstance::new));
 
     /** Creates an instance, defensively copying the marker-derived lists. */
     public ChallengeInstance {
         spawnPoints = List.copyOf(spawnPoints);
         exits = List.copyOf(exits);
-        participants = List.copyOf(new LinkedHashSet<>(participants));
     }
 
     /**
@@ -85,6 +88,11 @@ public record ChallengeInstance(
         return !this.spawnPoints.isEmpty();
     }
 
+    /** @return the players currently belonging to the instance (online or offline) */
+    public List<UUID> participants() {
+        return this.roster.participants();
+    }
+
     /**
      * Returns a copy of this instance with the given spawn points.
      *
@@ -92,8 +100,8 @@ public record ChallengeInstance(
      * @return the updated instance
      */
     public ChallengeInstance withSpawnPoints(List<SpawnPoint> points) {
-        return new ChallengeInstance(this.id, this.theme, this.tier, this.structure, this.slot, this.origin,
-                this.rotation, this.mirror, points, this.exits, this.timeLimit, this.deadline, this.portalDeadline, this.participants);
+        return new ChallengeInstance(this.id, this.theme, this.tier, this.structure, this.slot, this.origin, this.rotation,
+                this.mirror, points, this.exits, this.timeLimit, this.deadline, this.portalDeadline, this.options, this.roster);
     }
 
     /**
@@ -103,8 +111,8 @@ public record ChallengeInstance(
      * @return the updated instance
      */
     public ChallengeInstance withExits(List<BlockPos> exitPositions) {
-        return new ChallengeInstance(this.id, this.theme, this.tier, this.structure, this.slot, this.origin,
-                this.rotation, this.mirror, this.spawnPoints, exitPositions, this.timeLimit, this.deadline, this.portalDeadline, this.participants);
+        return new ChallengeInstance(this.id, this.theme, this.tier, this.structure, this.slot, this.origin, this.rotation,
+                this.mirror, this.spawnPoints, exitPositions, this.timeLimit, this.deadline, this.portalDeadline, this.options, this.roster);
     }
 
     /**
@@ -114,8 +122,8 @@ public record ChallengeInstance(
      * @return the updated instance
      */
     public ChallengeInstance withDeadline(long newDeadline) {
-        return new ChallengeInstance(this.id, this.theme, this.tier, this.structure, this.slot, this.origin,
-                this.rotation, this.mirror, this.spawnPoints, this.exits, this.timeLimit, newDeadline, this.portalDeadline, this.participants);
+        return new ChallengeInstance(this.id, this.theme, this.tier, this.structure, this.slot, this.origin, this.rotation,
+                this.mirror, this.spawnPoints, this.exits, this.timeLimit, newDeadline, this.portalDeadline, this.options, this.roster);
     }
 
     /**
@@ -125,24 +133,57 @@ public record ChallengeInstance(
      * @return the updated instance
      */
     public ChallengeInstance withPortalDeadline(long newPortalDeadline) {
-        return new ChallengeInstance(this.id, this.theme, this.tier, this.structure, this.slot, this.origin,
-                this.rotation, this.mirror, this.spawnPoints, this.exits, this.timeLimit, this.deadline, newPortalDeadline, this.participants);
+        return new ChallengeInstance(this.id, this.theme, this.tier, this.structure, this.slot, this.origin, this.rotation,
+                this.mirror, this.spawnPoints, this.exits, this.timeLimit, this.deadline, newPortalDeadline, this.options, this.roster);
     }
 
     /**
-     * Returns a copy of this instance with the given participants.
+     * Returns a copy of this instance with the given roster.
+     *
+     * @param newRoster the roster
+     * @return the updated instance
+     */
+    public ChallengeInstance withRoster(InstanceRoster newRoster) {
+        return new ChallengeInstance(this.id, this.theme, this.tier, this.structure, this.slot, this.origin, this.rotation,
+                this.mirror, this.spawnPoints, this.exits, this.timeLimit, this.deadline, this.portalDeadline, this.options, newRoster);
+    }
+
+    /**
+     * Returns a copy of this instance with the given participants (entrants and completions unchanged).
      *
      * @param newParticipants the participants
      * @return the updated instance
      */
     public ChallengeInstance withParticipants(List<UUID> newParticipants) {
-        return new ChallengeInstance(this.id, this.theme, this.tier, this.structure, this.slot, this.origin,
-                this.rotation, this.mirror, this.spawnPoints, this.exits, this.timeLimit, this.deadline, this.portalDeadline, newParticipants);
+        return this.withRoster(this.roster.withParticipants(newParticipants));
     }
 
     /** @return {@code true} while the entry portal may still let players in */
     public boolean portalOpen() {
         return this.portalDeadline >= 0;
+    }
+
+    /**
+     * Checks whether a player may enter through the portal, according to the scroll options.
+     *
+     * @param player the player
+     * @param owner  the player who used the scroll
+     * @return the decision
+     */
+    public Admission admission(UUID player, UUID owner) {
+        if (this.roster.completed().contains(player)) {
+            return Admission.COMPLETED;
+        }
+        if (this.roster.entrants().contains(player)) {
+            return this.options.allowReentry() ? Admission.ALLOWED : Admission.NO_REENTRY;
+        }
+        if (this.options.solo()) {
+            return player.equals(owner) ? Admission.ALLOWED : Admission.NOT_OWNER;
+        }
+        if (!this.options.unlimitedPlayers() && this.roster.entrants().size() >= this.options.maxPlayers()) {
+            return Admission.FULL;
+        }
+        return Admission.ALLOWED;
     }
 
     /**
@@ -154,7 +195,7 @@ public record ChallengeInstance(
         if (!this.ready()) {
             return LifecycleState.FORMING;
         }
-        if (!this.participants.isEmpty()) {
+        if (!this.participants().isEmpty()) {
             return LifecycleState.ACTIVE;
         }
         return this.portalOpen() ? LifecycleState.IDLE : LifecycleState.CLEANUP_DUE;
@@ -170,5 +211,24 @@ public record ChallengeInstance(
         IDLE,
         /** Portal closed and nobody inside; the instance is removed and its slot cleared. */
         CLEANUP_DUE
+    }
+
+    /** Result of checking whether a player may enter through the portal. */
+    public enum Admission {
+        /** The player may enter. */
+        ALLOWED,
+        /** Solo scroll: only the scroll user may enter. */
+        NOT_OWNER,
+        /** The maximum number of distinct players has been reached. */
+        FULL,
+        /** The player was inside before and the scroll does not allow re-entry. */
+        NO_REENTRY,
+        /** The player already completed this run and can never re-enter. */
+        COMPLETED;
+
+        /** @return the lang key of the rejection message */
+        public String messageKey() {
+            return "message.architectstrials.portal.denied." + this.name().toLowerCase(Locale.ROOT);
+        }
     }
 }

@@ -1,0 +1,8 @@
+{
+  "type": "minecraft:function",
+  "environment": "minecraft:default",
+  "function": "architectstrials:options_time_limit_covers_portal",
+  "max_ticks": 40,
+  "structure": "minecraft:empty",
+  "padding": 8
+}
