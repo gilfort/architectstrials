@@ -1,6 +1,8 @@
 package com.gilfort.architectstrials.registry;
 
 import com.gilfort.architectstrials.ArchitectsTrials;
+import com.gilfort.architectstrials.block.ChallengeExitBlock;
+import com.gilfort.architectstrials.block.ExitMarkerBlock;
 import com.gilfort.architectstrials.block.PlayerSpawnMarkerBlock;
 
 import net.minecraft.world.level.block.SoundType;
@@ -24,6 +26,15 @@ public final class ModBlocks {
     /** Editor marker for player entry points; resolved to air when a structure is placed. */
     public static final DeferredBlock<PlayerSpawnMarkerBlock> PLAYER_SPAWN_MARKER = BLOCKS.registerBlock(
             "player_spawn_marker", PlayerSpawnMarkerBlock::new, ModBlocks::markerProperties);
+
+    /** Editor marker for challenge exits; resolved to {@link #CHALLENGE_EXIT} when a structure is placed. */
+    public static final DeferredBlock<ExitMarkerBlock> EXIT_MARKER = BLOCKS.registerBlock(
+            "exit_marker", ExitMarkerBlock::new, ModBlocks::markerProperties);
+
+    /** The functional challenge exit (redstone signal locks it). Only created by the exit marker resolver. */
+    public static final DeferredBlock<ChallengeExitBlock> CHALLENGE_EXIT = BLOCKS.registerBlock(
+            "challenge_exit", ChallengeExitBlock::new, properties -> markerProperties(properties)
+                    .mapColor(MapColor.COLOR_PURPLE).sound(SoundType.STONE).lightLevel(state -> state.getValue(ChallengeExitBlock.POWERED) ? 0 : 10));
 
     private ModBlocks() {
     }

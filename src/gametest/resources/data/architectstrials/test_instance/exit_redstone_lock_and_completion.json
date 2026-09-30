@@ -1,0 +1,8 @@
+{
+  "type": "minecraft:function",
+  "environment": "minecraft:default",
+  "function": "architectstrials:exit_redstone_lock_and_completion",
+  "max_ticks": 40,
+  "structure": "minecraft:empty",
+  "padding": 8
+}

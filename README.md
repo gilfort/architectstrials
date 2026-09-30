@@ -115,6 +115,7 @@ Markers are only available in the creative inventory (no recipes).
 | Marker | Effect on placement |
 |---|---|
 | Player Spawn Marker | Records a possible entry point (position + the direction its arrow points) and turns into air. Every player entering picks a random one independently, so groups may start at different points. **Every structure needs at least one**; structures without are skipped with a warning. |
+| Exit Marker | Becomes the challenge exit: a base block with a portal swirl above it. Walking through the open portal completes the run ("Run Completed") and returns the player to their entry point. **A redstone signal locks the exit** (only the base remains visible); unpowered it is open. Wire it to any redstone logic to decide when a run can be finished. Using an exit is the only way to complete a run. |
 
 ### Commands (operators only)
 
@@ -169,10 +170,12 @@ Communicate it to players via your modpack's questbook or wiki. A death never co
 ./gradlew runGameTestServer  # runs all GameTests headless
 ```
 
+Other mods can react to completed runs via `com.gilfort.architectstrials.run.RunCompletedEvent` (NeoForge event bus).
+
 GameTests and their test datapack live in `src/gametest` and are never included in the mod jar.
 The dev test datapack also defines the dimension `architectstrials:gametest_theme` for manual testing in
 `runClient` (`/architectstrials theme tp architectstrials:gametest_theme`), with a tier-1 pool containing a small
-spawn-marker platform (`/architectstrials instance create architectstrials:gametest_theme 1 join`).
+spawn-marker platform with an exit (`/architectstrials instance create architectstrials:gametest_theme 1 join`).
 
 ## License
 

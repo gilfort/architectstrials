@@ -1,0 +1,8 @@
+{
+  "parent": "minecraft:block/orientable",
+  "textures": {
+    "front": "architectstrials:block/exit_marker_front",
+    "side": "architectstrials:block/exit_marker_side",
+    "top": "architectstrials:block/exit_marker_top"
+  }
+}

@@ -1,0 +1,28 @@
+{
+  "variants": {
+    "facing=north,powered=false": {
+      "model": "architectstrials:block/challenge_exit"
+    },
+    "facing=north,powered=true": {
+      "model": "architectstrials:block/challenge_exit_locked"
+    },
+    "facing=east,powered=false": {
+      "model": "architectstrials:block/challenge_exit"
+    },
+    "facing=east,powered=true": {
+      "model": "architectstrials:block/challenge_exit_locked"
+    },
+    "facing=south,powered=false": {
+      "model": "architectstrials:block/challenge_exit"
+    },
+    "facing=south,powered=true": {
+      "model": "architectstrials:block/challenge_exit_locked"
+    },
+    "facing=west,powered=false": {
+      "model": "architectstrials:block/challenge_exit"
+    },
+    "facing=west,powered=true": {
+      "model": "architectstrials:block/challenge_exit_locked"
+    }
+  }
+}

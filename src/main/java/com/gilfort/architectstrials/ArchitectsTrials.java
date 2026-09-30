@@ -2,6 +2,7 @@ package com.gilfort.architectstrials;
 
 import org.slf4j.Logger;
 
+import com.gilfort.architectstrials.block.ExitMarkerBlock;
 import com.gilfort.architectstrials.block.PlayerSpawnMarkerBlock;
 import com.gilfort.architectstrials.config.ArchitectsTrialsConfig;
 import com.gilfort.architectstrials.marker.MarkerResolvers;
@@ -60,7 +61,10 @@ public final class ArchitectsTrials {
      * @param event the common setup event
      */
     private void commonSetup(FMLCommonSetupEvent event) {
-        event.enqueueWork(() -> MarkerResolvers.register(ModBlocks.PLAYER_SPAWN_MARKER.get(), PlayerSpawnMarkerBlock::resolve));
+        event.enqueueWork(() -> {
+            MarkerResolvers.register(ModBlocks.PLAYER_SPAWN_MARKER.get(), PlayerSpawnMarkerBlock::resolve);
+            MarkerResolvers.register(ModBlocks.EXIT_MARKER.get(), ExitMarkerBlock::resolve);
+        });
     }
 
     /**

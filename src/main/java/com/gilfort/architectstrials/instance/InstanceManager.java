@@ -92,12 +92,12 @@ public final class InstanceManager {
                 slot.get().centerZ() - size.getZ() / 2);
         StructurePlaceSettings settings = placeSettings(size, rotation, mirror);
         ChallengeInstance placed = new ChallengeInstance(UUID.randomUUID(), theme.id(), tier, drawn.get(),
-                slot.get().index(), origin, rotation, mirror, List.of());
+                slot.get().index(), origin, rotation, mirror, List.of(), List.of());
 
         template.get().placeInWorld(level, origin, origin, settings, random, Block.UPDATE_CLIENTS);
         MarkerContext context = new MarkerContext(level, placed, random);
         int markers = MarkerResolvers.resolveAll(context, template.get(), origin, settings);
-        ChallengeInstance instance = placed.withSpawnPoints(context.spawnPoints());
+        ChallengeInstance instance = placed.withSpawnPoints(context.spawnPoints()).withExits(context.exits());
         if (!instance.ready()) {
             ArchitectsTrials.LOGGER.warn("Instance {} of structure {} has no player spawn markers and can never be entered",
                     instance.id(), drawn.get());
@@ -106,6 +106,22 @@ public final class InstanceManager {
         ArchitectsTrials.LOGGER.debug("Created instance {} of {} tier {} with structure {} in slot {} ({} markers)",
                 instance.id(), theme.id(), tier, drawn.get(), instance.slot(), markers);
         return new InstanceCreation.Success(instance);
+    }
+
+    /**
+     * Finds the instance whose slot contains a position.
+     *
+     * @param level the theme level
+     * @param pos   the position
+     * @return the instance, or empty if the position is in no instance's slot
+     */
+    public static Optional<ChallengeInstance> findAt(ServerLevel level, BlockPos pos) {
+        for (ChallengeInstance instance : data(level).all()) {
+            if (SlotManager.slot(level, instance.slot()).area(level.getMinY(), level.getMaxY()).isInside(pos)) {
+                return Optional.of(instance);
+            }
+        }
+        return Optional.empty();
     }
 
     /**
