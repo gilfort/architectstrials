@@ -87,6 +87,15 @@ data/<ns>/architectstrials/challenge/<theme>/tier_<n>/<id>.json    metadata (aut
 `weight` (default 1) controls how often a structure is drawn; `rotation` (default false) allows random
 rotation and mirroring on placement. Structures may be at most 128 × 128 blocks (X/Z).
 
+### Markers
+
+Builders place marker blocks instead of final content; they are resolved when a structure is placed.
+Markers are only available in the creative inventory (no recipes).
+
+| Marker | Effect on placement |
+|---|---|
+| Player Spawn Marker | Records a possible entry point (position + the direction its arrow points) and turns into air. Every player entering picks a random one independently, so groups may start at different points. **Every structure needs at least one**; structures without are skipped with a warning. |
+
 ### Commands (operators only)
 
 | Command | Description |
@@ -94,7 +103,7 @@ rotation and mirroring on placement. Structures may be at most 128 × 128 blocks
 | `/architectstrials theme list` | Lists all loaded themes and their available tiers |
 | `/architectstrials theme tp <theme>` | Teleports you into a theme's dimension (void world — use creative/spectator); stores your entry point, keeps your game mode |
 | `/architectstrials enter <theme>` | Debug entry into a theme like a real challenge: stores your entry point, switches to Adventure |
-| `/architectstrials instance create <theme> <tier>` | Debug: creates an instance — draws a structure, places it in a free slot, runs the marker pass |
+| `/architectstrials instance create <theme> <tier> [join]` | Debug: creates an instance — draws a structure, places it in a free slot, runs the marker pass; `join` lets you enter at a random spawn marker |
 | `/architectstrials slot list <theme>` | Lists occupied and clearing slots of a theme dimension |
 | `/architectstrials slot allocate <theme>` | Debug: allocates the next free slot |
 | `/architectstrials slot free <theme> <index>` | Debug: releases a slot; its content is cleared over the next ticks |
@@ -139,8 +148,8 @@ Communicate it to players via your modpack's questbook or wiki. A death never co
 
 GameTests and their test datapack live in `src/gametest` and are never included in the mod jar.
 The dev test datapack also defines the dimension `architectstrials:gametest_theme` for manual testing in
-`runClient` (`/architectstrials theme tp architectstrials:gametest_theme`), with a tier-1 pool containing the
-vanilla igloo (`/architectstrials instance create architectstrials:gametest_theme 1`).
+`runClient` (`/architectstrials theme tp architectstrials:gametest_theme`), with a tier-1 pool containing a small
+spawn-marker platform (`/architectstrials instance create architectstrials:gametest_theme 1 join`).
 
 ## License
 
