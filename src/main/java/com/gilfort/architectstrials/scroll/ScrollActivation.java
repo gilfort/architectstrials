@@ -6,6 +6,7 @@ import com.gilfort.architectstrials.instance.ChallengeInstance;
 import com.gilfort.architectstrials.instance.InstanceCreation;
 import com.gilfort.architectstrials.instance.InstanceManager;
 import com.gilfort.architectstrials.portal.ChallengePortal;
+import com.gilfort.architectstrials.registry.ModAttachments;
 import com.gilfort.architectstrials.registry.ModDataComponents;
 import com.gilfort.architectstrials.theme.ChallengeTheme;
 import com.gilfort.architectstrials.theme.ChallengeThemes;
@@ -20,7 +21,8 @@ import net.minecraft.world.item.ItemStack;
 /**
  * Opens a challenge portal from a scroll.
  * <p>
- * Order: validate → create the instance → spawn the portal → consume the scroll. The scroll is consumed only
+ * Order: validate (incl. the player's difficulty level for the theme) → create the instance → spawn the portal →
+ * consume the scroll. The scroll is consumed only
  * if everything succeeded; every failure leaves it untouched and reports a lang-defined reason.
  */
 public final class ScrollActivation {
@@ -72,6 +74,10 @@ public final class ScrollActivation {
         ServerLevel themeLevel = theme.map(t -> level.getServer().getLevel(t.dimension())).orElse(null);
         if (theme.isEmpty() || themeLevel == null) {
             return Result.failure(Component.translatable("message.architectstrials.scroll.unknown_theme", target.theme().toString()));
+        }
+        int difficulty = player.getData(ModAttachments.DIFFICULTY).level(target.theme());
+        if (difficulty < target.tier()) {
+            return Result.failure(Component.translatable("message.architectstrials.scroll.difficulty_too_low", target.tier(), difficulty));
         }
         if (!hasSpace(level, portalPos)) {
             return Result.failure(Component.translatable("message.architectstrials.scroll.no_space"));

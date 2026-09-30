@@ -3,6 +3,7 @@ package com.gilfort.architectstrials.registry;
 import java.util.function.Supplier;
 
 import com.gilfort.architectstrials.ArchitectsTrials;
+import com.gilfort.architectstrials.difficulty.PlayerDifficulty;
 import com.gilfort.architectstrials.run.RunStatistics;
 import com.gilfort.architectstrials.travel.EntryPoint;
 
@@ -44,6 +45,14 @@ public final class ModAttachments {
     /** Completed runs per theme and tier; persisted and kept on death. */
     public static final Supplier<AttachmentType<RunStatistics>> RUN_STATISTICS = ATTACHMENT_TYPES.register("run_statistics",
             () -> AttachmentType.builder(RunStatistics::new).serialize(RunStatistics.MAP_CODEC).copyOnDeath().build());
+
+    /** Difficulty level per theme; persisted, kept on death and synced to the owning player only. */
+    public static final Supplier<AttachmentType<PlayerDifficulty>> DIFFICULTY = ATTACHMENT_TYPES.register("difficulty",
+            () -> AttachmentType.builder(() -> new PlayerDifficulty())
+                    .serialize(PlayerDifficulty.MAP_CODEC)
+                    .sync((holder, player) -> holder == player, PlayerDifficulty.STREAM_CODEC)
+                    .copyOnDeath()
+                    .build());
 
     private ModAttachments() {
     }

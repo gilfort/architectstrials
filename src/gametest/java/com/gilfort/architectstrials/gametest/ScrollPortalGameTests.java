@@ -7,6 +7,7 @@ import com.gilfort.architectstrials.ArchitectsTrials;
 import com.gilfort.architectstrials.config.ArchitectsTrialsConfig;
 import com.gilfort.architectstrials.instance.InstanceManager;
 import com.gilfort.architectstrials.portal.ChallengePortal;
+import com.gilfort.architectstrials.registry.ModAttachments;
 import com.gilfort.architectstrials.registry.ModDataComponents;
 import com.gilfort.architectstrials.registry.ModItems;
 import com.gilfort.architectstrials.scroll.ScrollActivation;
@@ -39,7 +40,7 @@ import net.neoforged.neoforge.registries.RegisterEvent;
 public final class ScrollPortalGameTests {
 
     private static final int PLATFORM_TIER = 2;
-    private static final BlockPos PORTAL = new BlockPos(3, 1, 1);
+    static final BlockPos PORTAL = new BlockPos(3, 1, 1);
 
     private ScrollPortalGameTests() {
     }
@@ -69,7 +70,7 @@ public final class ScrollPortalGameTests {
      */
     private static void opensPortalAndOwnerEnters(GameTestHelper helper) {
         ServerLevel level = helper.getLevel();
-        ServerPlayer owner = TestPlayers.atStart(helper, GameType.SURVIVAL);
+        ServerPlayer owner = qualified(TestPlayers.atStart(helper, GameType.SURVIVAL), PLATFORM_TIER);
         ServerPlayer stranger = TestPlayers.atStart(helper, GameType.SURVIVAL);
         ItemStack scroll = scroll(Level.NETHER.identifier(), PLATFORM_TIER);
         clearPortalSpace(helper);
@@ -104,7 +105,7 @@ public final class ScrollPortalGameTests {
      * Every failure leaves the scroll untouched and opens no portal.
      */
     private static void failuresKeepScroll(GameTestHelper helper) {
-        ServerPlayer player = TestPlayers.atStart(helper, GameType.SURVIVAL);
+        ServerPlayer player = qualified(TestPlayers.atStart(helper, GameType.SURVIVAL), 99);
         BlockPos portalPos = helper.absolutePos(PORTAL);
 
         ItemStack blank = new ItemStack(ModItems.CHALLENGE_SCROLL.get());
@@ -132,7 +133,7 @@ public final class ScrollPortalGameTests {
      * An active portal nobody enters collapses after the timeout and cleans up its instance.
      */
     private static void expiresUnused(GameTestHelper helper) {
-        ServerPlayer owner = TestPlayers.atStart(helper, GameType.SURVIVAL);
+        ServerPlayer owner = qualified(TestPlayers.atStart(helper, GameType.SURVIVAL), PLATFORM_TIER);
         clearPortalSpace(helper);
         ChallengePortal portal = ScrollActivation.activate(owner, scroll(Level.NETHER.identifier(), PLATFORM_TIER),
                 helper.absolutePos(PORTAL), 0.0F).portal().orElseThrow();
@@ -160,13 +161,21 @@ public final class ScrollPortalGameTests {
         helper.assertTrue(scroll.getCount() == count, "Scroll was consumed for " + scenario);
     }
 
-    private static void clearPortalSpace(GameTestHelper helper) {
+    /**
+     * Raises the player's nether difficulty so scrolls up to {@code level} may be used.
+     */
+    static ServerPlayer qualified(ServerPlayer player, int level) {
+        player.setData(ModAttachments.DIFFICULTY, player.getData(ModAttachments.DIFFICULTY).withLevel(Level.NETHER.identifier(), level));
+        return player;
+    }
+
+    static void clearPortalSpace(GameTestHelper helper) {
         helper.setBlock(PORTAL.below(), Blocks.STONE);
         helper.setBlock(PORTAL, Blocks.AIR);
         helper.setBlock(PORTAL.above(), Blocks.AIR);
     }
 
-    private static ItemStack scroll(Identifier theme, int tier) {
+    static ItemStack scroll(Identifier theme, int tier) {
         ItemStack scroll = new ItemStack(ModItems.CHALLENGE_SCROLL.get());
         scroll.set(ModDataComponents.SCROLL_TARGET.get(), new ScrollTarget(theme, tier));
         return scroll;

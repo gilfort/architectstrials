@@ -131,6 +131,21 @@ Advancements can react to completed runs with the criterion `architectstrials:ru
 All conditions are optional. `runs` counts the player's completed runs matching `theme` and `tier`
 (including the current one). Advancement rewards (e.g. functions) work as usual.
 
+### Difficulty levels
+
+Every player has a difficulty level **per theme**. A scroll of tier *n* can only be used by a player whose
+level for that theme is at least *n* (the tooltip shows the requirement in green or red). Players start at
+`startingDifficulty` (default 1); with `0`, all scrolls are blocked until the player is upgraded.
+
+Raise levels from anywhere a command runs, typically an advancement reward function:
+
+```mcfunction
+# data/mypack/function/nether_unlock_tier_2.mcfunction
+architectstrials difficulty @s mypack:nether set 2
+```
+
+Only the player opening a portal is checked — stronger players can open challenges for weaker ones.
+
 ### Markers
 
 Builders place marker blocks instead of final content; they are resolved when a structure is placed.
@@ -150,6 +165,7 @@ Markers are only available in the creative inventory (no recipes).
 | `/architectstrials enter <theme>` | Debug entry into a theme like a real challenge: stores your entry point, switches to Adventure |
 | `/architectstrials instance create <theme> <tier> [join]` | Debug: creates an instance — draws a structure, places it in a free slot, runs the marker pass; `join` lets you enter at a random spawn marker |
 | `/architectstrials marker loot_table <id>\|clear` | Sets or removes the loot table of the marker you are looking at (Exit Marker: completion bonus override) |
+| `/architectstrials difficulty <targets> <theme> set <level>` / `add <amount>` / `get` | Sets, changes or reads difficulty levels (usable in functions; `get` returns the level) |
 | `/architectstrials scroll give <theme> <tier> [targets]` | Gives a challenge scroll bound to a theme and tier |
 | `/architectstrials slot list <theme>` | Lists occupied and clearing slots of a theme dimension |
 | `/architectstrials slot allocate <theme>` | Debug: allocates the next free slot |
@@ -175,6 +191,7 @@ server stop resumes on the next start.
 | `slotSpacing` | 2048 | Distance between slots. Only applies to theme dimensions without instances, so existing instances never move. |
 | `maxConcurrentInstances` | 0 | Maximum simultaneous instances per theme dimension; `0` = unlimited. |
 | `structurePlacementY` | 64 | Y coordinate the bottom of every challenge structure is placed at. |
+| `startingDifficulty` | 1 | Difficulty level every player starts with in every theme; `0` blocks scrolls until upgraded. |
 | `portalTimeoutSeconds` | 60 | Seconds an opened portal waits for its player before collapsing. |
 
 ### Death protection (Dimension Ward)

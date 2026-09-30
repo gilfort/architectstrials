@@ -1,0 +1,8 @@
+{
+  "type": "minecraft:function",
+  "environment": "minecraft:default",
+  "function": "architectstrials:difficulty_starting_level_zero",
+  "max_ticks": 20,
+  "structure": "minecraft:empty",
+  "padding": 8
+}
