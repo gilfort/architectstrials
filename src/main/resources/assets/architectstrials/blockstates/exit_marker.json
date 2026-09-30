@@ -1,0 +1,19 @@
+{
+  "variants": {
+    "facing=north": {
+      "model": "architectstrials:block/exit_marker"
+    },
+    "facing=east": {
+      "model": "architectstrials:block/exit_marker",
+      "y": 90
+    },
+    "facing=south": {
+      "model": "architectstrials:block/exit_marker",
+      "y": 180
+    },
+    "facing=west": {
+      "model": "architectstrials:block/exit_marker",
+      "y": 270
+    }
+  }
+}

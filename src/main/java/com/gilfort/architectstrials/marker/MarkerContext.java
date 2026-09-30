@@ -7,6 +7,7 @@ import java.util.List;
 import com.gilfort.architectstrials.instance.ChallengeInstance;
 import com.gilfort.architectstrials.instance.SpawnPoint;
 
+import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.RandomSource;
 
@@ -20,6 +21,7 @@ public final class MarkerContext {
     private final ChallengeInstance instance;
     private final RandomSource random;
     private final List<SpawnPoint> spawnPoints = new ArrayList<>();
+    private final List<BlockPos> exits = new ArrayList<>();
 
     /**
      * Creates a context.
@@ -56,6 +58,20 @@ public final class MarkerContext {
      */
     public void addSpawnPoint(SpawnPoint spawnPoint) {
         this.spawnPoints.add(spawnPoint);
+    }
+
+    /**
+     * Records the base position of a challenge exit.
+     *
+     * @param pos the exit base position
+     */
+    public void addExit(BlockPos pos) {
+        this.exits.add(pos);
+    }
+
+    /** @return the recorded exit base positions */
+    public List<BlockPos> exits() {
+        return Collections.unmodifiableList(this.exits);
     }
 
     /** @return the recorded player entry points */

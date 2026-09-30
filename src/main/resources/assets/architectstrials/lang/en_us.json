@@ -10,6 +10,9 @@
   "entity.architectstrials.portal_echo": "Portal Echo",
 
   "block.architectstrials.player_spawn_marker": "Player Spawn Marker",
+  "block.architectstrials.exit_marker": "Exit Marker",
+  "tooltip.architectstrials.exit_marker": "Editor marker: becomes the challenge exit. Walking through its portal completes the run. A redstone signal LOCKS the exit; unpowered it is open.",
+  "block.architectstrials.challenge_exit": "Challenge Exit",
   "tooltip.architectstrials.player_spawn_marker": "Editor marker: players entering the challenge spawn here, looking where the arrow points. Replaced by air when the structure is placed.",
 
   "commands.architectstrials.theme.unknown": "Unknown challenge theme: %s",
@@ -61,6 +64,7 @@
   "message.architectstrials.instance.template_missing": "The structure template %s could not be loaded.",
   "message.architectstrials.instance.too_large": "The structure %s is larger than %s×%2$s blocks.",
   "message.architectstrials.instance.no_slot": "The maximum number of concurrent challenges for this theme is reached. Try again later.",
+  "message.architectstrials.run_completed": "Challenge completed: %s, Tier %s!",
   "message.architectstrials.returned_on_login": "Your challenge is over – you have been returned.",
   "message.architectstrials.ward.saved": "The Dimension Ward saved you from death (%s) and brought you back.",
 

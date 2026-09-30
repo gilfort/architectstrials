@@ -23,6 +23,10 @@ public final class ModItems {
     public static final DeferredItem<MarkerBlockItem> PLAYER_SPAWN_MARKER = ITEMS.registerItem("player_spawn_marker",
             properties -> new MarkerBlockItem(ModBlocks.PLAYER_SPAWN_MARKER.get(), properties.rarity(Rarity.EPIC).useBlockDescriptionPrefix()));
 
+    /** Item of the {@link ModBlocks#EXIT_MARKER}; creative/editor only, no recipe. */
+    public static final DeferredItem<MarkerBlockItem> EXIT_MARKER = ITEMS.registerItem("exit_marker",
+            properties -> new MarkerBlockItem(ModBlocks.EXIT_MARKER.get(), properties.rarity(Rarity.EPIC).useBlockDescriptionPrefix()));
+
     /** The challenge scroll; theme and tier come from the {@code architectstrials:challenge} data component. */
     public static final DeferredItem<ChallengeScrollItem> CHALLENGE_SCROLL = ITEMS.registerItem("challenge_scroll",
             properties -> new ChallengeScrollItem(properties.stacksTo(16).rarity(Rarity.UNCOMMON)));

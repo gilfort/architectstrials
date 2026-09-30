@@ -1,6 +1,7 @@
 package com.gilfort.architectstrials.client;
 
 import com.gilfort.architectstrials.ArchitectsTrials;
+import com.gilfort.architectstrials.registry.ModBlockEntityTypes;
 import com.gilfort.architectstrials.registry.ModEntityTypes;
 
 import net.minecraft.client.renderer.entity.NoopRenderer;
@@ -41,15 +42,16 @@ public final class ArchitectsTrialsClient {
      * @param event the client setup event
      */
     /**
-     * Registers entity renderers. Portals and their echoes are drawn purely with particles, so they use no-op
-     * renderers.
+     * Registers entity and block entity renderers: animated surfaces for entry portals and challenge exits;
+     * the rune echo is particle-only and uses a no-op renderer.
      *
      * @param event the renderer registration event
      */
     @SubscribeEvent
     static void onRegisterRenderers(EntityRenderersEvent.RegisterRenderers event) {
-        event.registerEntityRenderer(ModEntityTypes.CHALLENGE_PORTAL.get(), NoopRenderer::new);
+        event.registerEntityRenderer(ModEntityTypes.CHALLENGE_PORTAL.get(), ChallengePortalRenderer::new);
         event.registerEntityRenderer(ModEntityTypes.PORTAL_ECHO.get(), NoopRenderer::new);
+        event.registerBlockEntityRenderer(ModBlockEntityTypes.CHALLENGE_EXIT.get(), ChallengeExitRenderer::new);
     }
 
     @SubscribeEvent

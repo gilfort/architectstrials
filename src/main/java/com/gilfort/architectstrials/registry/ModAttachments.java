@@ -3,6 +3,7 @@ package com.gilfort.architectstrials.registry;
 import java.util.function.Supplier;
 
 import com.gilfort.architectstrials.ArchitectsTrials;
+import com.gilfort.architectstrials.run.RunStatistics;
 import com.gilfort.architectstrials.travel.EntryPoint;
 
 import net.neoforged.bus.api.IEventBus;
@@ -39,6 +40,10 @@ public final class ModAttachments {
      */
     public static final Supplier<AttachmentType<Long>> WARD_GRACE_UNTIL = ATTACHMENT_TYPES.register("ward_grace_until",
             () -> AttachmentType.builder(() -> 0L).build());
+
+    /** Completed runs per theme and tier; persisted and kept on death. */
+    public static final Supplier<AttachmentType<RunStatistics>> RUN_STATISTICS = ATTACHMENT_TYPES.register("run_statistics",
+            () -> AttachmentType.builder(RunStatistics::new).serialize(RunStatistics.MAP_CODEC).copyOnDeath().build());
 
     private ModAttachments() {
     }

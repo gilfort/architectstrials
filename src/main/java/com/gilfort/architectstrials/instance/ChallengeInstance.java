@@ -25,6 +25,7 @@ import net.minecraft.world.level.block.Rotation;
  * @param rotation    the applied rotation
  * @param mirror      the applied mirroring
  * @param spawnPoints the player entry points recorded from the structure's player spawn markers
+ * @param exits       the positions of the exit bases recorded from the structure's exit markers
  */
 public record ChallengeInstance(
         UUID id,
@@ -35,7 +36,8 @@ public record ChallengeInstance(
         BlockPos origin,
         Rotation rotation,
         Mirror mirror,
-        List<SpawnPoint> spawnPoints
+        List<SpawnPoint> spawnPoints,
+        List<BlockPos> exits
 ) {
 
     /** Codec used to persist instances. */
@@ -48,12 +50,14 @@ public record ChallengeInstance(
             BlockPos.CODEC.fieldOf("origin").forGetter(ChallengeInstance::origin),
             Rotation.CODEC.fieldOf("rotation").forGetter(ChallengeInstance::rotation),
             Mirror.CODEC.fieldOf("mirror").forGetter(ChallengeInstance::mirror),
-            SpawnPoint.CODEC.listOf().optionalFieldOf("spawn_points", List.of()).forGetter(ChallengeInstance::spawnPoints)
+            SpawnPoint.CODEC.listOf().optionalFieldOf("spawn_points", List.of()).forGetter(ChallengeInstance::spawnPoints),
+            BlockPos.CODEC.listOf().optionalFieldOf("exits", List.of()).forGetter(ChallengeInstance::exits)
     ).apply(instance, ChallengeInstance::new));
 
-    /** Creates an instance, defensively copying the spawn points. */
+    /** Creates an instance, defensively copying the marker-derived lists. */
     public ChallengeInstance {
         spawnPoints = List.copyOf(spawnPoints);
+        exits = List.copyOf(exits);
     }
 
     /**
@@ -74,6 +78,17 @@ public record ChallengeInstance(
      */
     public ChallengeInstance withSpawnPoints(List<SpawnPoint> points) {
         return new ChallengeInstance(this.id, this.theme, this.tier, this.structure, this.slot, this.origin,
-                this.rotation, this.mirror, points);
+                this.rotation, this.mirror, points, this.exits);
+    }
+
+    /**
+     * Returns a copy of this instance with the given exits.
+     *
+     * @param exitPositions the positions of the exit bases
+     * @return the updated instance
+     */
+    public ChallengeInstance withExits(List<BlockPos> exitPositions) {
+        return new ChallengeInstance(this.id, this.theme, this.tier, this.structure, this.slot, this.origin,
+                this.rotation, this.mirror, this.spawnPoints, exitPositions);
     }
 }

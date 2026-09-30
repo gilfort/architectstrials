@@ -166,11 +166,14 @@ public class ChallengePortal extends Entity {
     }
 
     /**
-     * Client-side visuals: sparse rune glyphs while forming, a dense portal swirl once active.
+     * Client-side particles: rune glyphs while forming; once active only a few accents, the surface itself is
+     * drawn by the entity renderer.
      */
     private void spawnParticles() {
         if (this.isActive()) {
-            PortalParticles.swirl(this, 6);
+            if (this.random.nextInt(3) == 0) {
+                PortalParticles.swirl(this, 1);
+            }
         } else {
             PortalParticles.runes(this, 2);
         }

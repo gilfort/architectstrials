@@ -128,7 +128,7 @@ public final class SpawnMarkerGameTests {
         template.placeInWorld(level, origin, origin, settings, level.getRandom(), Block.UPDATE_CLIENTS);
 
         ChallengeInstance dummy = new ChallengeInstance(UUID.randomUUID(), Level.NETHER.identifier(), PLATFORM_TIER, PLATFORM,
-                0, origin, Rotation.CLOCKWISE_90, Mirror.NONE, List.of());
+                0, origin, Rotation.CLOCKWISE_90, Mirror.NONE, List.of(), List.of());
         MarkerContext context = new MarkerContext(level, dummy, level.getRandom());
         MarkerResolvers.resolveAll(context, template, origin, settings);
 
