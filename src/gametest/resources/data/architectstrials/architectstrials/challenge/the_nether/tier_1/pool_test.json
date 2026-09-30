@@ -1,0 +1,7 @@
+{
+  "theme": "minecraft:the_nether",
+  "tier": 1,
+  "structure": "architectstrials:gametest/pool_test",
+  "name": "Pool test",
+  "author": "gametest"
+}

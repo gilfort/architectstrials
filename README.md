@@ -56,13 +56,45 @@ lower-priority packs. Entries pointing to a dimension that does not exist are lo
 **Display name:** themes use the lang key `dimension.<namespace>.<theme>`. Datapacks cannot ship lang
 files, so provide the translation via a resource pack; otherwise the theme id is shown.
 
+### Challenge structures & tiers
+
+Each theme has one structure pool per tier. When a challenge instance is created, one structure is drawn
+once (weighted) from the pool, placed centered in a free slot with its bottom at `structurePlacementY`,
+and the instance stays bound to it — later entries never re-roll. The available tiers of a theme are
+simply the tiers that have at least one structure.
+
+The in-game editor (later) writes these files for you into `<world>/datapacks/architectstrials_structures/`;
+the format for reference:
+
+```
+data/<ns>/structure/challenges/<theme>/tier_<n>/<id>.nbt           structure template (vanilla format)
+data/<ns>/architectstrials/challenge/<theme>/tier_<n>/<id>.json    metadata (authoritative)
+```
+
+```json
+{
+  "theme": "<ns>:<theme>",
+  "tier": 1,
+  "structure": "<ns>:challenges/<theme>/tier_1/<id>",
+  "name": "Optional display name",
+  "author": "Optional",
+  "created": 1790000000000,
+  "weight": 1,
+  "rotation": false
+}
+```
+
+`weight` (default 1) controls how often a structure is drawn; `rotation` (default false) allows random
+rotation and mirroring on placement. Structures may be at most 128 × 128 blocks (X/Z).
+
 ### Commands (operators only)
 
 | Command | Description |
 |---|---|
-| `/architectstrials theme list` | Lists all loaded themes |
+| `/architectstrials theme list` | Lists all loaded themes and their available tiers |
 | `/architectstrials theme tp <theme>` | Teleports you into a theme's dimension (void world — use creative/spectator); stores your entry point, keeps your game mode |
 | `/architectstrials enter <theme>` | Debug entry into a theme like a real challenge: stores your entry point, switches to Adventure |
+| `/architectstrials instance create <theme> <tier>` | Debug: creates an instance — draws a structure, places it in a free slot, runs the marker pass |
 | `/architectstrials slot list <theme>` | Lists occupied and clearing slots of a theme dimension |
 | `/architectstrials slot allocate <theme>` | Debug: allocates the next free slot |
 | `/architectstrials slot free <theme> <index>` | Debug: releases a slot; its content is cleared over the next ticks |
@@ -85,6 +117,7 @@ server stop resumes on the next start.
 |---|---|---|
 | `slotSpacing` | 2048 | Distance between slots. Only applies to theme dimensions without instances, so existing instances never move. |
 | `maxConcurrentInstances` | 0 | Maximum simultaneous instances per theme dimension; `0` = unlimited. |
+| `structurePlacementY` | 64 | Y coordinate the bottom of every challenge structure is placed at. |
 
 ### Death protection (Dimension Ward)
 
@@ -106,7 +139,8 @@ Communicate it to players via your modpack's questbook or wiki. A death never co
 
 GameTests and their test datapack live in `src/gametest` and are never included in the mod jar.
 The dev test datapack also defines the dimension `architectstrials:gametest_theme` for manual testing in
-`runClient` (`/architectstrials theme tp architectstrials:gametest_theme`).
+`runClient` (`/architectstrials theme tp architectstrials:gametest_theme`), with a tier-1 pool containing the
+vanilla igloo (`/architectstrials instance create architectstrials:gametest_theme 1`).
 
 ## License
 

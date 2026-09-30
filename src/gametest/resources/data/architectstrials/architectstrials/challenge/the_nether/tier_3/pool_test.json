@@ -1,0 +1,7 @@
+{
+  "theme": "minecraft:the_nether",
+  "tier": 3,
+  "structure": "architectstrials:gametest/pool_test",
+  "weight": 2,
+  "rotation": true
+}
