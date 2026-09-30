@@ -34,6 +34,7 @@ public final class ArchitectsTrialsCommand {
                 .then(SlotCommand.build())
                 .then(InstanceCommand.build())
                 .then(ScrollCommand.build())
-                .then(MarkerCommand.build()));
+                .then(MarkerCommand.build())
+                .then(RankCommand.build()));
     }
 }
