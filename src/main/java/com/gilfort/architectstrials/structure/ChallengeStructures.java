@@ -70,6 +70,15 @@ public final class ChallengeStructures {
     }
 
     /**
+     * Returns all loaded structures.
+     *
+     * @return a read-only view of all structures by metadata id
+     */
+    public static Map<Identifier, ChallengeStructure> all() {
+        return byId;
+    }
+
+    /**
      * Looks up a structure by its metadata id.
      *
      * @param id the metadata id

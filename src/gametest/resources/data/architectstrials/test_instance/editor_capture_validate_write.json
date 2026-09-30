@@ -1,0 +1,8 @@
+{
+  "type": "minecraft:function",
+  "environment": "minecraft:default",
+  "function": "architectstrials:editor_capture_validate_write",
+  "max_ticks": 20,
+  "structure": "minecraft:empty",
+  "padding": 12
+}
