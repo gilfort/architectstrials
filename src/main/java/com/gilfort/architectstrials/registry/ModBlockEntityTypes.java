@@ -6,6 +6,7 @@ import com.gilfort.architectstrials.ArchitectsTrials;
 import com.gilfort.architectstrials.block.ChallengeExitBlockEntity;
 import com.gilfort.architectstrials.block.ExitMarkerBlockEntity;
 import com.gilfort.architectstrials.block.SpawnMarkerBlockEntity;
+import com.gilfort.architectstrials.block.TrialSpawnerMarkerBlockEntity;
 
 import net.minecraft.core.registries.Registries;
 import net.minecraft.world.level.block.entity.BlockEntityType;
@@ -33,6 +34,10 @@ public final class ModBlockEntityTypes {
     public static final Supplier<BlockEntityType<SpawnMarkerBlockEntity>> SPAWN_MARKER = BLOCK_ENTITY_TYPES.register(
             "spawn_marker", () -> new BlockEntityType<>(SpawnMarkerBlockEntity::new, ModBlocks.DIRECT_SPAWN_MARKER.get(),
                     ModBlocks.SPAWNER_MARKER.get()));
+
+    /** Block entity of the trial spawner marker (three mob rows, simultaneous mobs, reward loot table). */
+    public static final Supplier<BlockEntityType<TrialSpawnerMarkerBlockEntity>> TRIAL_SPAWNER_MARKER = BLOCK_ENTITY_TYPES.register(
+            "trial_spawner_marker", () -> new BlockEntityType<>(TrialSpawnerMarkerBlockEntity::new, ModBlocks.TRIAL_SPAWNER_MARKER.get()));
 
     private ModBlockEntityTypes() {
     }

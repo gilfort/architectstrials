@@ -24,6 +24,8 @@
   "tooltip.architectstrials.direct_spawn_marker": "Editor marker: spawns mobs directly when the challenge is placed (they never despawn). Right-click: spawn egg (stack size = number of mobs) and equipment. Equipment never drops.",
   "block.architectstrials.spawner_marker": "Spawner Marker",
   "tooltip.architectstrials.spawner_marker": "Editor marker: becomes a monster spawner when the challenge is placed. Right-click: spawn egg (stack size = mobs per spawn cycle) and equipment. Equipment never drops.",
+  "block.architectstrials.trial_spawner_marker": "Trial Spawner Marker",
+  "tooltip.architectstrials.trial_spawner_marker": "Editor marker: becomes a trial spawner when the challenge is placed (never ominous). Right-click: up to three mob types (spawn egg + equipment; total mobs = sum of all eggs) and the number of mobs at once. Reward loot table: /architectstrials marker loot_table <id>",
   "block.architectstrials.challenge_exit": "Challenge Exit",
   "block.architectstrials.editor_platform": "Editor Platform",
   "dimension.architectstrials.editor": "Editor",
@@ -94,6 +96,11 @@
   "commands.architectstrials.structure.delete.no_request": "No matching delete request – run the delete command without 'confirm' first.",
   "commands.architectstrials.structure.delete.success": "Deleted %s.",
   "pack.architectstrials.structures.description": "Architect's Trials: structures saved in the editor",
+
+  "gui.architectstrials.trial_spawner_marker.total": "Total mobs: %s",
+  "gui.architectstrials.trial_spawner_marker.simultaneous": "At once: %s",
+  "gui.architectstrials.trial_spawner_marker.decrease": "-",
+  "gui.architectstrials.trial_spawner_marker.increase": "+",
 
   "architectstrials.configuration.title": "Architect's Trials Configuration",
   "architectstrials.configuration.section.architectstrials.server.toml": "Server",

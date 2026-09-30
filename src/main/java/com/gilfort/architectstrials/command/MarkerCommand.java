@@ -27,8 +27,8 @@ import net.minecraft.world.phys.HitResult;
  * <li>{@code /architectstrials marker loot_table <id>} — sets the loot table of the marker</li>
  * <li>{@code /architectstrials marker loot_table clear} — removes the loot table</li>
  * </ul>
- * Supported by every block whose block entity is a {@link LootTableReference} (currently the exit marker, whose
- * loot table overrides the completion bonus).
+ * Supported by every block whose block entity is a {@link LootTableReference}: the exit marker (overrides the
+ * completion bonus) and the trial spawner marker (reward ejected after a cleared wave).
  */
 final class MarkerCommand {
 

@@ -35,6 +35,10 @@ public final class ModItems {
     public static final DeferredItem<MarkerBlockItem> SPAWNER_MARKER = ITEMS.registerItem("spawner_marker",
             properties -> new MarkerBlockItem(ModBlocks.SPAWNER_MARKER.get(), properties.rarity(Rarity.EPIC).useBlockDescriptionPrefix()));
 
+    /** Item of the {@link ModBlocks#TRIAL_SPAWNER_MARKER}; creative/editor only, no recipe. */
+    public static final DeferredItem<MarkerBlockItem> TRIAL_SPAWNER_MARKER = ITEMS.registerItem("trial_spawner_marker",
+            properties -> new MarkerBlockItem(ModBlocks.TRIAL_SPAWNER_MARKER.get(), properties.rarity(Rarity.EPIC).useBlockDescriptionPrefix()));
+
     /** The challenge scroll; theme and tier come from the {@code architectstrials:challenge} data component. */
     public static final DeferredItem<ChallengeScrollItem> CHALLENGE_SCROLL = ITEMS.registerItem("challenge_scroll",
             properties -> new ChallengeScrollItem(properties.stacksTo(16).rarity(Rarity.UNCOMMON)));

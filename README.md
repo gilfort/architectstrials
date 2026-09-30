@@ -246,9 +246,10 @@ Markers are only available in the creative inventory (no recipes).
 | Exit Marker | Becomes the challenge exit: a base block with an animated portal surface above it. Up to three bases side by side (same facing, in a line across it) form one combined portal of n × (n+1) blocks; a signal at any base locks the whole portal. Walking through the open portal completes the run ("Run Completed") and returns the player to their entry point. **A redstone signal locks the exit** (only the base remains visible); unpowered it is open. Wire it to any redstone logic to decide when a run can be finished. Using an exit is the only way to complete a run. |
 | Direct Spawn Marker | Turns into air and spawns the configured mobs right away. They never despawn. |
 | Spawner Marker | Becomes a vanilla monster spawner for the configured mob. The egg count is the number of mobs per spawn cycle. All other spawner settings stay at vanilla defaults. |
+| Trial Spawner Marker | Becomes a vanilla trial spawner (no vault). Up to three mob types; **total mobs** = sum of all egg counts (the counts are also the spawn weights), **mobs at once** set with the +/- buttons. Reward: the loot table set with `/architectstrials marker loot_table <id>` (no reward if none is set). Vanilla per-player scaling (+2 total / +1 at once per additional player), spawn delay and cooldown stay unchanged. These spawners **never turn ominous** — Bad Omen / Trial Omen are ignored and not consumed. |
 
-**Configuring mob markers.** Right-click a Direct Spawn or Spawner Marker (creative mode + operator) to open its
-inventory: one spawn egg slot (the entity type — eggs from any mod work; the stack size is the count) and six
+**Configuring mob markers.** Right-click a Direct Spawn, Spawner or Trial Spawner Marker (creative mode + operator)
+to open its inventory. Each mob row has one spawn egg slot (the entity type — eggs from any mod work; the stack size is the count) and six
 equipment slots (head, chest, legs, feet, main hand, off hand). Mobs first get their normal setup (a skeleton
 still gets its bow), then every filled slot replaces the natural item. Equipment never drops (0 % drop chance) —
 loot comes from mob loot tables and loot containers. When the structure is rotated or mirrored, only the marker
