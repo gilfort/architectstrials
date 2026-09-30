@@ -3,6 +3,7 @@ package com.gilfort.architectstrials.client;
 import com.gilfort.architectstrials.ArchitectsTrials;
 import com.gilfort.architectstrials.registry.ModBlockEntityTypes;
 import com.gilfort.architectstrials.registry.ModEntityTypes;
+import com.gilfort.architectstrials.registry.ModMenuTypes;
 
 import net.minecraft.client.renderer.entity.NoopRenderer;
 
@@ -14,6 +15,7 @@ import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.fml.common.Mod;
 import net.neoforged.fml.event.lifecycle.FMLClientSetupEvent;
 import net.neoforged.neoforge.client.event.EntityRenderersEvent;
+import net.neoforged.neoforge.client.event.RegisterMenuScreensEvent;
 import net.neoforged.neoforge.client.gui.ConfigurationScreen;
 import net.neoforged.neoforge.client.gui.IConfigScreenFactory;
 
@@ -37,11 +39,6 @@ public final class ArchitectsTrialsClient {
     }
 
     /**
-     * Runs client-only setup.
-     *
-     * @param event the client setup event
-     */
-    /**
      * Registers entity and block entity renderers: animated surfaces for entry portals and challenge exits;
      * the rune echo is particle-only and uses a no-op renderer.
      *
@@ -54,6 +51,21 @@ public final class ArchitectsTrialsClient {
         event.registerBlockEntityRenderer(ModBlockEntityTypes.CHALLENGE_EXIT.get(), ChallengeExitRenderer::new);
     }
 
+    /**
+     * Registers the screens of the mod's menus.
+     *
+     * @param event the menu screen registration event
+     */
+    @SubscribeEvent
+    static void onRegisterMenuScreens(RegisterMenuScreensEvent event) {
+        event.register(ModMenuTypes.SPAWN_MARKER.get(), SpawnMarkerScreen::new);
+    }
+
+    /**
+     * Runs client-only setup.
+     *
+     * @param event the client setup event
+     */
     @SubscribeEvent
     static void onClientSetup(FMLClientSetupEvent event) {
         ArchitectsTrials.LOGGER.info("Architect's Trials client setup complete.");

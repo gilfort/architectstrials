@@ -1,0 +1,8 @@
+{
+  "type": "minecraft:function",
+  "environment": "minecraft:default",
+  "function": "architectstrials:mob_marker_direct_spawn",
+  "max_ticks": 20,
+  "structure": "minecraft:empty",
+  "padding": 12
+}

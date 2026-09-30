@@ -37,6 +37,17 @@ no weather, beds and respawn anchors do not work. You may use your own `dimensio
 e.g. to give a Nether theme a Nether sky. Choose a biome for its ambience (particles, sounds); natural mob
 spawning is always disabled in challenge dimensions — enemies only come from the structure's spawn markers.
 
+**Time of day.** Since Minecraft 26.x the time of day is data-driven: environment attributes in the
+`dimension_type` plus timelines driven by a world clock. `/time set` has no effect in
+`architectstrials:challenge` because it has a fixed time and no clock. To give a theme its own time of day,
+copy `data/architectstrials/dimension_type/challenge.json` into your datapack as a new `dimension_type` and
+reference it from the dimension. Then either
+- keep `"has_fixed_time": true` and set static visual attributes (e.g. `minecraft:visual/sun_angle`,
+  `minecraft:visual/sky_light_factor`, `minecraft:gameplay/sky_light_level`, `minecraft:visual/star_brightness`,
+  `minecraft:visual/sunrise_sunset_color`, sky and fog colors) for a permanent dusk or night, or
+- use `"has_fixed_time": false`, `"timelines": "#minecraft:in_overworld"` and
+  `"default_clock": "minecraft:overworld"` to follow the overworld's day cycle.
+
 **2. The theme list** — `data/<namespace>/architectstrials/challenge_dimensions.json`:
 
 ```json
@@ -211,7 +222,7 @@ onto the fresh platform).
 **Saving.** `/architectstrials editor save <theme> <tier> <id>` captures everything inside the border, trimmed
 to what was actually built (the platform is ignored; item frames, armor stands and paintings are kept, mobs
 are not — use spawn markers). A structure needs at least one Player Spawn Marker and one Exit Marker; spawn
-markers without two free blocks above them only produce a warning. The files go into the managed datapack
+markers without two free blocks above them and mob markers without a spawn egg only produce a warning. The files go into the managed datapack
 `<world>/datapacks/architectstrials_structures/`, which is enabled and reloaded automatically — the structure
 is in the pool immediately. To ship your structures, copy that one folder into your modpack. Add `overwrite`
 to replace an existing id (weight, rotation and name are kept).
@@ -233,6 +244,16 @@ Markers are only available in the creative inventory (no recipes).
 |---|---|
 | Player Spawn Marker | Records a possible entry point (position + the direction its arrow points) and turns into air. Every player entering picks a random one independently, so groups may start at different points. **Every structure needs at least one**; structures without are skipped with a warning. |
 | Exit Marker | Becomes the challenge exit: a base block with an animated portal surface above it. Up to three bases side by side (same facing, in a line across it) form one combined portal of n × (n+1) blocks; a signal at any base locks the whole portal. Walking through the open portal completes the run ("Run Completed") and returns the player to their entry point. **A redstone signal locks the exit** (only the base remains visible); unpowered it is open. Wire it to any redstone logic to decide when a run can be finished. Using an exit is the only way to complete a run. |
+| Direct Spawn Marker | Turns into air and spawns the configured mobs right away. They never despawn. |
+| Spawner Marker | Becomes a vanilla monster spawner for the configured mob. The egg count is the number of mobs per spawn cycle. All other spawner settings stay at vanilla defaults. |
+
+**Configuring mob markers.** Right-click a Direct Spawn or Spawner Marker (creative mode + operator) to open its
+inventory: one spawn egg slot (the entity type — eggs from any mod work; the stack size is the count) and six
+equipment slots (head, chest, legs, feet, main hand, off hand). Mobs first get their normal setup (a skeleton
+still gets its bow), then every filled slot replaces the natural item. Equipment never drops (0 % drop chance) —
+loot comes from mob loot tables and loot containers. When the structure is rotated or mirrored, only the marker
+position moves. A mob marker without a spawn egg triggers a warning on save and is removed without spawning
+anything.
 
 ### Commands (operators only)
 

@@ -20,6 +20,10 @@
   "block.architectstrials.player_spawn_marker": "Player Spawn Marker",
   "block.architectstrials.exit_marker": "Exit Marker",
   "tooltip.architectstrials.exit_marker": "Editor marker: becomes the challenge exit. Walking through its portal completes the run. A redstone signal LOCKS the exit; unpowered it is open. Optional bonus loot table: /architectstrials marker loot_table <id>",
+  "block.architectstrials.direct_spawn_marker": "Direct Spawn Marker",
+  "tooltip.architectstrials.direct_spawn_marker": "Editor marker: spawns mobs directly when the challenge is placed (they never despawn). Right-click: spawn egg (stack size = number of mobs) and equipment. Equipment never drops.",
+  "block.architectstrials.spawner_marker": "Spawner Marker",
+  "tooltip.architectstrials.spawner_marker": "Editor marker: becomes a monster spawner when the challenge is placed. Right-click: spawn egg (stack size = mobs per spawn cycle) and equipment. Equipment never drops.",
   "block.architectstrials.challenge_exit": "Challenge Exit",
   "block.architectstrials.editor_platform": "Editor Platform",
   "dimension.architectstrials.editor": "Editor",
@@ -134,6 +138,7 @@
   "message.architectstrials.save.no_spawn_marker": "Cannot save: the structure needs at least one Player Spawn Marker.",
   "message.architectstrials.save.no_exit_marker": "Cannot save: the structure needs at least one Exit Marker.",
   "message.architectstrials.save.spawn_marker_blocked": "Warning: the Player Spawn Marker at %s %s %s (relative) has no 2 free blocks above it.",
+  "message.architectstrials.save.mob_marker_empty": "Warning: the %s at %s %s %s (relative) has no spawn egg and will be removed without spawning anything.",
   "message.architectstrials.returned_on_login": "Your challenge is over – you have been returned.",
   "message.architectstrials.ward.saved": "The Dimension Ward saved you from death (%s) and brought you back.",
 

@@ -4,6 +4,7 @@ import com.gilfort.architectstrials.ArchitectsTrials;
 import com.gilfort.architectstrials.block.ChallengeExitBlock;
 import com.gilfort.architectstrials.block.ExitMarkerBlock;
 import com.gilfort.architectstrials.block.PlayerSpawnMarkerBlock;
+import com.gilfort.architectstrials.block.SpawnMarkerBlock;
 import com.gilfort.architectstrials.editor.EditorPlatformBlock;
 
 import net.minecraft.world.level.block.SoundType;
@@ -31,6 +32,14 @@ public final class ModBlocks {
     /** Editor marker for challenge exits; resolved to {@link #CHALLENGE_EXIT} when a structure is placed. */
     public static final DeferredBlock<ExitMarkerBlock> EXIT_MARKER = BLOCKS.registerBlock(
             "exit_marker", ExitMarkerBlock::new, ModBlocks::markerProperties);
+
+    /** Editor marker that spawns its configured mobs directly when a structure is placed. */
+    public static final DeferredBlock<SpawnMarkerBlock> DIRECT_SPAWN_MARKER = BLOCKS.registerBlock(
+            "direct_spawn_marker", SpawnMarkerBlock::new, properties -> markerProperties(properties).mapColor(MapColor.COLOR_RED));
+
+    /** Editor marker that becomes a vanilla monster spawner when a structure is placed. */
+    public static final DeferredBlock<SpawnMarkerBlock> SPAWNER_MARKER = BLOCKS.registerBlock(
+            "spawner_marker", SpawnMarkerBlock::new, properties -> markerProperties(properties).mapColor(MapColor.COLOR_ORANGE));
 
     /** The functional challenge exit (redstone signal locks it). Only created by the exit marker resolver. */
     public static final DeferredBlock<ChallengeExitBlock> CHALLENGE_EXIT = BLOCKS.registerBlock(
