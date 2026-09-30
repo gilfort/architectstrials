@@ -8,6 +8,8 @@ import com.gilfort.architectstrials.marker.MarkerResolvers;
 import com.gilfort.architectstrials.registry.ModAttachments;
 import com.gilfort.architectstrials.registry.ModBlocks;
 import com.gilfort.architectstrials.registry.ModCreativeModeTabs;
+import com.gilfort.architectstrials.registry.ModDataComponents;
+import com.gilfort.architectstrials.registry.ModEntityTypes;
 import com.gilfort.architectstrials.registry.ModItems;
 import com.mojang.logging.LogUtils;
 
@@ -44,6 +46,8 @@ public final class ArchitectsTrials {
         ModItems.register(modEventBus);
         ModCreativeModeTabs.register(modEventBus);
         ModAttachments.register(modEventBus);
+        ModDataComponents.register(modEventBus);
+        ModEntityTypes.register(modEventBus);
 
         modContainer.registerConfig(ModConfig.Type.SERVER, ArchitectsTrialsConfig.SPEC);
 

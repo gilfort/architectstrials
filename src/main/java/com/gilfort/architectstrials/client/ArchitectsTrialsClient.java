@@ -1,6 +1,9 @@
 package com.gilfort.architectstrials.client;
 
 import com.gilfort.architectstrials.ArchitectsTrials;
+import com.gilfort.architectstrials.registry.ModEntityTypes;
+
+import net.minecraft.client.renderer.entity.NoopRenderer;
 
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.IEventBus;
@@ -9,6 +12,7 @@ import net.neoforged.fml.ModContainer;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.fml.common.Mod;
 import net.neoforged.fml.event.lifecycle.FMLClientSetupEvent;
+import net.neoforged.neoforge.client.event.EntityRenderersEvent;
 import net.neoforged.neoforge.client.gui.ConfigurationScreen;
 import net.neoforged.neoforge.client.gui.IConfigScreenFactory;
 
@@ -36,6 +40,17 @@ public final class ArchitectsTrialsClient {
      *
      * @param event the client setup event
      */
+    /**
+     * Registers entity renderers. The challenge portal is drawn purely with particles, so it uses a no-op
+     * renderer.
+     *
+     * @param event the renderer registration event
+     */
+    @SubscribeEvent
+    static void onRegisterRenderers(EntityRenderersEvent.RegisterRenderers event) {
+        event.registerEntityRenderer(ModEntityTypes.CHALLENGE_PORTAL.get(), NoopRenderer::new);
+    }
+
     @SubscribeEvent
     static void onClientSetup(FMLClientSetupEvent event) {
         ArchitectsTrials.LOGGER.info("Architect's Trials client setup complete.");

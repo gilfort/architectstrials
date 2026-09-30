@@ -21,7 +21,8 @@ public final class ModCreativeModeTabs {
             DeferredRegister.create(Registries.CREATIVE_MODE_TAB, ArchitectsTrials.MOD_ID);
 
     /**
-     * The main creative tab. Automatically lists every item registered in {@link ModItems#ITEMS}.
+     * The main creative tab. Automatically lists every item registered in {@link ModItems#ITEMS}, except the
+     * challenge scroll, which is only meaningful with a theme and tier (see {@code /architectstrials scroll give}).
      * The icon is a vanilla placeholder until the mod has its own signature item.
      */
     public static final DeferredHolder<CreativeModeTab, CreativeModeTab> MAIN_TAB =
@@ -30,7 +31,9 @@ public final class ModCreativeModeTabs {
                     .withTabsBefore(CreativeModeTabs.SPAWN_EGGS)
                     .icon(() -> Items.STRUCTURE_BLOCK.getDefaultInstance())
                     .displayItems((parameters, output) ->
-                            ModItems.ITEMS.getEntries().forEach(item -> output.accept(item.get())))
+                            ModItems.ITEMS.getEntries().stream()
+                                    .filter(item -> item != ModItems.CHALLENGE_SCROLL)
+                                    .forEach(item -> output.accept(item.get())))
                     .build());
 
     private ModCreativeModeTabs() {
