@@ -4,7 +4,7 @@
   "commands.architectstrials.theme.unknown": "Unknown challenge theme: %s",
   "commands.architectstrials.theme.list.empty": "No challenge themes are loaded.",
   "commands.architectstrials.theme.list.header": "Loaded challenge themes (%s):",
-  "commands.architectstrials.theme.list.entry": " - %s (%s)",
+  "commands.architectstrials.theme.list.entry": " - %s (%s), tiers: %s",
   "commands.architectstrials.theme.tp.success": "Teleported %s to challenge theme %s",
   "commands.architectstrials.theme.tp.void_warning": "Careful: challenge dimensions are empty void worlds.",
   "commands.architectstrials.enter.success": "%s entered challenge theme %s",
@@ -21,6 +21,8 @@
   "commands.architectstrials.slot.free.success": "Released slot #%s; it is being cleared.",
   "commands.architectstrials.slot.free.not_occupied": "Slot #%s is not occupied.",
 
+  "commands.architectstrials.instance.create.success": "Placed structure %s in slot #%s at %s %s %s (instance %s)",
+
   "architectstrials.configuration.title": "Architect's Trials Configuration",
   "architectstrials.configuration.section.architectstrials.server.toml": "Server",
   "architectstrials.configuration.section.architectstrials.server.toml.title": "Architect's Trials Server Configuration",
@@ -29,6 +31,13 @@
   "architectstrials.configuration.maxConcurrentInstances": "Max Concurrent Instances",
   "architectstrials.configuration.maxConcurrentInstances.tooltip": "Maximum number of simultaneous challenge instances per theme dimension. 0 = unlimited.",
 
+  "architectstrials.configuration.structurePlacementY": "Structure Placement Y",
+  "architectstrials.configuration.structurePlacementY.tooltip": "Y coordinate the bottom of every challenge structure is placed at.",
+
+  "message.architectstrials.instance.pool_empty": "No structures are stored for %s tier %s.",
+  "message.architectstrials.instance.template_missing": "The structure template %s could not be loaded.",
+  "message.architectstrials.instance.too_large": "The structure %s is larger than %s×%2$s blocks.",
+  "message.architectstrials.instance.no_slot": "The maximum number of concurrent challenges for this theme is reached. Try again later.",
   "message.architectstrials.returned_on_login": "Your challenge is over – you have been returned.",
   "message.architectstrials.ward.saved": "The Dimension Ward saved you from death (%s) and brought you back.",
 

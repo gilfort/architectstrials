@@ -26,6 +26,11 @@ public final class ArchitectsTrialsConfig {
             .comment("Maximum number of simultaneous challenge instances per theme dimension. 0 = unlimited.")
             .defineInRange("maxConcurrentInstances", 0, 0, Integer.MAX_VALUE);
 
+    /** Y coordinate the bottom of every challenge structure is placed at. */
+    public static final ModConfigSpec.IntValue STRUCTURE_PLACEMENT_Y = BUILDER
+            .comment("Y coordinate the bottom of every challenge structure is placed at.")
+            .defineInRange("structurePlacementY", 64, -64, 319);
+
     /** The built specification, registered as {@code SERVER} config. */
     public static final ModConfigSpec SPEC = BUILDER.build();
 

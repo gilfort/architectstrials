@@ -2,6 +2,7 @@ package com.gilfort.architectstrials.command;
 
 import java.util.Collection;
 
+import com.gilfort.architectstrials.structure.ChallengeStructures;
 import com.gilfort.architectstrials.theme.ChallengeTheme;
 import com.gilfort.architectstrials.theme.ChallengeThemes;
 import com.gilfort.architectstrials.travel.ChallengeTravel;
@@ -92,8 +93,9 @@ final class ThemeCommand {
         }
         source.sendSuccess(() -> Component.translatable("commands.architectstrials.theme.list.header", themes.size()), false);
         for (ChallengeTheme theme : themes) {
+            String tiers = ChallengeStructures.tiers(theme.id()).toString();
             source.sendSuccess(() -> Component.translatable("commands.architectstrials.theme.list.entry",
-                    theme.displayName(), theme.id().toString()), false);
+                    theme.displayName(), theme.id().toString(), tiers), false);
         }
         return themes.size();
     }

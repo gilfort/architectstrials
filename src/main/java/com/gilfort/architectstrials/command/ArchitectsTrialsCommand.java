@@ -31,6 +31,7 @@ public final class ArchitectsTrialsCommand {
                 .then(ThemeCommand.build())
                 .then(TravelCommand.buildEnter())
                 .then(TravelCommand.buildExit())
-                .then(SlotCommand.build()));
+                .then(SlotCommand.build())
+                .then(InstanceCommand.build()));
     }
 }
