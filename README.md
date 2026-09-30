@@ -107,6 +107,28 @@ missing or the scroll is used inside an Architect's Trials dimension. If nobody 
 `portalTimeoutSeconds`, the portal collapses, the instance is cleaned up and the scroll drops again with a
 50 % chance.
 
+### Time limit & cleanup
+
+Every challenge has a time limit, shown to all participants as a boss bar ("Time left: mm:ss", red in the
+last minute): the scroll's `architectstrials:time_limit` component (minutes), otherwise
+`defaultTimeLimitMinutes` (default 60). It is never shorter than the portal's open time. Participants get chat
+warnings at 5 and 1 minute(s) and an action-bar countdown in the last 10 seconds; when time is up, everyone
+still inside is sent back — this does **not** count as a completed run.
+
+Time only runs while the server runs (it is counted in server ticks and saved with the world). Players who
+log out inside a challenge keep it alive until the time limit; if they log back in in time, they continue,
+otherwise they are returned on login.
+
+An instance is removed and its slot cleared once its portal is closed **and** nobody (online or offline)
+belongs to it anymore — e.g. after the last player finished, died or ran out of time.
+
+```json
+"components": {
+  "architectstrials:challenge": { "theme": "mypack:nether", "tier": 2 },
+  "architectstrials:time_limit": 30
+}
+```
+
 ### Completion bonus & advancements
 
 Completing a run (walking through an open exit) rolls a **bonus loot table** for the player, separate from
@@ -163,6 +185,8 @@ Markers are only available in the creative inventory (no recipes).
 | `/architectstrials theme list` | Lists all loaded themes and their available tiers |
 | `/architectstrials theme tp <theme>` | Teleports you into a theme's dimension (void world — use creative/spectator); stores your entry point, keeps your game mode |
 | `/architectstrials enter <theme>` | Debug entry into a theme like a real challenge: stores your entry point, switches to Adventure |
+| `/architectstrials instance list` | Lists all instances with state, remaining time and participant count |
+| `/architectstrials instance close <id>` | Returns the participants and removes an instance |
 | `/architectstrials instance create <theme> <tier> [join]` | Debug: creates an instance — draws a structure, places it in a free slot, runs the marker pass; `join` lets you enter at a random spawn marker |
 | `/architectstrials marker loot_table <id>\|clear` | Sets or removes the loot table of the marker you are looking at (Exit Marker: completion bonus override) |
 | `/architectstrials rank <targets> <theme> set <level>` / `add <amount>` / `get` | Sets, changes or reads ranks (usable in functions; `get` returns the level) |
@@ -192,6 +216,7 @@ server stop resumes on the next start.
 | `maxConcurrentInstances` | 0 | Maximum simultaneous instances per theme dimension; `0` = unlimited. |
 | `structurePlacementY` | 64 | Y coordinate the bottom of every challenge structure is placed at. |
 | `startingRank` | 1 | Rank every player starts with in every theme; `0` blocks scrolls until upgraded. |
+| `defaultTimeLimitMinutes` | 60 | Time limit of challenges whose scroll defines none. |
 | `portalTimeoutSeconds` | 60 | Seconds an opened portal waits for its player before collapsing. |
 
 ### Death protection (Dimension Ward)

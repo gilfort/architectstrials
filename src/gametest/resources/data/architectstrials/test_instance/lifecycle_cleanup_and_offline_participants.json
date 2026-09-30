@@ -1,0 +1,8 @@
+{
+  "type": "minecraft:function",
+  "environment": "minecraft:default",
+  "function": "architectstrials:lifecycle_cleanup_and_offline_participants",
+  "max_ticks": 20,
+  "structure": "minecraft:empty",
+  "padding": 8
+}

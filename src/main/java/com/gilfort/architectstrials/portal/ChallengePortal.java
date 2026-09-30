@@ -131,6 +131,7 @@ public class ChallengePortal extends Entity {
         }
         for (ServerPlayer player : level.getEntitiesOfClass(ServerPlayer.class, this.getBoundingBox(), this::mayEnter)) {
             if (InstanceManager.join(player, themeLevel, instance.get())) {
+                InstanceManager.closePortal(themeLevel, this.instanceId);
                 level.playSound(null, this.getX(), this.getY(), this.getZ(), SoundEvents.PORTAL_TRAVEL, SoundSource.BLOCKS, 0.4F, 1.6F);
                 this.discard();
                 return;

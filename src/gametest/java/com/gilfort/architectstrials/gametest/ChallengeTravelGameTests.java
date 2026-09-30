@@ -1,5 +1,6 @@
 package com.gilfort.architectstrials.gametest;
 
+import java.util.Optional;
 import java.util.function.Consumer;
 
 import com.gilfort.architectstrials.ArchitectsTrials;
@@ -126,7 +127,7 @@ public final class ChallengeTravelGameTests {
         TestPlayers.teleport(player, TestPlayers.challengeLevel(helper), TestPlayers.CHALLENGE_POSITION);
         player.setData(ModAttachments.ENTRY_POINT, new EntryPoint(
                 ResourceKey.create(Registries.DIMENSION, ArchitectsTrials.id("gametest_missing")),
-                Vec3.ZERO, 0.0F, 0.0F, GameType.SURVIVAL));
+                Vec3.ZERO, 0.0F, 0.0F, GameType.SURVIVAL, Optional.empty()));
 
         helper.assertTrue(ChallengeTravel.returnToEntryPoint(player), "Return reported no entry point");
         helper.assertTrue(player.level() == player.level().getServer().findRespawnDimension(), "Player was not sent to the world spawn dimension");

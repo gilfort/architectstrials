@@ -1,0 +1,8 @@
+{
+  "type": "minecraft:function",
+  "environment": "minecraft:default",
+  "function": "architectstrials:lifecycle_time_limit_expiry",
+  "max_ticks": 20,
+  "structure": "minecraft:empty",
+  "padding": 8
+}

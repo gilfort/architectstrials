@@ -1,5 +1,6 @@
 package com.gilfort.architectstrials.instance;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -8,17 +9,21 @@ import com.gilfort.architectstrials.ArchitectsTrials;
 import com.gilfort.architectstrials.config.ArchitectsTrialsConfig;
 import com.gilfort.architectstrials.marker.MarkerContext;
 import com.gilfort.architectstrials.marker.MarkerResolvers;
+import com.gilfort.architectstrials.portal.ChallengePortal;
+import com.gilfort.architectstrials.registry.ModAttachments;
 import com.gilfort.architectstrials.slot.Slot;
 import com.gilfort.architectstrials.slot.SlotManager;
 import com.gilfort.architectstrials.structure.ChallengeStructure;
 import com.gilfort.architectstrials.structure.ChallengeStructures;
 import com.gilfort.architectstrials.theme.ChallengeTheme;
 import com.gilfort.architectstrials.travel.ChallengeTravel;
+import com.gilfort.architectstrials.travel.EntryPoint;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Vec3i;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.RandomSource;
@@ -30,8 +35,8 @@ import net.minecraft.world.level.levelgen.structure.templatesystem.StructureTemp
 import net.minecraft.world.phys.Vec3;
 
 /**
- * Creates challenge instances: allocates a slot, draws a structure once from the theme + tier pool, places it
- * centered in the slot and runs the marker pass.
+ * Creates and manages challenge instances: allocates a slot, draws a structure once from the theme + tier pool,
+ * places it centered in the slot, runs the marker pass, and tracks participants, portal and time limit.
  */
 public final class InstanceManager {
 
@@ -58,9 +63,10 @@ public final class InstanceManager {
      * @param theme  the theme
      * @param tier   the tier
      * @param random the random source for structure selection and transformation
+     * @param timeLimitTicks the time limit; raised to at least the portal open duration
      * @return the outcome
      */
-    public static InstanceCreation create(ServerLevel level, ChallengeTheme theme, int tier, RandomSource random) {
+    public static InstanceCreation create(ServerLevel level, ChallengeTheme theme, int tier, RandomSource random, long timeLimitTicks) {
         Optional<Identifier> drawn = ChallengeStructures.draw(theme.id(), tier, random);
         if (drawn.isEmpty()) {
             return new InstanceCreation.Failure(Component.translatable("message.architectstrials.instance.pool_empty",
@@ -91,8 +97,11 @@ public final class InstanceManager {
                 ArchitectsTrialsConfig.STRUCTURE_PLACEMENT_Y.getAsInt(),
                 slot.get().centerZ() - size.getZ() / 2);
         StructurePlaceSettings settings = placeSettings(size, rotation, mirror);
+        long now = ChallengeClock.now(level.getServer());
+        long portalOpenTicks = portalOpenTicks();
         ChallengeInstance placed = new ChallengeInstance(UUID.randomUUID(), theme.id(), tier, drawn.get(),
-                slot.get().index(), origin, rotation, mirror, List.of(), List.of());
+                slot.get().index(), origin, rotation, mirror, List.of(), List.of(),
+                Math.max(timeLimitTicks, portalOpenTicks), now + Math.max(timeLimitTicks, portalOpenTicks), now + portalOpenTicks, List.of());
 
         template.get().placeInWorld(level, origin, origin, settings, random, Block.UPDATE_CLIENTS);
         MarkerContext context = new MarkerContext(level, placed, random);
@@ -106,6 +115,83 @@ public final class InstanceManager {
         ArchitectsTrials.LOGGER.debug("Created instance {} of {} tier {} with structure {} in slot {} ({} markers)",
                 instance.id(), theme.id(), tier, drawn.get(), instance.slot(), markers);
         return new InstanceCreation.Success(instance);
+    }
+
+    /**
+     * Returns the default time limit from the config.
+     *
+     * @return the configured default time limit in ticks
+     */
+    public static long defaultTimeLimitTicks() {
+        return ArchitectsTrialsConfig.DEFAULT_TIME_LIMIT_MINUTES.getAsInt() * 60L * ChallengeClock.TICKS_PER_SECOND;
+    }
+
+    /**
+     * Returns how long an entry portal stays open at most (forming phase plus unused timeout). The time limit of
+     * an instance is never shorter than this.
+     *
+     * @return the maximum portal open duration in ticks
+     */
+    public static long portalOpenTicks() {
+        return ChallengePortal.FORMING_TICKS
+                + (long) ArchitectsTrialsConfig.PORTAL_TIMEOUT_SECONDS.getAsInt() * ChallengeClock.TICKS_PER_SECOND;
+    }
+
+    /**
+     * Stores an updated version of an instance.
+     *
+     * @param level    the theme level
+     * @param instance the updated instance
+     */
+    public static void update(ServerLevel level, ChallengeInstance instance) {
+        data(level).put(instance);
+    }
+
+    /**
+     * Marks the entry portal of an instance as closed (e.g. a solo portal after its player went through).
+     *
+     * @param level the theme level
+     * @param id    the instance id
+     */
+    public static void closePortal(ServerLevel level, UUID id) {
+        data(level).get(id).ifPresent(instance -> update(level, instance.withPortalDeadline(-1L)));
+    }
+
+    /**
+     * Removes a participant from an instance, e.g. after they returned (exit, death, time limit).
+     *
+     * @param server the server
+     * @param ref    the instance reference
+     * @param player the participant's UUID
+     */
+    public static void leave(MinecraftServer server, EntryPoint.InstanceRef ref, UUID player) {
+        ServerLevel level = server.getLevel(ref.dimension());
+        if (level == null) {
+            return;
+        }
+        data(level).get(ref.id()).ifPresent(instance -> {
+            List<UUID> remaining = new ArrayList<>(instance.participants());
+            if (remaining.remove(player)) {
+                update(level, instance.withParticipants(remaining));
+            }
+            ServerPlayer online = server.getPlayerList().getPlayer(player);
+            if (online != null) {
+                InstanceTimerBars.hideFrom(ref.id(), online);
+            }
+        });
+    }
+
+    /**
+     * Checks whether a player still belongs to a running instance (used on login).
+     *
+     * @param player the player
+     * @return {@code true} if the player's entry point references an existing instance they participate in
+     */
+    public static boolean isParticipant(ServerPlayer player) {
+        return player.getExistingData(ModAttachments.ENTRY_POINT).flatMap(EntryPoint::instance).map(ref -> {
+            ServerLevel level = player.level().getServer().getLevel(ref.dimension());
+            return level != null && data(level).get(ref.id()).map(i -> i.participants().contains(player.getUUID())).orElse(false);
+        }).orElse(false);
     }
 
     /**
@@ -137,13 +223,15 @@ public final class InstanceManager {
             return false;
         }
         data(level).remove(id);
+        InstanceTimerBars.remove(id);
         SlotManager.release(level, instance.get().slot());
         return true;
     }
 
     /**
      * Moves a player into a ready instance, onto a spawn point chosen independently at random for this player.
-     * The entry point is stored and the player switched to Adventure (see {@link ChallengeTravel#enter}).
+     * The entry point is stored and bound to the instance, the player is switched to Adventure (see
+     * {@link ChallengeTravel#enter}) and becomes a participant.
      *
      * @param player   the player
      * @param level    the theme level of the instance
@@ -157,6 +245,13 @@ public final class InstanceManager {
         List<SpawnPoint> points = instance.spawnPoints();
         SpawnPoint point = points.get(player.getRandom().nextInt(points.size()));
         ChallengeTravel.enter(player, level, Vec3.atBottomCenterOf(point.pos()), point.facing().toYRot(), 0.0F, true);
+        ChallengeTravel.bindInstance(player, new EntryPoint.InstanceRef(level.dimension(), instance.id()));
+        ChallengeInstance current = data(level).get(instance.id()).orElse(instance);
+        if (!current.participants().contains(player.getUUID())) {
+            List<UUID> participants = new ArrayList<>(current.participants());
+            participants.add(player.getUUID());
+            update(level, current.withParticipants(participants));
+        }
         return true;
     }
 
