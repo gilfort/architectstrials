@@ -1,0 +1,8 @@
+{
+  "type": "minecraft:function",
+  "environment": "minecraft:default",
+  "function": "architectstrials:structure_loot_pool_and_guaranteed",
+  "max_ticks": 20,
+  "structure": "minecraft:empty",
+  "padding": 16
+}
