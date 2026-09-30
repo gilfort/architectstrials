@@ -1,6 +1,14 @@
 {
   "itemGroup.architectstrials.main": "Architect's Trials",
 
+  "item.architectstrials.challenge_scroll": "Blank Challenge Scroll",
+  "item.architectstrials.challenge_scroll.named": "Challenge Scroll – %s, Tier %s",
+  "tooltip.architectstrials.challenge_scroll.usage": "Right-click while looking at a block to open a challenge portal there.",
+  "tooltip.architectstrials.challenge_scroll.solo": "Solo: only you can enter, the portal closes behind you.",
+  "tooltip.architectstrials.challenge_scroll.blank": "This scroll is not bound to any challenge.",
+  "entity.architectstrials.challenge_portal": "Challenge Portal",
+  "entity.architectstrials.portal_echo": "Portal Echo",
+
   "block.architectstrials.player_spawn_marker": "Player Spawn Marker",
   "tooltip.architectstrials.player_spawn_marker": "Editor marker: players entering the challenge spawn here, looking where the arrow points. Replaced by air when the structure is placed.",
 
@@ -27,6 +35,8 @@
   "commands.architectstrials.instance.create.not_ready": "The structure has no player spawn marker, so nobody can enter this instance.",
   "commands.architectstrials.instance.create.success": "Placed structure %s in slot #%s at %s %s %s (instance %s)",
 
+  "commands.architectstrials.scroll.give.success": "Gave %s a %s",
+
   "architectstrials.configuration.title": "Architect's Trials Configuration",
   "architectstrials.configuration.section.architectstrials.server.toml": "Server",
   "architectstrials.configuration.section.architectstrials.server.toml.title": "Architect's Trials Server Configuration",
@@ -38,6 +48,15 @@
   "architectstrials.configuration.structurePlacementY": "Structure Placement Y",
   "architectstrials.configuration.structurePlacementY.tooltip": "Y coordinate the bottom of every challenge structure is placed at.",
 
+  "architectstrials.configuration.portalTimeoutSeconds": "Portal Timeout (Seconds)",
+  "architectstrials.configuration.portalTimeoutSeconds.tooltip": "Seconds an opened, ready challenge portal waits for its player before it collapses. The instance is cleaned up and the scroll drops again with a 50% chance.",
+
+  "message.architectstrials.scroll.blank": "This scroll is not bound to any challenge.",
+  "message.architectstrials.scroll.inside_challenge": "Scrolls cannot be used inside Architect's Trials dimensions.",
+  "message.architectstrials.scroll.unknown_theme": "The challenge theme %s does not exist on this server.",
+  "message.architectstrials.scroll.no_space": "Not enough room for a portal here – it needs 1×2 free blocks.",
+  "message.architectstrials.scroll.no_target": "Look at a block to open the portal there.",
+  "message.architectstrials.portal.expired": "Your challenge portal collapsed unused.",
   "message.architectstrials.instance.pool_empty": "No structures are stored for %s tier %s.",
   "message.architectstrials.instance.template_missing": "The structure template %s could not be loaded.",
   "message.architectstrials.instance.too_large": "The structure %s is larger than %s×%2$s blocks.",

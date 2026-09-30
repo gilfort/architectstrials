@@ -2,6 +2,7 @@ package com.gilfort.architectstrials.registry;
 
 import com.gilfort.architectstrials.ArchitectsTrials;
 import com.gilfort.architectstrials.block.MarkerBlockItem;
+import com.gilfort.architectstrials.scroll.ChallengeScrollItem;
 
 import net.minecraft.world.item.Rarity;
 import net.neoforged.bus.api.IEventBus;
@@ -21,6 +22,10 @@ public final class ModItems {
     /** Item of the {@link ModBlocks#PLAYER_SPAWN_MARKER}; creative/editor only, no recipe. */
     public static final DeferredItem<MarkerBlockItem> PLAYER_SPAWN_MARKER = ITEMS.registerItem("player_spawn_marker",
             properties -> new MarkerBlockItem(ModBlocks.PLAYER_SPAWN_MARKER.get(), properties.rarity(Rarity.EPIC).useBlockDescriptionPrefix()));
+
+    /** The challenge scroll; theme and tier come from the {@code architectstrials:challenge} data component. */
+    public static final DeferredItem<ChallengeScrollItem> CHALLENGE_SCROLL = ITEMS.registerItem("challenge_scroll",
+            properties -> new ChallengeScrollItem(properties.stacksTo(16).rarity(Rarity.UNCOMMON)));
 
     private ModItems() {
     }

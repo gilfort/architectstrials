@@ -87,6 +87,26 @@ data/<ns>/architectstrials/challenge/<theme>/tier_<n>/<id>.json    metadata (aut
 `weight` (default 1) controls how often a structure is drawn; `rotation` (default false) allows random
 rotation and mirroring on placement. Structures may be at most 128 × 128 blocks (X/Z).
 
+### Challenge scrolls & portals
+
+There is exactly one scroll item, `architectstrials:challenge_scroll`. Theme and tier are stored in the data
+component `architectstrials:challenge`, so any datapack-driven recipe system can produce scrolls:
+
+```json
+"result": {
+  "id": "architectstrials:challenge_scroll",
+  "components": { "architectstrials:challenge": { "theme": "mypack:nether", "tier": 2 } }
+}
+```
+
+Right-clicking while looking at a block opens a particle portal in front of that block face (needs 1 × 2
+free blocks; the portal may clip into walls). The portal forms briefly, then becomes active. In the solo
+default only the player who used the scroll can enter, and the portal closes behind them. The scroll is
+consumed only if the portal opened — never when the pool is empty, the instance limit is reached, space is
+missing or the scroll is used inside an Architect's Trials dimension. If nobody enters within
+`portalTimeoutSeconds`, the portal collapses, the instance is cleaned up and the scroll drops again with a
+50 % chance.
+
 ### Markers
 
 Builders place marker blocks instead of final content; they are resolved when a structure is placed.
@@ -104,12 +124,14 @@ Markers are only available in the creative inventory (no recipes).
 | `/architectstrials theme tp <theme>` | Teleports you into a theme's dimension (void world — use creative/spectator); stores your entry point, keeps your game mode |
 | `/architectstrials enter <theme>` | Debug entry into a theme like a real challenge: stores your entry point, switches to Adventure |
 | `/architectstrials instance create <theme> <tier> [join]` | Debug: creates an instance — draws a structure, places it in a free slot, runs the marker pass; `join` lets you enter at a random spawn marker |
+| `/architectstrials scroll give <theme> <tier> [targets]` | Gives a challenge scroll bound to a theme and tier |
 | `/architectstrials slot list <theme>` | Lists occupied and clearing slots of a theme dimension |
 | `/architectstrials slot allocate <theme>` | Debug: allocates the next free slot |
 | `/architectstrials slot free <theme> <index>` | Debug: releases a slot; its content is cleared over the next ticks |
 | `/architectstrials exit [targets]` | Leaves any Architect's Trials dimension: back to the entry point, or to the respawn point / world spawn if none is stored |
 
-Players always return to the exact point they entered from, with their previous game mode. Players who log
+Players always return to the exact point they entered from, with their previous game mode, turned around
+(they step back out of the portal they walked into) and with a short rune echo of the portal behind them. Players who log
 in inside a challenge dimension whose challenge is over are returned automatically.
 
 ### Slots & server config
@@ -127,6 +149,7 @@ server stop resumes on the next start.
 | `slotSpacing` | 2048 | Distance between slots. Only applies to theme dimensions without instances, so existing instances never move. |
 | `maxConcurrentInstances` | 0 | Maximum simultaneous instances per theme dimension; `0` = unlimited. |
 | `structurePlacementY` | 64 | Y coordinate the bottom of every challenge structure is placed at. |
+| `portalTimeoutSeconds` | 60 | Seconds an opened portal waits for its player before collapsing. |
 
 ### Death protection (Dimension Ward)
 

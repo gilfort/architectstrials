@@ -109,6 +109,23 @@ public final class InstanceManager {
     }
 
     /**
+     * Removes an instance and releases its slot for clearing.
+     *
+     * @param level the theme level of the instance
+     * @param id    the instance id
+     * @return {@code true} if the instance existed
+     */
+    public static boolean close(ServerLevel level, UUID id) {
+        Optional<ChallengeInstance> instance = data(level).get(id);
+        if (instance.isEmpty()) {
+            return false;
+        }
+        data(level).remove(id);
+        SlotManager.release(level, instance.get().slot());
+        return true;
+    }
+
+    /**
      * Moves a player into a ready instance, onto a spawn point chosen independently at random for this player.
      * The entry point is stored and the player switched to Adventure (see {@link ChallengeTravel#enter}).
      *

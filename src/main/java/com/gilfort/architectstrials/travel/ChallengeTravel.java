@@ -3,6 +3,7 @@ package com.gilfort.architectstrials.travel;
 import java.util.Optional;
 
 import com.gilfort.architectstrials.ArchitectsTrials;
+import com.gilfort.architectstrials.portal.PortalEcho;
 import com.gilfort.architectstrials.registry.ModAttachments;
 import com.gilfort.architectstrials.theme.ChallengeThemes;
 
@@ -10,6 +11,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.util.Mth;
 import net.minecraft.world.entity.Pose;
 import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.Level;
@@ -28,6 +30,9 @@ public final class ChallengeTravel {
 
     /** Portal cooldown applied after returning, so players do not walk straight back into an open portal. */
     public static final int RETURN_PORTAL_COOLDOWN_TICKS = 60;
+
+    /** Distance between a returning player and the rune echo behind them. */
+    private static final double ECHO_DISTANCE = 1.0;
 
     /** Maximum Manhattan distance to search for a safe position around an obstructed entry point. */
     private static final int SAFE_POSITION_SEARCH_RADIUS = 8;
@@ -62,6 +67,9 @@ public final class ChallengeTravel {
      * Returns a player to their stored entry point, restores their game mode, applies the return portal
      * cooldown and clears the entry point.
      * <p>
+     * The player comes back facing the opposite direction than when they entered (they step out of the portal
+     * they walked into), and a short rune echo of the portal appears behind them.
+     * <p>
      * If the stored dimension no longer exists, the player is sent to the world spawn and a warning is
      * logged. If the stored position is obstructed, the nearest safe position is used.
      *
@@ -81,7 +89,10 @@ public final class ChallengeTravel {
             player.teleport(TeleportTransition.createDefault(player, TeleportTransition.DO_NOTHING));
         } else {
             Vec3 safePosition = findSafePosition(level, player, entry.position());
-            teleport(player, level, safePosition, entry.yRot(), entry.xRot());
+            float returnYaw = Mth.wrapDegrees(entry.yRot() + 180.0F);
+            teleport(player, level, safePosition, returnYaw, entry.xRot());
+            Vec3 behind = safePosition.subtract(Vec3.directionFromRotation(0.0F, returnYaw).scale(ECHO_DISTANCE));
+            PortalEcho.spawn(level, behind, returnYaw);
         }
         player.setGameMode(entry.gameMode());
         player.setPortalCooldown(RETURN_PORTAL_COOLDOWN_TICKS);

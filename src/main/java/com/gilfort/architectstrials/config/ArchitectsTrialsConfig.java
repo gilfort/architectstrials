@@ -31,6 +31,12 @@ public final class ArchitectsTrialsConfig {
             .comment("Y coordinate the bottom of every challenge structure is placed at.")
             .defineInRange("structurePlacementY", 64, -64, 319);
 
+    /** Seconds an opened, ready portal waits for its player before it collapses. */
+    public static final ModConfigSpec.IntValue PORTAL_TIMEOUT_SECONDS = BUILDER
+            .comment("Seconds an opened, ready challenge portal waits for its player before it collapses.",
+                    "The instance is cleaned up and the scroll drops again with a 50% chance.")
+            .defineInRange("portalTimeoutSeconds", 60, 1, 3600);
+
     /** The built specification, registered as {@code SERVER} config. */
     public static final ModConfigSpec SPEC = BUILDER.build();
 

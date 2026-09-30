@@ -1,0 +1,6 @@
+{
+  "parent": "minecraft:item/generated",
+  "textures": {
+    "layer0": "architectstrials:item/challenge_scroll"
+  }
+}
