@@ -1,0 +1,7 @@
+{
+  "theme": "architectstrials:gametest_theme",
+  "tier": 1,
+  "structure": "architectstrials:gametest/spawn_platform",
+  "name": "Spawn platform (dev manual test)",
+  "rotation": true
+}

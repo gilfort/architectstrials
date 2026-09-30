@@ -1,8 +1,11 @@
 package com.gilfort.architectstrials.registry;
 
 import com.gilfort.architectstrials.ArchitectsTrials;
+import com.gilfort.architectstrials.block.MarkerBlockItem;
 
+import net.minecraft.world.item.Rarity;
 import net.neoforged.bus.api.IEventBus;
+import net.neoforged.neoforge.registries.DeferredItem;
 import net.neoforged.neoforge.registries.DeferredRegister;
 
 /**
@@ -14,6 +17,10 @@ public final class ModItems {
 
     /** Deferred register for items in the {@code architectstrials} namespace. */
     public static final DeferredRegister.Items ITEMS = DeferredRegister.createItems(ArchitectsTrials.MOD_ID);
+
+    /** Item of the {@link ModBlocks#PLAYER_SPAWN_MARKER}; creative/editor only, no recipe. */
+    public static final DeferredItem<MarkerBlockItem> PLAYER_SPAWN_MARKER = ITEMS.registerItem("player_spawn_marker",
+            properties -> new MarkerBlockItem(ModBlocks.PLAYER_SPAWN_MARKER.get(), properties.rarity(Rarity.EPIC).useBlockDescriptionPrefix()));
 
     private ModItems() {
     }

@@ -1,5 +1,6 @@
 package com.gilfort.architectstrials.instance;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -12,18 +13,21 @@ import com.gilfort.architectstrials.slot.SlotManager;
 import com.gilfort.architectstrials.structure.ChallengeStructure;
 import com.gilfort.architectstrials.structure.ChallengeStructures;
 import com.gilfort.architectstrials.theme.ChallengeTheme;
+import com.gilfort.architectstrials.travel.ChallengeTravel;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Vec3i;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Mirror;
 import net.minecraft.world.level.block.Rotation;
 import net.minecraft.world.level.levelgen.structure.templatesystem.StructurePlaceSettings;
 import net.minecraft.world.level.levelgen.structure.templatesystem.StructureTemplate;
+import net.minecraft.world.phys.Vec3;
 
 /**
  * Creates challenge instances: allocates a slot, draws a structure once from the theme + tier pool, places it
@@ -87,15 +91,40 @@ public final class InstanceManager {
                 ArchitectsTrialsConfig.STRUCTURE_PLACEMENT_Y.getAsInt(),
                 slot.get().centerZ() - size.getZ() / 2);
         StructurePlaceSettings settings = placeSettings(size, rotation, mirror);
-        ChallengeInstance instance = new ChallengeInstance(UUID.randomUUID(), theme.id(), tier, drawn.get(),
-                slot.get().index(), origin, rotation, mirror);
+        ChallengeInstance placed = new ChallengeInstance(UUID.randomUUID(), theme.id(), tier, drawn.get(),
+                slot.get().index(), origin, rotation, mirror, List.of());
 
         template.get().placeInWorld(level, origin, origin, settings, random, Block.UPDATE_CLIENTS);
-        int markers = MarkerResolvers.resolveAll(new MarkerContext(level, instance, random), template.get(), origin, settings);
+        MarkerContext context = new MarkerContext(level, placed, random);
+        int markers = MarkerResolvers.resolveAll(context, template.get(), origin, settings);
+        ChallengeInstance instance = placed.withSpawnPoints(context.spawnPoints());
+        if (!instance.ready()) {
+            ArchitectsTrials.LOGGER.warn("Instance {} of structure {} has no player spawn markers and can never be entered",
+                    instance.id(), drawn.get());
+        }
         data(level).put(instance);
         ArchitectsTrials.LOGGER.debug("Created instance {} of {} tier {} with structure {} in slot {} ({} markers)",
                 instance.id(), theme.id(), tier, drawn.get(), instance.slot(), markers);
         return new InstanceCreation.Success(instance);
+    }
+
+    /**
+     * Moves a player into a ready instance, onto a spawn point chosen independently at random for this player.
+     * The entry point is stored and the player switched to Adventure (see {@link ChallengeTravel#enter}).
+     *
+     * @param player   the player
+     * @param level    the theme level of the instance
+     * @param instance the instance
+     * @return {@code true} if the player entered; {@code false} if the instance is not ready
+     */
+    public static boolean join(ServerPlayer player, ServerLevel level, ChallengeInstance instance) {
+        if (!instance.ready()) {
+            return false;
+        }
+        List<SpawnPoint> points = instance.spawnPoints();
+        SpawnPoint point = points.get(player.getRandom().nextInt(points.size()));
+        ChallengeTravel.enter(player, level, Vec3.atBottomCenterOf(point.pos()), point.facing().toYRot(), 0.0F, true);
+        return true;
     }
 
     /**

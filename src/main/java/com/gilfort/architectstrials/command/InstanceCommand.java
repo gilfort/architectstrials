@@ -19,7 +19,8 @@ import net.minecraft.server.level.ServerLevel;
 /**
  * Debug commands for challenge instances:
  * <ul>
- * <li>{@code /architectstrials instance create <theme> <tier>} — creates an instance and places its structure</li>
+ * <li>{@code /architectstrials instance create <theme> <tier> [join]} — creates an instance and places its structure;
+ * with {@code join} the executing player enters it at a random spawn point</li>
  * </ul>
  */
 final class InstanceCommand {
@@ -38,10 +39,11 @@ final class InstanceCommand {
                         .then(Commands.argument("theme", IdentifierArgument.id())
                                 .suggests(ThemeCommand.THEME_SUGGESTIONS)
                                 .then(Commands.argument("tier", IntegerArgumentType.integer(1))
-                                        .executes(InstanceCommand::create))));
+                                        .executes(context -> create(context, false))
+                                        .then(Commands.literal("join").executes(context -> create(context, true))))));
     }
 
-    private static int create(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
+    private static int create(CommandContext<CommandSourceStack> context, boolean join) throws CommandSyntaxException {
         CommandSourceStack source = context.getSource();
         ServerLevel level = ThemeCommand.themeLevel(context, "theme");
         ChallengeTheme theme = ChallengeThemes.get(IdentifierArgument.getId(context, "theme")).orElseThrow();
@@ -57,6 +59,11 @@ final class InstanceCommand {
                 instance.structure().toString(), instance.slot(),
                 instance.origin().getX(), instance.origin().getY(), instance.origin().getZ(),
                 instance.id().toString()), true);
+        if (!instance.ready()) {
+            source.sendFailure(Component.translatable("commands.architectstrials.instance.create.not_ready"));
+        } else if (join) {
+            InstanceManager.join(source.getPlayerOrException(), level, instance);
+        }
         return 1;
     }
 }

@@ -2,7 +2,9 @@ package com.gilfort.architectstrials;
 
 import org.slf4j.Logger;
 
+import com.gilfort.architectstrials.block.PlayerSpawnMarkerBlock;
 import com.gilfort.architectstrials.config.ArchitectsTrialsConfig;
+import com.gilfort.architectstrials.marker.MarkerResolvers;
 import com.gilfort.architectstrials.registry.ModAttachments;
 import com.gilfort.architectstrials.registry.ModBlocks;
 import com.gilfort.architectstrials.registry.ModCreativeModeTabs;
@@ -49,12 +51,12 @@ public final class ArchitectsTrials {
     }
 
     /**
-     * Runs common (both sides) setup after registration has finished.
+     * Runs common (both sides) setup after registration has finished: registers the marker resolvers.
      *
      * @param event the common setup event
      */
     private void commonSetup(FMLCommonSetupEvent event) {
-        LOGGER.info("Architect's Trials common setup complete.");
+        event.enqueueWork(() -> MarkerResolvers.register(ModBlocks.PLAYER_SPAWN_MARKER.get(), PlayerSpawnMarkerBlock::resolve));
     }
 
     /**

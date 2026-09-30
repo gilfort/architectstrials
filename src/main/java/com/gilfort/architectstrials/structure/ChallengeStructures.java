@@ -11,10 +11,14 @@ import java.util.TreeMap;
 import java.util.TreeSet;
 
 import com.gilfort.architectstrials.ArchitectsTrials;
+import com.gilfort.architectstrials.registry.ModBlocks;
 
+import net.minecraft.core.BlockPos;
 import net.minecraft.resources.Identifier;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.RandomSource;
 import net.minecraft.util.random.WeightedRandom;
+import net.minecraft.world.level.levelgen.structure.templatesystem.StructurePlaceSettings;
 
 /**
  * Server-side structure pool: all stored challenge structures, grouped by theme and tier.
@@ -43,6 +47,26 @@ public final class ChallengeStructures {
         byId = Map.copyOf(structures);
         pools = grouped;
         ArchitectsTrials.LOGGER.info("Loaded {} challenge structure(s) for {} theme(s)", byId.size(), pools.size());
+    }
+
+    /**
+     * Removes structures whose template contains no player spawn marker; such structures could never be
+     * entered. Structures whose template cannot be loaded are kept and fail on instance creation instead.
+     *
+     * @param server the running server
+     */
+    public static void validate(MinecraftServer server) {
+        Map<Identifier, ChallengeStructure> valid = new HashMap<>(byId);
+        StructurePlaceSettings settings = new StructurePlaceSettings();
+        byId.forEach((id, structure) -> server.getStructureTemplateManager().get(structure.structure()).ifPresent(template -> {
+            if (template.filterBlocks(BlockPos.ZERO, settings, ModBlocks.PLAYER_SPAWN_MARKER.get()).isEmpty()) {
+                ArchitectsTrials.LOGGER.warn("Challenge structure {} has no player spawn marker and is skipped", id);
+                valid.remove(id);
+            }
+        }));
+        if (valid.size() != byId.size()) {
+            set(valid);
+        }
     }
 
     /**
