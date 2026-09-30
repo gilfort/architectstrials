@@ -18,6 +18,7 @@ import net.minecraft.nbt.Tag;
 import net.minecraft.resources.RegistryOps;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.ProblemReporter;
+import net.minecraft.util.RandomSource;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntitySpawnReason;
 import net.minecraft.world.entity.EntityType;
@@ -32,6 +33,7 @@ import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.entity.SpawnerBlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.storage.TagValueInput;
+import net.minecraft.world.phys.Vec3;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.event.entity.living.FinalizeSpawnEvent;
@@ -53,6 +55,10 @@ public final class SpawnMarkerResolvers {
 
     private static final Codec<Map<EquipmentSlot, ItemStack>> EQUIPMENT_CODEC = Codec.unboundedMap(EquipmentSlot.CODEC, ItemStack.CODEC);
 
+    private static final double SPREAD_RADIUS = 1.5;
+
+    private static final int SPREAD_ATTEMPTS = 16;
+
     private SpawnMarkerResolvers() {
     }
 
@@ -70,13 +76,39 @@ public final class SpawnMarkerResolvers {
         if (marker.isEmpty()) {
             return;
         }
+        EntityType<?> type = marker.get().type();
         for (int i = 0; i < marker.get().egg().getCount(); i++) {
-            Entity entity = marker.get().type().spawn(level, marker.get().egg(), null, pos, EntitySpawnReason.STRUCTURE, false, false);
+            Entity entity = type.spawn(level, marker.get().egg(), null, pos, EntitySpawnReason.STRUCTURE, false, false);
+            if (entity == null) {
+                continue;
+            }
+            Vec3 spot = i == 0 ? Vec3.atBottomCenterOf(pos) : spreadPosition(level, type, pos, context.random());
+            entity.snapTo(spot.x, spot.y, spot.z, entity.getYRot(), entity.getXRot());
             if (entity instanceof Mob mob) {
                 equip(mob, marker.get().equipment());
                 mob.setPersistenceRequired();
             }
         }
+    }
+
+    /**
+     * Finds a spawn position near a marker for additional mobs, so they do not stand exactly inside each other
+     * (entities at identical positions never push apart and look like a single mob). Tries random spots within
+     * {@value #SPREAD_RADIUS} blocks on the marker's height that are free and have ground below; falls back to a
+     * slight offset inside the marker block.
+     */
+    private static Vec3 spreadPosition(ServerLevel level, EntityType<?> type, BlockPos pos, RandomSource random) {
+        for (int attempt = 0; attempt < SPREAD_ATTEMPTS; attempt++) {
+            double x = pos.getX() + 0.5 + (random.nextDouble() * 2.0 - 1.0) * SPREAD_RADIUS;
+            double z = pos.getZ() + 0.5 + (random.nextDouble() * 2.0 - 1.0) * SPREAD_RADIUS;
+            BlockPos below = BlockPos.containing(x, pos.getY() - 1, z);
+            if (level.noCollision(type.getSpawnAABB(x, pos.getY(), z))
+                    && !level.getBlockState(below).getCollisionShape(level, below).isEmpty()) {
+                return new Vec3(x, pos.getY(), z);
+            }
+        }
+        return new Vec3(pos.getX() + 0.5 + (random.nextDouble() - 0.5) * 0.5, pos.getY(),
+                pos.getZ() + 0.5 + (random.nextDouble() - 0.5) * 0.5);
     }
 
     /**

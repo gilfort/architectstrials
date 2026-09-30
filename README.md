@@ -37,6 +37,17 @@ no weather, beds and respawn anchors do not work. You may use your own `dimensio
 e.g. to give a Nether theme a Nether sky. Choose a biome for its ambience (particles, sounds); natural mob
 spawning is always disabled in challenge dimensions — enemies only come from the structure's spawn markers.
 
+**Time of day.** Since Minecraft 26.x the time of day is data-driven: environment attributes in the
+`dimension_type` plus timelines driven by a world clock. `/time set` has no effect in
+`architectstrials:challenge` because it has a fixed time and no clock. To give a theme its own time of day,
+copy `data/architectstrials/dimension_type/challenge.json` into your datapack as a new `dimension_type` and
+reference it from the dimension. Then either
+- keep `"has_fixed_time": true` and set static visual attributes (e.g. `minecraft:visual/sun_angle`,
+  `minecraft:visual/sky_light_factor`, `minecraft:gameplay/sky_light_level`, `minecraft:visual/star_brightness`,
+  `minecraft:visual/sunrise_sunset_color`, sky and fog colors) for a permanent dusk or night, or
+- use `"has_fixed_time": false`, `"timelines": "#minecraft:in_overworld"` and
+  `"default_clock": "minecraft:overworld"` to follow the overworld's day cycle.
+
 **2. The theme list** — `data/<namespace>/architectstrials/challenge_dimensions.json`:
 
 ```json

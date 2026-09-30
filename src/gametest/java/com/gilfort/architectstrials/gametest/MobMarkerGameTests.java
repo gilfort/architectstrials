@@ -104,6 +104,8 @@ public final class MobMarkerGameTests {
         List<Zombie> zombies = level.getEntitiesOfClass(Zombie.class, area);
         List<Skeleton> skeletons = level.getEntitiesOfClass(Skeleton.class, area);
         helper.assertTrue(zombies.size() == 3, "Expected 3 zombies, got " + zombies.size());
+        helper.assertTrue(zombies.stream().map(Zombie::position).distinct().count() == 3,
+                "Zombies of one marker stand inside each other: " + zombies.stream().map(Zombie::position).toList());
         helper.assertTrue(skeletons.size() == 1, "Expected 1 skeleton, got " + skeletons.size());
         for (Zombie zombie : zombies) {
             helper.assertTrue(zombie.getItemBySlot(EquipmentSlot.HEAD).is(Items.IRON_HELMET), "Zombie has no iron helmet");
@@ -191,7 +193,7 @@ public final class MobMarkerGameTests {
         MarkerResolvers.resolveAll(context, template, origin, settings);
 
         BlockPos expected = StructureTemplate.calculateRelativePosition(settings, new BlockPos(2, 0, 0)).offset(origin);
-        List<Zombie> zombies = level.getEntitiesOfClass(Zombie.class, new AABB(expected).inflate(0.5));
+        List<Zombie> zombies = level.getEntitiesOfClass(Zombie.class, new AABB(expected).inflate(2.0));
         helper.assertTrue(zombies.size() == 2, "Expected 2 zombies at the rotated marker position " + expected + ", got " + zombies.size());
         helper.assertTrue(zombies.stream().allMatch(zombie -> zombie.getItemBySlot(EquipmentSlot.HEAD).is(Items.DIAMOND_HELMET)),
                 "Marker equipment did not survive the structure round trip");
