@@ -7,6 +7,7 @@
   "tooltip.architectstrials.challenge_scroll.solo": "Solo: only you can enter, the portal closes behind you.",
   "tooltip.architectstrials.challenge_scroll.blank": "This scroll is not bound to any challenge.",
   "entity.architectstrials.challenge_portal": "Challenge Portal",
+  "entity.architectstrials.portal_echo": "Portal Echo",
 
   "block.architectstrials.player_spawn_marker": "Player Spawn Marker",
   "tooltip.architectstrials.player_spawn_marker": "Editor marker: players entering the challenge spawn here, looking where the arrow points. Replaced by air when the structure is placed.",

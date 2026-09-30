@@ -130,7 +130,8 @@ Markers are only available in the creative inventory (no recipes).
 | `/architectstrials slot free <theme> <index>` | Debug: releases a slot; its content is cleared over the next ticks |
 | `/architectstrials exit [targets]` | Leaves any Architect's Trials dimension: back to the entry point, or to the respawn point / world spawn if none is stored |
 
-Players always return to the exact point they entered from, with their previous game mode. Players who log
+Players always return to the exact point they entered from, with their previous game mode, turned around
+(they step back out of the portal they walked into) and with a short rune echo of the portal behind them. Players who log
 in inside a challenge dimension whose challenge is over are returned automatically.
 
 ### Slots & server config

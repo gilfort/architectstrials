@@ -3,6 +3,7 @@ package com.gilfort.architectstrials.gametest;
 import java.util.function.Consumer;
 
 import com.gilfort.architectstrials.ArchitectsTrials;
+import com.gilfort.architectstrials.portal.PortalEcho;
 import com.gilfort.architectstrials.registry.ModAttachments;
 import com.gilfort.architectstrials.travel.ChallengeTravel;
 import com.gilfort.architectstrials.travel.EntryPoint;
@@ -11,6 +12,7 @@ import net.minecraft.core.registries.Registries;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.util.Mth;
 import net.minecraft.world.entity.Pose;
 import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.Level;
@@ -71,6 +73,10 @@ public final class ChallengeTravelGameTests {
         helper.assertTrue(player.position().distanceTo(start) < 0.01,
                 "Player was not returned to the exact entry position: expected " + start + ", got " + player.position());
         helper.assertTrue(player.gameMode.getGameModeForPlayer() == GameType.CREATIVE, "Game mode was not restored");
+        helper.assertTrue(Mth.degreesDifferenceAbs(player.getYRot(), 180.0F) < 0.01F,
+                "Player was not turned around on return: yaw " + player.getYRot());
+        helper.assertFalse(helper.getLevel().getEntitiesOfClass(PortalEcho.class, player.getBoundingBox().inflate(2.0)).isEmpty(),
+                "No portal echo appeared behind the returning player");
         helper.assertTrue(player.isOnPortalCooldown(), "Return portal cooldown was not applied");
         helper.assertFalse(player.hasData(ModAttachments.ENTRY_POINT), "Entry point was not cleared");
         TestPlayers.finish(helper, player);

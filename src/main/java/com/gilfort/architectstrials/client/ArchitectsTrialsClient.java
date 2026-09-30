@@ -41,14 +41,15 @@ public final class ArchitectsTrialsClient {
      * @param event the client setup event
      */
     /**
-     * Registers entity renderers. The challenge portal is drawn purely with particles, so it uses a no-op
-     * renderer.
+     * Registers entity renderers. Portals and their echoes are drawn purely with particles, so they use no-op
+     * renderers.
      *
      * @param event the renderer registration event
      */
     @SubscribeEvent
     static void onRegisterRenderers(EntityRenderersEvent.RegisterRenderers event) {
         event.registerEntityRenderer(ModEntityTypes.CHALLENGE_PORTAL.get(), NoopRenderer::new);
+        event.registerEntityRenderer(ModEntityTypes.PORTAL_ECHO.get(), NoopRenderer::new);
     }
 
     @SubscribeEvent

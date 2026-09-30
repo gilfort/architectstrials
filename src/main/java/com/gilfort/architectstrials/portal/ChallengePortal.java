@@ -10,7 +10,6 @@ import com.gilfort.architectstrials.registry.ModEntityTypes;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.UUIDUtil;
-import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.syncher.EntityDataAccessor;
@@ -167,26 +166,13 @@ public class ChallengePortal extends Entity {
     }
 
     /**
-     * Client-side visuals: sparse enchant glyphs while forming, a dense portal oval once active.
+     * Client-side visuals: sparse rune glyphs while forming, a dense portal swirl once active.
      */
     private void spawnParticles() {
-        boolean active = this.isActive();
-        int count = active ? 6 : 2;
-        double yawRadians = Math.toRadians(this.getYRot());
-        double alongX = Math.cos(yawRadians);
-        double alongZ = Math.sin(yawRadians);
-        for (int i = 0; i < count; i++) {
-            double angle = this.random.nextDouble() * Math.PI * 2.0;
-            double horizontal = Math.cos(angle) * 0.5;
-            double vertical = 1.0 + Math.sin(angle) * 1.0;
-            double x = this.getX() + alongX * horizontal;
-            double z = this.getZ() + alongZ * horizontal;
-            if (active) {
-                this.level().addParticle(ParticleTypes.PORTAL, x, this.getY() + vertical, z,
-                        (this.random.nextDouble() - 0.5) * 0.3, -0.1, (this.random.nextDouble() - 0.5) * 0.3);
-            } else {
-                this.level().addParticle(ParticleTypes.ENCHANT, x, this.getY() + vertical, z, 0.0, 0.05, 0.0);
-            }
+        if (this.isActive()) {
+            PortalParticles.swirl(this, 6);
+        } else {
+            PortalParticles.runes(this, 2);
         }
     }
 

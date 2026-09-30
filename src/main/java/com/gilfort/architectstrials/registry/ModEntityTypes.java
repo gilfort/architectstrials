@@ -4,6 +4,7 @@ import java.util.function.Supplier;
 
 import com.gilfort.architectstrials.ArchitectsTrials;
 import com.gilfort.architectstrials.portal.ChallengePortal;
+import com.gilfort.architectstrials.portal.PortalEcho;
 
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceKey;
@@ -31,6 +32,17 @@ public final class ModEntityTypes {
                     .fireImmune()
                     .clientTrackingRange(8)
                     .updateInterval(20)
+                    .build(ResourceKey.create(Registries.ENTITY_TYPE, id)));
+
+    /** Short-lived, purely visual rune echo shown behind players returning from a challenge. */
+    public static final Supplier<EntityType<PortalEcho>> PORTAL_ECHO = ENTITY_TYPES.register("portal_echo",
+            id -> EntityType.Builder.<PortalEcho>of(PortalEcho::new, MobCategory.MISC)
+                    .sized(1.0F, 2.0F)
+                    .noLootTable()
+                    .noSummon()
+                    .noSave()
+                    .fireImmune()
+                    .clientTrackingRange(8)
                     .build(ResourceKey.create(Registries.ENTITY_TYPE, id)));
 
     private ModEntityTypes() {
