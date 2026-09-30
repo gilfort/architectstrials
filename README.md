@@ -107,6 +107,30 @@ missing or the scroll is used inside an Architect's Trials dimension. If nobody 
 `portalTimeoutSeconds`, the portal collapses, the instance is cleaned up and the scroll drops again with a
 50 % chance.
 
+### Completion bonus & advancements
+
+Completing a run (walking through an open exit) rolls a **bonus loot table** for the player, separate from
+the structure's own loot. Items go straight into the inventory; overflow drops at the player's feet. The
+loot context contains the player and their luck.
+
+Loot table lookup: a loot table set on the used exit (look at an Exit Marker in the editor and run
+`/architectstrials marker loot_table <id>`) → otherwise the convention
+`<ns>:architectstrials/completion/<theme>/tier_<n>` (namespace and path of the theme id) → otherwise no bonus.
+
+Advancements can react to completed runs with the criterion `architectstrials:run_completed`:
+
+```json
+"criteria": {
+  "five_nether_runs": {
+    "trigger": "architectstrials:run_completed",
+    "conditions": { "theme": "mypack:nether", "tier": { "min": 2 }, "runs": { "min": 5 } }
+  }
+}
+```
+
+All conditions are optional. `runs` counts the player's completed runs matching `theme` and `tier`
+(including the current one). Advancement rewards (e.g. functions) work as usual.
+
 ### Markers
 
 Builders place marker blocks instead of final content; they are resolved when a structure is placed.
@@ -125,6 +149,7 @@ Markers are only available in the creative inventory (no recipes).
 | `/architectstrials theme tp <theme>` | Teleports you into a theme's dimension (void world — use creative/spectator); stores your entry point, keeps your game mode |
 | `/architectstrials enter <theme>` | Debug entry into a theme like a real challenge: stores your entry point, switches to Adventure |
 | `/architectstrials instance create <theme> <tier> [join]` | Debug: creates an instance — draws a structure, places it in a free slot, runs the marker pass; `join` lets you enter at a random spawn marker |
+| `/architectstrials marker loot_table <id>\|clear` | Sets or removes the loot table of the marker you are looking at (Exit Marker: completion bonus override) |
 | `/architectstrials scroll give <theme> <tier> [targets]` | Gives a challenge scroll bound to a theme and tier |
 | `/architectstrials slot list <theme>` | Lists occupied and clearing slots of a theme dimension |
 | `/architectstrials slot allocate <theme>` | Debug: allocates the next free slot |
@@ -175,7 +200,8 @@ Other mods can react to completed runs via `com.gilfort.architectstrials.run.Run
 GameTests and their test datapack live in `src/gametest` and are never included in the mod jar.
 The dev test datapack also defines the dimension `architectstrials:gametest_theme` for manual testing in
 `runClient` (`/architectstrials theme tp architectstrials:gametest_theme`), with a tier-1 pool containing a small
-spawn-marker platform with an exit (`/architectstrials instance create architectstrials:gametest_theme 1 join`).
+spawn-marker platform with a 2×3 exit and a completion bonus of 5 emeralds
+(`/architectstrials instance create architectstrials:gametest_theme 1 join`).
 
 ## License
 

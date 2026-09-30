@@ -33,6 +33,7 @@ public final class ArchitectsTrialsCommand {
                 .then(TravelCommand.buildExit())
                 .then(SlotCommand.build())
                 .then(InstanceCommand.build())
-                .then(ScrollCommand.build()));
+                .then(ScrollCommand.build())
+                .then(MarkerCommand.build()));
     }
 }

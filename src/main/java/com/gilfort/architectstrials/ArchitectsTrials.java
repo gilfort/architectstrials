@@ -10,6 +10,7 @@ import com.gilfort.architectstrials.registry.ModAttachments;
 import com.gilfort.architectstrials.registry.ModBlockEntityTypes;
 import com.gilfort.architectstrials.registry.ModBlocks;
 import com.gilfort.architectstrials.registry.ModCreativeModeTabs;
+import com.gilfort.architectstrials.registry.ModCriteriaTriggers;
 import com.gilfort.architectstrials.registry.ModDataComponents;
 import com.gilfort.architectstrials.registry.ModEntityTypes;
 import com.gilfort.architectstrials.registry.ModItems;
@@ -51,6 +52,7 @@ public final class ArchitectsTrials {
         ModDataComponents.register(modEventBus);
         ModEntityTypes.register(modEventBus);
         ModBlockEntityTypes.register(modEventBus);
+        ModCriteriaTriggers.register(modEventBus);
 
         modContainer.registerConfig(ModConfig.Type.SERVER, ArchitectsTrialsConfig.SPEC);
 

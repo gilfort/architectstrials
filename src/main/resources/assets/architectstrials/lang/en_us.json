@@ -11,7 +11,7 @@
 
   "block.architectstrials.player_spawn_marker": "Player Spawn Marker",
   "block.architectstrials.exit_marker": "Exit Marker",
-  "tooltip.architectstrials.exit_marker": "Editor marker: becomes the challenge exit. Walking through its portal completes the run. A redstone signal LOCKS the exit; unpowered it is open.",
+  "tooltip.architectstrials.exit_marker": "Editor marker: becomes the challenge exit. Walking through its portal completes the run. A redstone signal LOCKS the exit; unpowered it is open. Optional bonus loot table: /architectstrials marker loot_table <id>",
   "block.architectstrials.challenge_exit": "Challenge Exit",
   "tooltip.architectstrials.player_spawn_marker": "Editor marker: players entering the challenge spawn here, looking where the arrow points. Replaced by air when the structure is placed.",
 
@@ -39,6 +39,10 @@
   "commands.architectstrials.instance.create.success": "Placed structure %s in slot #%s at %s %s %s (instance %s)",
 
   "commands.architectstrials.scroll.give.success": "Gave %s a %s",
+
+  "commands.architectstrials.marker.no_target": "Look at a marker that supports a loot table (e.g. an Exit Marker).",
+  "commands.architectstrials.marker.loot_table.set": "Loot table of the marker set to %s",
+  "commands.architectstrials.marker.loot_table.cleared": "Loot table of the marker removed",
 
   "architectstrials.configuration.title": "Architect's Trials Configuration",
   "architectstrials.configuration.section.architectstrials.server.toml": "Server",
