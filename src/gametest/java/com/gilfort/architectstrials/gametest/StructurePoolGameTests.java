@@ -82,11 +82,11 @@ public final class StructurePoolGameTests {
                 "Tiers were not derived from the pool: " + ChallengeStructures.tiers(theme.id()));
 
         int occupiedBefore = SlotManager.data(nether).occupied().size();
-        InstanceCreation empty = InstanceManager.create(nether, theme, 99, nether.getRandom());
+        InstanceCreation empty = InstanceManager.create(nether, theme, 99, nether.getRandom(), InstanceManager.defaultTimeLimitTicks());
         helper.assertTrue(empty instanceof InstanceCreation.Failure, "Empty pool did not fail");
         helper.assertTrue(SlotManager.data(nether).occupied().size() == occupiedBefore, "Failed creation left a slot occupied");
 
-        InstanceCreation result = InstanceManager.create(nether, theme, 1, nether.getRandom());
+        InstanceCreation result = InstanceManager.create(nether, theme, 1, nether.getRandom(), InstanceManager.defaultTimeLimitTicks());
         if (!(result instanceof InstanceCreation.Success(ChallengeInstance instance))) {
             helper.fail("Instance creation failed: " + ((InstanceCreation.Failure) result).reason().getString());
             return;

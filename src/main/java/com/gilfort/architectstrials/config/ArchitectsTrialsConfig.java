@@ -43,6 +43,12 @@ public final class ArchitectsTrialsConfig {
                     "0 blocks all scrolls until the player receives an upgrade (e.g. via /architectstrials rank in an advancement reward).")
             .defineInRange("startingRank", 1, 0, 1000);
 
+    /** Time limit of challenges whose scroll defines none, in minutes. */
+    public static final ModConfigSpec.IntValue DEFAULT_TIME_LIMIT_MINUTES = BUILDER
+            .comment("Time limit in minutes for challenges whose scroll does not define one.",
+                    "Players still inside when it expires are sent back (the run does not count as completed).")
+            .defineInRange("defaultTimeLimitMinutes", 60, 1, 1440);
+
     /** The built specification, registered as {@code SERVER} config. */
     public static final ModConfigSpec SPEC = BUILDER.build();
 

@@ -7,6 +7,8 @@ import com.gilfort.architectstrials.scroll.ScrollTarget;
 
 import net.minecraft.core.component.DataComponentType;
 import net.minecraft.core.registries.Registries;
+import net.minecraft.network.codec.ByteBufCodecs;
+import net.minecraft.util.ExtraCodecs;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.neoforge.registries.DeferredRegister;
 
@@ -22,6 +24,13 @@ public final class ModDataComponents {
     /** The theme and tier a challenge scroll opens ({@code architectstrials:challenge}). */
     public static final Supplier<DataComponentType<ScrollTarget>> SCROLL_TARGET = DATA_COMPONENTS.registerComponentType(
             "challenge", builder -> builder.persistent(ScrollTarget.CODEC).networkSynchronized(ScrollTarget.STREAM_CODEC));
+
+    /**
+     * Challenge time limit in minutes ({@code architectstrials:time_limit}); scrolls without it use the configured
+     * default.
+     */
+    public static final Supplier<DataComponentType<Integer>> TIME_LIMIT = DATA_COMPONENTS.registerComponentType(
+            "time_limit", builder -> builder.persistent(ExtraCodecs.POSITIVE_INT).networkSynchronized(ByteBufCodecs.VAR_INT));
 
     private ModDataComponents() {
     }

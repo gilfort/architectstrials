@@ -2,6 +2,7 @@ package com.gilfort.architectstrials.scroll;
 
 import java.util.Optional;
 
+import com.gilfort.architectstrials.instance.ChallengeClock;
 import com.gilfort.architectstrials.instance.ChallengeInstance;
 import com.gilfort.architectstrials.instance.InstanceCreation;
 import com.gilfort.architectstrials.instance.InstanceManager;
@@ -83,7 +84,10 @@ public final class ScrollActivation {
             return Result.failure(Component.translatable("message.architectstrials.scroll.no_space"));
         }
 
-        InstanceCreation creation = InstanceManager.create(themeLevel, theme.get(), target.tier(), themeLevel.getRandom());
+        long timeLimitTicks = stack.has(ModDataComponents.TIME_LIMIT.get())
+                ? stack.get(ModDataComponents.TIME_LIMIT.get()) * 60L * ChallengeClock.TICKS_PER_SECOND
+                : InstanceManager.defaultTimeLimitTicks();
+        InstanceCreation creation = InstanceManager.create(themeLevel, theme.get(), target.tier(), themeLevel.getRandom(), timeLimitTicks);
         if (creation instanceof InstanceCreation.Failure(Component reason)) {
             return Result.failure(reason);
         }

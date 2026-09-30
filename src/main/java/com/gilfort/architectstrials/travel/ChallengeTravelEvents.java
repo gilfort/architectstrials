@@ -1,6 +1,7 @@
 package com.gilfort.architectstrials.travel;
 
 import com.gilfort.architectstrials.ArchitectsTrials;
+import com.gilfort.architectstrials.instance.InstanceManager;
 
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
@@ -18,10 +19,8 @@ public final class ChallengeTravelEvents {
     }
 
     /**
-     * Returns players who log in inside an Architect's Trials dimension without a running challenge.
-     * <p>
-     * Challenge instances do not exist yet, so every such login is treated as "instance gone". The
-     * instance lifecycle story extends this check so that players whose instance still runs stay inside.
+     * Returns players who log in inside an Architect's Trials dimension unless they still participate in a
+     * running instance (offline participants keep their instance alive until its time limit).
      *
      * @param event the login event
      */
@@ -29,19 +28,9 @@ public final class ChallengeTravelEvents {
     static void onPlayerLoggedIn(PlayerEvent.PlayerLoggedInEvent event) {
         if (event.getEntity() instanceof ServerPlayer player
                 && ChallengeTravel.isModDimension(player.level().dimension())
-                && !hasRunningChallenge(player)) {
+                && !InstanceManager.isParticipant(player)) {
             ChallengeTravel.exit(player);
             player.sendSystemMessage(Component.translatable("message.architectstrials.returned_on_login"));
         }
-    }
-
-    /**
-     * Checks whether the player still belongs to a running challenge instance.
-     *
-     * @param player the player
-     * @return always {@code false} until challenge instances are implemented
-     */
-    private static boolean hasRunningChallenge(ServerPlayer player) {
-        return false;
     }
 }

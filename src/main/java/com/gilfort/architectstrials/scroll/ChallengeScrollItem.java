@@ -2,6 +2,7 @@ package com.gilfort.architectstrials.scroll;
 
 import java.util.function.Consumer;
 
+import com.gilfort.architectstrials.config.ArchitectsTrialsConfig;
 import com.gilfort.architectstrials.registry.ModDataComponents;
 
 import net.minecraft.ChatFormatting;
@@ -74,5 +75,7 @@ public class ChallengeScrollItem extends Item {
         }
         builder.accept(Component.translatable("tooltip.architectstrials.challenge_scroll.usage").withStyle(ChatFormatting.GRAY));
         builder.accept(Component.translatable("tooltip.architectstrials.challenge_scroll.solo").withStyle(ChatFormatting.DARK_GRAY));
+        int minutes = stack.getOrDefault(ModDataComponents.TIME_LIMIT.get(), ArchitectsTrialsConfig.DEFAULT_TIME_LIMIT_MINUTES.getAsInt());
+        builder.accept(Component.translatable("tooltip.architectstrials.challenge_scroll.time_limit", minutes).withStyle(ChatFormatting.DARK_GRAY));
     }
 }

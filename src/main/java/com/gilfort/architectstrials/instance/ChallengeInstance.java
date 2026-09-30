@@ -1,5 +1,6 @@
 package com.gilfort.architectstrials.instance;
 
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.UUID;
 
@@ -26,6 +27,10 @@ import net.minecraft.world.level.block.Rotation;
  * @param mirror      the applied mirroring
  * @param spawnPoints the player entry points recorded from the structure's player spawn markers
  * @param exits       the positions of the exit bases recorded from the structure's exit markers
+ * @param deadline    the {@link ChallengeClock} value at which the time limit expires
+ * @param portalDeadline the clock value until which the entry portal may still let players in, or {@code -1}
+ *                    once the portal is closed
+ * @param participants the players belonging to the instance (online or offline); they keep it alive
  */
 public record ChallengeInstance(
         UUID id,
@@ -37,7 +42,10 @@ public record ChallengeInstance(
         Rotation rotation,
         Mirror mirror,
         List<SpawnPoint> spawnPoints,
-        List<BlockPos> exits
+        List<BlockPos> exits,
+        long deadline,
+        long portalDeadline,
+        List<UUID> participants
 ) {
 
     /** Codec used to persist instances. */
@@ -51,13 +59,17 @@ public record ChallengeInstance(
             Rotation.CODEC.fieldOf("rotation").forGetter(ChallengeInstance::rotation),
             Mirror.CODEC.fieldOf("mirror").forGetter(ChallengeInstance::mirror),
             SpawnPoint.CODEC.listOf().optionalFieldOf("spawn_points", List.of()).forGetter(ChallengeInstance::spawnPoints),
-            BlockPos.CODEC.listOf().optionalFieldOf("exits", List.of()).forGetter(ChallengeInstance::exits)
+            BlockPos.CODEC.listOf().optionalFieldOf("exits", List.of()).forGetter(ChallengeInstance::exits),
+            Codec.LONG.optionalFieldOf("deadline", 0L).forGetter(ChallengeInstance::deadline),
+            Codec.LONG.optionalFieldOf("portal_deadline", -1L).forGetter(ChallengeInstance::portalDeadline),
+            UUIDUtil.CODEC.listOf().optionalFieldOf("participants", List.of()).forGetter(ChallengeInstance::participants)
     ).apply(instance, ChallengeInstance::new));
 
     /** Creates an instance, defensively copying the marker-derived lists. */
     public ChallengeInstance {
         spawnPoints = List.copyOf(spawnPoints);
         exits = List.copyOf(exits);
+        participants = List.copyOf(new LinkedHashSet<>(participants));
     }
 
     /**
@@ -78,7 +90,7 @@ public record ChallengeInstance(
      */
     public ChallengeInstance withSpawnPoints(List<SpawnPoint> points) {
         return new ChallengeInstance(this.id, this.theme, this.tier, this.structure, this.slot, this.origin,
-                this.rotation, this.mirror, points, this.exits);
+                this.rotation, this.mirror, points, this.exits, this.deadline, this.portalDeadline, this.participants);
     }
 
     /**
@@ -89,6 +101,71 @@ public record ChallengeInstance(
      */
     public ChallengeInstance withExits(List<BlockPos> exitPositions) {
         return new ChallengeInstance(this.id, this.theme, this.tier, this.structure, this.slot, this.origin,
-                this.rotation, this.mirror, this.spawnPoints, exitPositions);
+                this.rotation, this.mirror, this.spawnPoints, exitPositions, this.deadline, this.portalDeadline, this.participants);
+    }
+
+    /**
+     * Returns a copy of this instance with the given time limit deadline.
+     *
+     * @param newDeadline the clock value at which the time limit expires
+     * @return the updated instance
+     */
+    public ChallengeInstance withDeadline(long newDeadline) {
+        return new ChallengeInstance(this.id, this.theme, this.tier, this.structure, this.slot, this.origin,
+                this.rotation, this.mirror, this.spawnPoints, this.exits, newDeadline, this.portalDeadline, this.participants);
+    }
+
+    /**
+     * Returns a copy of this instance with the given portal deadline.
+     *
+     * @param newPortalDeadline the clock value until which the portal is open, or {@code -1} if closed
+     * @return the updated instance
+     */
+    public ChallengeInstance withPortalDeadline(long newPortalDeadline) {
+        return new ChallengeInstance(this.id, this.theme, this.tier, this.structure, this.slot, this.origin,
+                this.rotation, this.mirror, this.spawnPoints, this.exits, this.deadline, newPortalDeadline, this.participants);
+    }
+
+    /**
+     * Returns a copy of this instance with the given participants.
+     *
+     * @param newParticipants the participants
+     * @return the updated instance
+     */
+    public ChallengeInstance withParticipants(List<UUID> newParticipants) {
+        return new ChallengeInstance(this.id, this.theme, this.tier, this.structure, this.slot, this.origin,
+                this.rotation, this.mirror, this.spawnPoints, this.exits, this.deadline, this.portalDeadline, newParticipants);
+    }
+
+    /** @return {@code true} while the entry portal may still let players in */
+    public boolean portalOpen() {
+        return this.portalDeadline >= 0;
+    }
+
+    /**
+     * Returns the lifecycle state of this instance.
+     *
+     * @return forming, active (participants inside), idle (portal open, nobody inside) or cleanup due
+     */
+    public LifecycleState state() {
+        if (!this.ready()) {
+            return LifecycleState.FORMING;
+        }
+        if (!this.participants.isEmpty()) {
+            return LifecycleState.ACTIVE;
+        }
+        return this.portalOpen() ? LifecycleState.IDLE : LifecycleState.CLEANUP_DUE;
+    }
+
+    /** Lifecycle states of an instance. */
+    public enum LifecycleState {
+        /** Structure placed but no spawn points; cannot be entered. */
+        FORMING,
+        /** At least one participant (online or offline) belongs to the instance. */
+        ACTIVE,
+        /** Nobody inside, but the portal is still open for (late) entry. */
+        IDLE,
+        /** Portal closed and nobody inside; the instance is removed and its slot cleared. */
+        CLEANUP_DUE
     }
 }

@@ -3,6 +3,7 @@ package com.gilfort.architectstrials.travel;
 import java.util.Optional;
 
 import com.gilfort.architectstrials.ArchitectsTrials;
+import com.gilfort.architectstrials.instance.InstanceManager;
 import com.gilfort.architectstrials.portal.PortalEcho;
 import com.gilfort.architectstrials.registry.ModAttachments;
 import com.gilfort.architectstrials.theme.ChallengeThemes;
@@ -64,8 +65,19 @@ public final class ChallengeTravel {
     }
 
     /**
+     * Binds the player's stored entry point to a challenge instance.
+     *
+     * @param player the player
+     * @param ref    the instance reference
+     */
+    public static void bindInstance(ServerPlayer player, EntryPoint.InstanceRef ref) {
+        player.getExistingData(ModAttachments.ENTRY_POINT)
+                .ifPresent(entry -> player.setData(ModAttachments.ENTRY_POINT, entry.withInstance(ref)));
+    }
+
+    /**
      * Returns a player to their stored entry point, restores their game mode, applies the return portal
-     * cooldown and clears the entry point.
+     * cooldown, clears the entry point and removes the player from their instance.
      * <p>
      * The player comes back facing the opposite direction than when they entered (they step out of the portal
      * they walked into), and a short rune echo of the portal appears behind them.
@@ -82,6 +94,7 @@ public final class ChallengeTravel {
             return false;
         }
         EntryPoint entry = stored.get();
+        entry.instance().ifPresent(ref -> InstanceManager.leave(player.level().getServer(), ref, player.getUUID()));
         ServerLevel level = player.level().getServer().getLevel(entry.dimension());
         if (level == null) {
             ArchitectsTrials.LOGGER.warn("Entry dimension {} of player {} no longer exists; sending them to world spawn",

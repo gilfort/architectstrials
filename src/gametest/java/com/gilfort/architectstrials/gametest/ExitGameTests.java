@@ -76,7 +76,7 @@ public final class ExitGameTests {
     private static void redstoneLockAndCompletion(GameTestHelper helper) {
         ServerLevel nether = TestPlayers.challengeLevel(helper);
         InstanceCreation result = InstanceManager.create(nether, ChallengeThemes.get(Level.NETHER.identifier()).orElseThrow(),
-                PLATFORM_TIER, nether.getRandom());
+                PLATFORM_TIER, nether.getRandom(), InstanceManager.defaultTimeLimitTicks());
         if (!(result instanceof InstanceCreation.Success(ChallengeInstance instance))) {
             helper.fail("Instance creation failed: " + ((InstanceCreation.Failure) result).reason().getString());
             return;
