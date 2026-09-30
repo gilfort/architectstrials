@@ -14,8 +14,8 @@ import net.minecraft.util.LightCoordsUtil;
 
 /**
  * Draws the animated, translucent surface shared by entry portals and challenge exits: a single quad (visible
- * from both sides, as the pipeline does not cull) whose texture cycles through the frames of a vertical sprite sheet. Replaces dense particle clouds, which
- * would cost far more performance.
+ * from both sides, as the pipeline does not cull) whose texture cycles through the frames of a vertical sprite
+ * sheet. Replaces dense particle clouds, which would cost far more performance.
  */
 final class PortalSurface {
 
