@@ -1,0 +1,8 @@
+{
+  "criteria": {
+    "run": {
+      "trigger": "architectstrials:run_completed",
+      "conditions": { "theme": "minecraft:the_nether", "tier": { "min": 2 }, "runs": { "min": 1 } }
+    }
+  }
+}

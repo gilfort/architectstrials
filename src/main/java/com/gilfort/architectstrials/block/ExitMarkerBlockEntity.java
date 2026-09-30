@@ -13,10 +13,10 @@ import net.minecraft.world.level.storage.ValueOutput;
 import net.minecraft.world.level.storage.loot.LootTable;
 
 /**
- * Block entity of the {@link ChallengeExitBlock}. Holds the optional completion bonus override taken over from
- * the exit marker, and lets the client render the animated portal surface of an {@link ExitGroup}.
+ * Block entity of the {@link ExitMarkerBlock}: stores an optional completion bonus loot table that overrides
+ * the theme/tier convention. Saved with the structure and handed to the functional exit on placement.
  */
-public class ChallengeExitBlockEntity extends BlockEntity implements LootTableReference {
+public class ExitMarkerBlockEntity extends BlockEntity implements LootTableReference {
 
     private Optional<ResourceKey<LootTable>> lootTable = Optional.empty();
 
@@ -26,8 +26,8 @@ public class ChallengeExitBlockEntity extends BlockEntity implements LootTableRe
      * @param pos   the position
      * @param state the block state
      */
-    public ChallengeExitBlockEntity(BlockPos pos, BlockState state) {
-        super(ModBlockEntityTypes.CHALLENGE_EXIT.get(), pos, state);
+    public ExitMarkerBlockEntity(BlockPos pos, BlockState state) {
+        super(ModBlockEntityTypes.EXIT_MARKER.get(), pos, state);
     }
 
     @Override

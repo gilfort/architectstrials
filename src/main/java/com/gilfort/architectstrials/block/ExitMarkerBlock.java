@@ -1,23 +1,30 @@
 package com.gilfort.architectstrials.block;
 
+import java.util.Optional;
+
 import com.gilfort.architectstrials.marker.MarkerContext;
 import com.gilfort.architectstrials.registry.ModBlocks;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.EntityBlock;
 import net.minecraft.world.level.block.HorizontalDirectionalBlock;
+import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
+import net.minecraft.world.level.storage.loot.LootTable;
 
 /**
  * Editor marker for a challenge exit. Inert while building; when the structure is placed, {@link #resolve}
  * turns it into a functional {@link ChallengeExitBlock} with the same facing and records it on the instance.
- * The facing determines the orientation of the exit portal plane (it faces the builder when placed).
+ * The facing determines the orientation of the exit portal plane (it faces the builder when placed). An
+ * optional completion bonus loot table set on the marker is carried over to the exit.
  */
-public class ExitMarkerBlock extends HorizontalDirectionalBlock {
+public class ExitMarkerBlock extends HorizontalDirectionalBlock implements EntityBlock {
 
     /**
      * Creates the block.
@@ -39,19 +46,30 @@ public class ExitMarkerBlock extends HorizontalDirectionalBlock {
         builder.add(FACING);
     }
 
+    @Override
+    public BlockEntity newBlockEntity(BlockPos pos, BlockState state) {
+        return new ExitMarkerBlockEntity(pos, state);
+    }
+
     /**
-     * Marker resolver: replaces the marker by a functional exit (locked if already powered) and records it.
+     * Marker resolver: replaces the marker by a functional exit (locked if already powered), carries over its
+     * bonus loot table reference and records it.
      *
      * @param context the placement context
      * @param pos     the world position of the marker (already transformed)
      */
     public static void resolve(MarkerContext context, BlockPos pos) {
         BlockState marker = context.level().getBlockState(pos);
+        Optional<ResourceKey<LootTable>> bonus = context.level().getBlockEntity(pos) instanceof LootTableReference reference
+                ? reference.lootTableReference() : Optional.empty();
         Direction facing = marker.getBlock() instanceof ExitMarkerBlock ? marker.getValue(FACING) : Direction.NORTH;
         BlockState exit = ModBlocks.CHALLENGE_EXIT.get().defaultBlockState()
                 .setValue(ChallengeExitBlock.FACING, facing)
                 .setValue(ChallengeExitBlock.POWERED, context.level().hasNeighborSignal(pos));
         context.level().setBlock(pos, exit, Block.UPDATE_ALL);
+        if (context.level().getBlockEntity(pos) instanceof ChallengeExitBlockEntity exitEntity) {
+            exitEntity.setLootTableReference(bonus);
+        }
         context.addExit(pos.immutable());
     }
 }
