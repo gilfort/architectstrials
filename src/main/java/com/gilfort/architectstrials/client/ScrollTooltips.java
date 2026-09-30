@@ -14,8 +14,8 @@ import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.event.entity.player.ItemTooltipEvent;
 
 /**
- * Adds the difficulty requirement of a scroll to its tooltip, green if the viewing player meets it and red if
- * not. Uses the player's own difficulty levels, which are synced to their client.
+ * Adds the rank requirement of a scroll to its tooltip, green if the viewing player meets it and red if
+ * not. Uses the player's own ranks, which are synced to their client.
  */
 @EventBusSubscriber(modid = ArchitectsTrials.MOD_ID, value = Dist.CLIENT)
 public final class ScrollTooltips {
@@ -35,7 +35,7 @@ public final class ScrollTooltips {
         if (target == null || player == null) {
             return;
         }
-        boolean allowed = player.getData(ModAttachments.DIFFICULTY).allows(target.theme(), target.tier());
+        boolean allowed = player.getData(ModAttachments.RANK).allows(target.theme(), target.tier());
         event.getToolTip().add(Component.translatable("tooltip.architectstrials.challenge_scroll.requires", target.tier())
                 .withStyle(allowed ? ChatFormatting.GREEN : ChatFormatting.RED));
     }

@@ -21,7 +21,7 @@ import net.minecraft.world.item.ItemStack;
 /**
  * Opens a challenge portal from a scroll.
  * <p>
- * Order: validate (incl. the player's difficulty level for the theme) → create the instance → spawn the portal →
+ * Order: validate (incl. the player's rank for the theme) → create the instance → spawn the portal →
  * consume the scroll. The scroll is consumed only
  * if everything succeeded; every failure leaves it untouched and reports a lang-defined reason.
  */
@@ -75,9 +75,9 @@ public final class ScrollActivation {
         if (theme.isEmpty() || themeLevel == null) {
             return Result.failure(Component.translatable("message.architectstrials.scroll.unknown_theme", target.theme().toString()));
         }
-        int difficulty = player.getData(ModAttachments.DIFFICULTY).level(target.theme());
-        if (difficulty < target.tier()) {
-            return Result.failure(Component.translatable("message.architectstrials.scroll.difficulty_too_low", target.tier(), difficulty));
+        int rank = player.getData(ModAttachments.RANK).level(target.theme());
+        if (rank < target.tier()) {
+            return Result.failure(Component.translatable("message.architectstrials.scroll.rank_too_low", target.tier(), rank));
         }
         if (!hasSpace(level, portalPos)) {
             return Result.failure(Component.translatable("message.architectstrials.scroll.no_space"));

@@ -37,11 +37,11 @@ public final class ArchitectsTrialsConfig {
                     "The instance is cleaned up and the scroll drops again with a 50% chance.")
             .defineInRange("portalTimeoutSeconds", 60, 1, 3600);
 
-    /** Difficulty level every player starts with in every theme; 0 blocks all scrolls until upgraded. */
-    public static final ModConfigSpec.IntValue STARTING_DIFFICULTY = BUILDER
-            .comment("Difficulty level every player starts with in every theme. A scroll of tier N needs level N or higher.",
-                    "0 blocks all scrolls until the player receives an upgrade (e.g. via /architectstrials difficulty in an advancement reward).")
-            .defineInRange("startingDifficulty", 1, 0, 1000);
+    /** Rank every player starts with in every theme; 0 blocks all scrolls until upgraded. */
+    public static final ModConfigSpec.IntValue STARTING_RANK = BUILDER
+            .comment("Rank every player starts with in every theme. A scroll of tier N needs level N or higher.",
+                    "0 blocks all scrolls until the player receives an upgrade (e.g. via /architectstrials rank in an advancement reward).")
+            .defineInRange("startingRank", 1, 0, 1000);
 
     /** The built specification, registered as {@code SERVER} config. */
     public static final ModConfigSpec SPEC = BUILDER.build();

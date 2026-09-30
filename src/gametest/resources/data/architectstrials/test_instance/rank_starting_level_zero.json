@@ -1,7 +1,7 @@
 {
   "type": "minecraft:function",
   "environment": "minecraft:default",
-  "function": "architectstrials:difficulty_gates_scroll_tiers",
+  "function": "architectstrials:rank_starting_level_zero",
   "max_ticks": 20,
   "structure": "minecraft:empty",
   "padding": 8

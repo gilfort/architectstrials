@@ -5,7 +5,7 @@
   "item.architectstrials.challenge_scroll.named": "Challenge Scroll – %s, Tier %s",
   "tooltip.architectstrials.challenge_scroll.usage": "Right-click while looking at a block to open a challenge portal there.",
   "tooltip.architectstrials.challenge_scroll.solo": "Solo: only you can enter, the portal closes behind you.",
-  "tooltip.architectstrials.challenge_scroll.requires": "Requires difficulty %s",
+  "tooltip.architectstrials.challenge_scroll.requires": "Requires rank %s",
   "tooltip.architectstrials.challenge_scroll.blank": "This scroll is not bound to any challenge.",
   "entity.architectstrials.challenge_portal": "Challenge Portal",
   "entity.architectstrials.portal_echo": "Portal Echo",
@@ -45,8 +45,8 @@
   "commands.architectstrials.marker.loot_table.set": "Loot table of the marker set to %s",
   "commands.architectstrials.marker.loot_table.cleared": "Loot table of the marker removed",
 
-  "commands.architectstrials.difficulty.set": "Difficulty of %s for %s is now %s",
-  "commands.architectstrials.difficulty.get": "Difficulty of %s for %s: %s",
+  "commands.architectstrials.rank.set": "Rank of %s for %s is now %s",
+  "commands.architectstrials.rank.get": "Rank of %s for %s: %s",
 
   "architectstrials.configuration.title": "Architect's Trials Configuration",
   "architectstrials.configuration.section.architectstrials.server.toml": "Server",
@@ -62,10 +62,10 @@
   "architectstrials.configuration.portalTimeoutSeconds": "Portal Timeout (Seconds)",
   "architectstrials.configuration.portalTimeoutSeconds.tooltip": "Seconds an opened, ready challenge portal waits for its player before it collapses. The instance is cleaned up and the scroll drops again with a 50% chance.",
 
-  "architectstrials.configuration.startingDifficulty": "Starting Difficulty",
-  "architectstrials.configuration.startingDifficulty.tooltip": "Difficulty level every player starts with in every theme. A scroll of tier N needs level N or higher. 0 blocks all scrolls until the player receives an upgrade.",
+  "architectstrials.configuration.startingRank": "Starting Rank",
+  "architectstrials.configuration.startingRank.tooltip": "Rank every player starts with in every theme. A scroll of tier N needs level N or higher. 0 blocks all scrolls until the player receives an upgrade.",
 
-  "message.architectstrials.scroll.difficulty_too_low": "This scroll requires difficulty %s – yours is %s.",
+  "message.architectstrials.scroll.rank_too_low": "This scroll requires rank %s – yours is %s. You're not ready for this challenge, yet!",
   "message.architectstrials.scroll.blank": "This scroll is not bound to any challenge.",
   "message.architectstrials.scroll.inside_challenge": "Scrolls cannot be used inside Architect's Trials dimensions.",
   "message.architectstrials.scroll.unknown_theme": "The challenge theme %s does not exist on this server.",

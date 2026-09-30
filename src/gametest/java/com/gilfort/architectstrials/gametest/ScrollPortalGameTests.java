@@ -162,10 +162,10 @@ public final class ScrollPortalGameTests {
     }
 
     /**
-     * Raises the player's nether difficulty so scrolls up to {@code level} may be used.
+     * Raises the player's nether rank so scrolls up to {@code level} may be used.
      */
     static ServerPlayer qualified(ServerPlayer player, int level) {
-        player.setData(ModAttachments.DIFFICULTY, player.getData(ModAttachments.DIFFICULTY).withLevel(Level.NETHER.identifier(), level));
+        player.setData(ModAttachments.RANK, player.getData(ModAttachments.RANK).withLevel(Level.NETHER.identifier(), level));
         return player;
     }
 

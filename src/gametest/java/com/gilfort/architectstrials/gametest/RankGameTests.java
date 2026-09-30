@@ -22,14 +22,14 @@ import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.registries.RegisterEvent;
 
 /**
- * GameTests for US-10 (difficulty level gates scroll tiers). Scrolls target {@code minecraft:the_nether} tier 2.
+ * GameTests for US-10 (rank gates scroll tiers). Scrolls target {@code minecraft:the_nether} tier 2.
  */
 @EventBusSubscriber(modid = ArchitectsTrials.MOD_ID)
-public final class DifficultyGameTests {
+public final class RankGameTests {
 
     private static final int TIER = 2;
 
-    private DifficultyGameTests() {
+    private RankGameTests() {
     }
 
     /**
@@ -40,8 +40,8 @@ public final class DifficultyGameTests {
     @SubscribeEvent
     static void onRegister(RegisterEvent event) {
         event.register(Registries.TEST_FUNCTION, helper -> {
-            register(helper, "difficulty_gates_scroll_tiers", DifficultyGameTests::gatesScrollTiers);
-            register(helper, "difficulty_starting_level_zero", DifficultyGameTests::startingLevelZero);
+            register(helper, "rank_gates_scroll_tiers", RankGameTests::gatesScrollTiers);
+            register(helper, "rank_starting_level_zero", RankGameTests::startingLevelZero);
         });
     }
 
@@ -56,7 +56,7 @@ public final class DifficultyGameTests {
      */
     private static void gatesScrollTiers(GameTestHelper helper) {
         ServerPlayer player = TestPlayers.atStart(helper, GameType.SURVIVAL);
-        helper.assertTrue(player.getData(ModAttachments.DIFFICULTY).level(Level.NETHER.identifier()) == 1, "Players do not start at level 1");
+        helper.assertTrue(player.getData(ModAttachments.RANK).level(Level.NETHER.identifier()) == 1, "Players do not start at level 1");
 
         ItemStack scroll = ScrollPortalGameTests.scroll(Level.NETHER.identifier(), TIER);
         ScrollPortalGameTests.clearPortalSpace(helper);
@@ -64,15 +64,15 @@ public final class DifficultyGameTests {
         helper.assertFalse(rejected.succeeded(), "Scroll above the player's level was accepted");
         helper.assertTrue(scroll.getCount() == 1, "Rejected scroll was consumed");
 
-        run(helper, player, "architectstrials difficulty @s minecraft:the_nether set 2");
-        helper.assertTrue(run(helper, player, "architectstrials difficulty @s minecraft:the_nether get") == 2, "get does not return the level");
-        helper.assertTrue(player.getData(ModAttachments.DIFFICULTY).allows(Level.NETHER.identifier(), TIER), "set did not raise the level");
+        run(helper, player, "architectstrials rank @s minecraft:the_nether set 2");
+        helper.assertTrue(run(helper, player, "architectstrials rank @s minecraft:the_nether get") == 2, "get does not return the level");
+        helper.assertTrue(player.getData(ModAttachments.RANK).allows(Level.NETHER.identifier(), TIER), "set did not raise the level");
 
-        run(helper, player, "architectstrials difficulty @s minecraft:the_nether add -5");
-        helper.assertTrue(player.getData(ModAttachments.DIFFICULTY).level(Level.NETHER.identifier()) == 0, "add did not clamp at level 0");
-        helper.assertFalse(player.getData(ModAttachments.DIFFICULTY).allows(Level.NETHER.identifier(), 1), "Level 0 allows scrolls");
+        run(helper, player, "architectstrials rank @s minecraft:the_nether add -5");
+        helper.assertTrue(player.getData(ModAttachments.RANK).level(Level.NETHER.identifier()) == 0, "add did not clamp at level 0");
+        helper.assertFalse(player.getData(ModAttachments.RANK).allows(Level.NETHER.identifier(), 1), "Level 0 allows scrolls");
 
-        run(helper, player, "architectstrials difficulty @s minecraft:the_nether set 2");
+        run(helper, player, "architectstrials rank @s minecraft:the_nether set 2");
         ScrollActivation.Result accepted = ScrollActivation.activate(player, scroll, helper.absolutePos(ScrollPortalGameTests.PORTAL), 0.0F);
         helper.assertTrue(accepted.succeeded(), "Scroll was rejected after raising the level: "
                 + accepted.message().map(message -> message.getString()).orElse(""));
@@ -81,17 +81,17 @@ public final class DifficultyGameTests {
     }
 
     /**
-     * With {@code startingDifficulty = 0}, players without an explicit level cannot use any scroll.
+     * With {@code startingRank = 0}, players without an explicit level cannot use any scroll.
      */
     private static void startingLevelZero(GameTestHelper helper) {
         ServerPlayer player = TestPlayers.atStart(helper, GameType.SURVIVAL);
-        int previous = ArchitectsTrialsConfig.STARTING_DIFFICULTY.getAsInt();
-        ArchitectsTrialsConfig.STARTING_DIFFICULTY.set(0);
+        int previous = ArchitectsTrialsConfig.STARTING_RANK.getAsInt();
+        ArchitectsTrialsConfig.STARTING_RANK.set(0);
         try {
-            helper.assertFalse(player.getData(ModAttachments.DIFFICULTY).allows(Level.NETHER.identifier(), 1),
-                    "Starting difficulty 0 did not block tier-1 scrolls");
+            helper.assertFalse(player.getData(ModAttachments.RANK).allows(Level.NETHER.identifier(), 1),
+                    "Starting rank 0 did not block tier-1 scrolls");
         } finally {
-            ArchitectsTrialsConfig.STARTING_DIFFICULTY.set(previous);
+            ArchitectsTrialsConfig.STARTING_RANK.set(previous);
         }
         TestPlayers.finish(helper, player);
     }
