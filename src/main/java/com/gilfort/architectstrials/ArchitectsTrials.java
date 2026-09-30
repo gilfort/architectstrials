@@ -7,6 +7,7 @@ import com.gilfort.architectstrials.block.PlayerSpawnMarkerBlock;
 import com.gilfort.architectstrials.config.ArchitectsTrialsConfig;
 import com.gilfort.architectstrials.marker.MarkerResolvers;
 import com.gilfort.architectstrials.registry.ModAttachments;
+import com.gilfort.architectstrials.registry.ModBlockEntityTypes;
 import com.gilfort.architectstrials.registry.ModBlocks;
 import com.gilfort.architectstrials.registry.ModCreativeModeTabs;
 import com.gilfort.architectstrials.registry.ModDataComponents;
@@ -49,6 +50,7 @@ public final class ArchitectsTrials {
         ModAttachments.register(modEventBus);
         ModDataComponents.register(modEventBus);
         ModEntityTypes.register(modEventBus);
+        ModBlockEntityTypes.register(modEventBus);
 
         modContainer.registerConfig(ModConfig.Type.SERVER, ArchitectsTrialsConfig.SPEC);
 

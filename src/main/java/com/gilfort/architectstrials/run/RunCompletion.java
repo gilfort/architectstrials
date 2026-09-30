@@ -4,7 +4,7 @@ import java.util.List;
 import java.util.Optional;
 
 import com.gilfort.architectstrials.ArchitectsTrials;
-import com.gilfort.architectstrials.block.ChallengeExitBlock;
+import com.gilfort.architectstrials.block.ExitGroup;
 import com.gilfort.architectstrials.instance.ChallengeInstance;
 import com.gilfort.architectstrials.instance.InstanceManager;
 import com.gilfort.architectstrials.registry.ModAttachments;
@@ -70,8 +70,8 @@ public final class RunCompletion {
                 continue;
             }
             for (BlockPos exit : instance.get().exits()) {
-                if (ChallengeExitBlock.isOpen(level.getBlockState(exit))
-                        && player.getBoundingBox().intersects(ChallengeExitBlock.portalArea(exit))) {
+                Optional<ExitGroup> group = ExitGroup.find(level, exit);
+                if (group.isPresent() && !group.get().locked() && player.getBoundingBox().intersects(group.get().portalArea())) {
                     complete(player, instance.get());
                     break;
                 }

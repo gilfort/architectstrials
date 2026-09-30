@@ -115,7 +115,7 @@ Markers are only available in the creative inventory (no recipes).
 | Marker | Effect on placement |
 |---|---|
 | Player Spawn Marker | Records a possible entry point (position + the direction its arrow points) and turns into air. Every player entering picks a random one independently, so groups may start at different points. **Every structure needs at least one**; structures without are skipped with a warning. |
-| Exit Marker | Becomes the challenge exit: a base block with a portal swirl above it. Walking through the open portal completes the run ("Run Completed") and returns the player to their entry point. **A redstone signal locks the exit** (only the base remains visible); unpowered it is open. Wire it to any redstone logic to decide when a run can be finished. Using an exit is the only way to complete a run. |
+| Exit Marker | Becomes the challenge exit: a base block with an animated portal surface above it. Up to three bases side by side (same facing, in a line across it) form one combined portal of n × (n+1) blocks; a signal at any base locks the whole portal. Walking through the open portal completes the run ("Run Completed") and returns the player to their entry point. **A redstone signal locks the exit** (only the base remains visible); unpowered it is open. Wire it to any redstone logic to decide when a run can be finished. Using an exit is the only way to complete a run. |
 
 ### Commands (operators only)
 

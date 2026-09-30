@@ -6,6 +6,7 @@ import java.util.function.Consumer;
 
 import com.gilfort.architectstrials.ArchitectsTrials;
 import com.gilfort.architectstrials.block.ChallengeExitBlock;
+import com.gilfort.architectstrials.block.ExitGroup;
 import com.gilfort.architectstrials.instance.ChallengeInstance;
 import com.gilfort.architectstrials.instance.InstanceCreation;
 import com.gilfort.architectstrials.instance.InstanceManager;
@@ -33,7 +34,8 @@ import net.neoforged.neoforge.registries.RegisterEvent;
 /**
  * GameTests for US-08 (exit marker with redstone lock and "Run Completed").
  * <p>
- * The dev spawn platform ({@code minecraft:the_nether} tier 2) has an exit marker at (4,1,8).
+ * The dev spawn platform ({@code minecraft:the_nether} tier 2) has two adjacent exit markers at (4,1,8) and
+ * (5,1,8), forming one 2×3 exit portal.
  */
 @EventBusSubscriber(modid = ArchitectsTrials.MOD_ID)
 public final class ExitGameTests {
@@ -80,22 +82,24 @@ public final class ExitGameTests {
             return;
         }
         BlockPos exit = instance.origin().offset(EXIT_OFFSET);
-        helper.assertTrue(instance.exits().equals(List.of(exit)), "Exit was not recorded: " + instance.exits());
+        helper.assertTrue(instance.exits().size() == 2 && instance.exits().containsAll(List.of(exit, exit.east())),
+                "Exits were not recorded: " + instance.exits());
         helper.assertTrue(ChallengeExitBlock.isOpen(nether.getBlockState(exit)), "Exit marker did not become an open exit");
+        helper.assertTrue(ExitGroup.find(nether, exit).orElseThrow().width() == 2, "Adjacent exits did not combine into one portal");
 
         ServerPlayer player = TestPlayers.atStart(helper, GameType.SURVIVAL);
         InstanceManager.join(player, nether, instance);
         player.hasChangedDimension();
         Vec3 inExit = Vec3.atBottomCenterOf(exit.above());
 
-        nether.setBlock(exit.east(), Blocks.REDSTONE_BLOCK.defaultBlockState(), Block.UPDATE_ALL);
+        nether.setBlock(exit.west(), Blocks.REDSTONE_BLOCK.defaultBlockState(), Block.UPDATE_ALL);
         helper.assertFalse(ChallengeExitBlock.isOpen(nether.getBlockState(exit)), "Redstone signal did not lock the exit");
         TestPlayers.teleport(player, nether, inExit);
         RunCompletion.checkExits(nether);
         helper.assertTrue(player.level() == nether, "A locked exit let the player out");
 
         int eventsBefore = COMPLETED_EVENTS.get();
-        nether.setBlock(exit.east(), Blocks.AIR.defaultBlockState(), Block.UPDATE_ALL);
+        nether.setBlock(exit.west(), Blocks.AIR.defaultBlockState(), Block.UPDATE_ALL);
         helper.assertTrue(ChallengeExitBlock.isOpen(nether.getBlockState(exit)), "Removing the signal did not unlock the exit");
         RunCompletion.checkExits(nether);
         helper.assertTrue(player.level().dimension() == Level.OVERWORLD, "Player was not returned through the open exit");
