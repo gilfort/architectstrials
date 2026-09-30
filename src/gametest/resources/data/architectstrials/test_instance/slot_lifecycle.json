@@ -1,0 +1,7 @@
+{
+  "type": "minecraft:function",
+  "environment": "minecraft:default",
+  "function": "architectstrials:slot_lifecycle",
+  "max_ticks": 600,
+  "structure": "minecraft:empty"
+}

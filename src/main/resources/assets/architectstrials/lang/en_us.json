@@ -13,6 +13,22 @@
   "commands.architectstrials.exit.spawn_point": "No entry point stored – sent %s to their spawn point",
   "commands.architectstrials.exit.not_inside": "%s is not inside an Architect's Trials dimension.",
 
+  "commands.architectstrials.slot.list.header": "Slots: %s occupied, %s clearing",
+  "commands.architectstrials.slot.list.occupied": " - #%s occupied (center %s, %s)",
+  "commands.architectstrials.slot.list.clearing": " - #%s clearing (center %s, %s)",
+  "commands.architectstrials.slot.allocate.success": "Allocated slot #%s (center %s, %s)",
+  "commands.architectstrials.slot.allocate.limit_reached": "The maximum number of concurrent instances for this theme is reached.",
+  "commands.architectstrials.slot.free.success": "Released slot #%s; it is being cleared.",
+  "commands.architectstrials.slot.free.not_occupied": "Slot #%s is not occupied.",
+
+  "architectstrials.configuration.title": "Architect's Trials Configuration",
+  "architectstrials.configuration.section.architectstrials.server.toml": "Server",
+  "architectstrials.configuration.section.architectstrials.server.toml.title": "Architect's Trials Server Configuration",
+  "architectstrials.configuration.slotSpacing": "Slot Spacing",
+  "architectstrials.configuration.slotSpacing.tooltip": "Distance in blocks between two challenge instances in the same theme dimension. Only applies to theme dimensions that currently have no instances.",
+  "architectstrials.configuration.maxConcurrentInstances": "Max Concurrent Instances",
+  "architectstrials.configuration.maxConcurrentInstances.tooltip": "Maximum number of simultaneous challenge instances per theme dimension. 0 = unlimited.",
+
   "message.architectstrials.returned_on_login": "Your challenge is over – you have been returned.",
   "message.architectstrials.ward.saved": "The Dimension Ward saved you from death (%s) and brought you back.",
 

@@ -9,6 +9,8 @@ import net.neoforged.fml.ModContainer;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.fml.common.Mod;
 import net.neoforged.fml.event.lifecycle.FMLClientSetupEvent;
+import net.neoforged.neoforge.client.gui.ConfigurationScreen;
+import net.neoforged.neoforge.client.gui.IConfigScreenFactory;
 
 /**
  * Client-only entry point of the Architect's Trials mod.
@@ -20,12 +22,13 @@ import net.neoforged.fml.event.lifecycle.FMLClientSetupEvent;
 public final class ArchitectsTrialsClient {
 
     /**
-     * Creates the client-side mod instance.
+     * Creates the client-side mod instance and registers the config screen (Mods menu).
      *
      * @param modEventBus  the mod-specific event bus, injected by FML
      * @param modContainer the container describing this mod, injected by FML
      */
     public ArchitectsTrialsClient(IEventBus modEventBus, ModContainer modContainer) {
+        modContainer.registerExtensionPoint(IConfigScreenFactory.class, ConfigurationScreen::new);
     }
 
     /**

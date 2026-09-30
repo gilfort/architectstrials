@@ -30,6 +30,7 @@ public final class ArchitectsTrialsCommand {
                 .requires(Commands.hasPermission(Commands.LEVEL_GAMEMASTERS))
                 .then(ThemeCommand.build())
                 .then(TravelCommand.buildEnter())
-                .then(TravelCommand.buildExit()));
+                .then(TravelCommand.buildExit())
+                .then(SlotCommand.build()));
     }
 }

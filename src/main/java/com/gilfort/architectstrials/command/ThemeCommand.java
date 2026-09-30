@@ -46,6 +46,24 @@ final class ThemeCommand {
     }
 
     /**
+     * Resolves a theme argument to the theme's level.
+     *
+     * @param context  the command context
+     * @param argument the name of the theme argument
+     * @return the level of the theme dimension
+     * @throws CommandSyntaxException if the theme is unknown or its level does not exist
+     */
+    static ServerLevel themeLevel(CommandContext<CommandSourceStack> context, String argument) throws CommandSyntaxException {
+        Identifier id = IdentifierArgument.getId(context, argument);
+        ChallengeTheme theme = ChallengeThemes.get(id).orElseThrow(() -> UNKNOWN_THEME.create(id));
+        ServerLevel level = context.getSource().getServer().getLevel(theme.dimension());
+        if (level == null) {
+            throw UNKNOWN_THEME.create(id);
+        }
+        return level;
+    }
+
+    /**
      * Builds the {@code theme} sub command tree.
      *
      * @return the literal builder for {@code theme}
