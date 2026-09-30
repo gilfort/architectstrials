@@ -20,6 +20,7 @@ import net.minecraft.server.level.ServerPlayer;
  * <li>{@code /architectstrials editor enter} — enter the shared editor, game mode unchanged</li>
  * <li>{@code /architectstrials editor clear} — asks for confirmation</li>
  * <li>{@code /architectstrials editor clear confirm} — within 30 seconds: empties the editor</li>
+ * <li>{@code save} / {@code load} — see {@link StructureCommand}</li>
  * </ul>
  */
 final class EditorCommand {
@@ -39,11 +40,11 @@ final class EditorCommand {
      * @return the literal builder for {@code editor}
      */
     static LiteralArgumentBuilder<CommandSourceStack> build() {
-        return Commands.literal("editor")
+        return StructureCommand.addEditorCommands(Commands.literal("editor")
                 .then(Commands.literal("enter").executes(EditorCommand::enter))
                 .then(Commands.literal("clear")
                         .executes(EditorCommand::requestClear)
-                        .then(Commands.literal("confirm").executes(EditorCommand::confirmClear)));
+                        .then(Commands.literal("confirm").executes(EditorCommand::confirmClear))));
     }
 
     private static int enter(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {

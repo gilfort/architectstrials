@@ -208,6 +208,22 @@ protection), `/architectstrials exit` to leave, and `/architectstrials editor cl
 `/architectstrials editor clear confirm` within 30 seconds to empty the whole editor (all builders are put back
 onto the fresh platform).
 
+**Saving.** `/architectstrials editor save <theme> <tier> <id>` captures everything inside the border, trimmed
+to what was actually built (the platform is ignored; item frames, armor stands and paintings are kept, mobs
+are not — use spawn markers). A structure needs at least one Player Spawn Marker and one Exit Marker; spawn
+markers without two free blocks above them only produce a warning. The files go into the managed datapack
+`<world>/datapacks/architectstrials_structures/`, which is enabled and reloaded automatically — the structure
+is in the pool immediately. To ship your structures, copy that one folder into your modpack. Add `overwrite`
+to replace an existing id (weight, rotation and name are kept).
+
+**Tier copies.** `/architectstrials editor load <theme> <tier> <id>` loads a stored structure into the empty
+editor (after `editor clear`), e.g. to turn a tier-1 build into a harder tier-3 variant and save it again.
+
+**Managing.** `/architectstrials structure list [theme] [tier]`,
+`/architectstrials structure set <theme> <tier> <id> weight <n> | rotation <true|false> | name <text>` and
+`/architectstrials structure delete <theme> <tier> <id>` (+ `confirm` within 30 s). Editing and deleting only
+work for structures in the managed datapack.
+
 ### Markers
 
 Builders place marker blocks instead of final content; they are resolved when a structure is placed.
@@ -236,6 +252,9 @@ Markers are only available in the creative inventory (no recipes).
 | `/architectstrials slot free <theme> <index>` | Debug: releases a slot; its content is cleared over the next ticks |
 | `/architectstrials editor enter` | Enters the shared editor dimension |
 | `/architectstrials editor clear` (+ `confirm`) | Empties the editor after confirmation within 30 s |
+| `/architectstrials editor save <theme> <tier> <id> [overwrite]` | Saves the editor content as a pool structure |
+| `/architectstrials editor load <theme> <tier> <id>` | Loads a stored structure into the empty editor |
+| `/architectstrials structure list\|set\|delete …` | Lists, edits (weight, rotation, name) or deletes stored structures |
 | `/architectstrials exit [targets]` | Leaves any Architect's Trials dimension: back to the entry point, or to the respawn point / world spawn if none is stored |
 
 Players always return to the exact point they entered from, with their previous game mode, turned around
