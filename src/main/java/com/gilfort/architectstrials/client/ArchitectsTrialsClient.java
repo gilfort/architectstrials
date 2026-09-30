@@ -59,6 +59,7 @@ public final class ArchitectsTrialsClient {
     @SubscribeEvent
     static void onRegisterMenuScreens(RegisterMenuScreensEvent event) {
         event.register(ModMenuTypes.SPAWN_MARKER.get(), SpawnMarkerScreen::new);
+        event.register(ModMenuTypes.TRIAL_SPAWNER_MARKER.get(), TrialSpawnerMarkerScreen::new);
     }
 
     /**

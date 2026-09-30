@@ -1,0 +1,12 @@
+{
+  "required": true,
+  "minVersion": "0.8",
+  "package": "com.gilfort.architectstrials.mixin",
+  "compatibilityLevel": "JAVA_21",
+  "mixins": [
+    "TrialSpawnerStateDataMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}

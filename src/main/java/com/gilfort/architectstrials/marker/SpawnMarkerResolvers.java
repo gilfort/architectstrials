@@ -132,12 +132,7 @@ public final class SpawnMarkerResolvers {
             return;
         }
         ItemStack egg = marker.get().egg();
-        TypedEntityData<EntityType<?>> eggData = egg.get(DataComponents.ENTITY_DATA);
-        CompoundTag entity = eggData != null ? eggData.copyTagWithoutId() : new CompoundTag();
-        entity.putString("id", BuiltInRegistries.ENTITY_TYPE.getKey(marker.get().type()).toString());
-        CompoundTag persistent = entity.getCompoundOrEmpty("NeoForgeData");
-        persistent.store(EQUIPMENT_KEY, EQUIPMENT_CODEC, ops(level.registryAccess()), marker.get().equipment());
-        entity.put("NeoForgeData", persistent);
+        CompoundTag entity = spawnerEntityTag(level, marker.get().type(), egg, marker.get().equipment());
 
         CompoundTag spawnerData = new CompoundTag();
         spawnerData.store(BaseSpawner.SPAWN_DATA_TAG, SpawnData.CODEC, new SpawnData(entity, Optional.empty(), Optional.empty()));
@@ -147,6 +142,26 @@ public final class SpawnMarkerResolvers {
         }
         spawner.setChanged();
         level.sendBlockUpdated(pos, spawnerState, spawnerState, Block.UPDATE_ALL);
+    }
+
+    /**
+     * Builds the entity tag a spawner uses for a marker mob: the egg's entity data, the entity id and the marker
+     * equipment in the entity's persistent data (applied by {@link #onFinalizeSpawn}).
+     *
+     * @param level     the level (for registry access)
+     * @param type      the entity type
+     * @param egg       the spawn egg stack
+     * @param equipment the marker equipment by slot
+     * @return the entity tag
+     */
+    public static CompoundTag spawnerEntityTag(ServerLevel level, EntityType<?> type, ItemStack egg, Map<EquipmentSlot, ItemStack> equipment) {
+        TypedEntityData<EntityType<?>> eggData = egg.get(DataComponents.ENTITY_DATA);
+        CompoundTag entity = eggData != null ? eggData.copyTagWithoutId() : new CompoundTag();
+        entity.putString("id", BuiltInRegistries.ENTITY_TYPE.getKey(type).toString());
+        CompoundTag persistent = entity.getCompoundOrEmpty("NeoForgeData");
+        persistent.store(EQUIPMENT_KEY, EQUIPMENT_CODEC, ops(level.registryAccess()), equipment);
+        entity.put("NeoForgeData", persistent);
+        return entity;
     }
 
     /**

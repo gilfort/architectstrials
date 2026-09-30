@@ -4,6 +4,7 @@ import java.util.function.Supplier;
 
 import com.gilfort.architectstrials.ArchitectsTrials;
 import com.gilfort.architectstrials.menu.SpawnMarkerMenu;
+import com.gilfort.architectstrials.menu.TrialSpawnerMarkerMenu;
 
 import net.minecraft.core.registries.Registries;
 import net.minecraft.world.flag.FeatureFlags;
@@ -22,6 +23,10 @@ public final class ModMenuTypes {
     /** Menu of the direct spawn and spawner markers. */
     public static final Supplier<MenuType<SpawnMarkerMenu>> SPAWN_MARKER = MENU_TYPES.register(
             "spawn_marker", () -> new MenuType<>(SpawnMarkerMenu::new, FeatureFlags.VANILLA_SET));
+
+    /** Menu of the trial spawner marker. */
+    public static final Supplier<MenuType<TrialSpawnerMarkerMenu>> TRIAL_SPAWNER_MARKER = MENU_TYPES.register(
+            "trial_spawner_marker", () -> new MenuType<>(TrialSpawnerMarkerMenu::new, FeatureFlags.VANILLA_SET));
 
     private ModMenuTypes() {
     }

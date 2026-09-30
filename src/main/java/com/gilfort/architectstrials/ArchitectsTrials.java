@@ -7,6 +7,7 @@ import com.gilfort.architectstrials.block.PlayerSpawnMarkerBlock;
 import com.gilfort.architectstrials.config.ArchitectsTrialsConfig;
 import com.gilfort.architectstrials.marker.MarkerResolvers;
 import com.gilfort.architectstrials.marker.SpawnMarkerResolvers;
+import com.gilfort.architectstrials.marker.TrialSpawnerMarkerResolver;
 import com.gilfort.architectstrials.registry.ModAttachments;
 import com.gilfort.architectstrials.registry.ModBlockEntityTypes;
 import com.gilfort.architectstrials.registry.ModBlocks;
@@ -73,6 +74,7 @@ public final class ArchitectsTrials {
             MarkerResolvers.register(ModBlocks.EXIT_MARKER.get(), ExitMarkerBlock::resolve);
             MarkerResolvers.register(ModBlocks.DIRECT_SPAWN_MARKER.get(), SpawnMarkerResolvers::resolveDirect);
             MarkerResolvers.register(ModBlocks.SPAWNER_MARKER.get(), SpawnMarkerResolvers::resolveSpawner);
+            MarkerResolvers.register(ModBlocks.TRIAL_SPAWNER_MARKER.get(), TrialSpawnerMarkerResolver::resolve);
         });
     }
 

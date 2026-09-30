@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-import com.gilfort.architectstrials.block.SpawnMarkerBlockEntity;
+import com.gilfort.architectstrials.block.MobMarkerBlockEntity;
 import com.gilfort.architectstrials.config.ArchitectsTrialsConfig;
 import com.gilfort.architectstrials.registry.ModBlocks;
 
@@ -125,10 +125,10 @@ public final class EditorCapture {
                         spawn.pos().getX(), spawn.pos().getY(), spawn.pos().getZ()));
             }
         }
-        for (Block mobMarker : List.of(ModBlocks.DIRECT_SPAWN_MARKER.get(), ModBlocks.SPAWNER_MARKER.get())) {
+        for (Block mobMarker : List.of(ModBlocks.DIRECT_SPAWN_MARKER.get(), ModBlocks.SPAWNER_MARKER.get(), ModBlocks.TRIAL_SPAWNER_MARKER.get())) {
             for (StructureTemplate.StructureBlockInfo info : template.filterBlocks(BlockPos.ZERO, settings, mobMarker)) {
-                if (!(level.getBlockEntity(captured.origin().offset(info.pos())) instanceof SpawnMarkerBlockEntity marker)
-                        || marker.entityType() == null) {
+                if (!(level.getBlockEntity(captured.origin().offset(info.pos())) instanceof MobMarkerBlockEntity marker)
+                        || !marker.hasAnyEgg()) {
                     warnings.add(Component.translatable("message.architectstrials.save.mob_marker_empty", mobMarker.getName(),
                             info.pos().getX(), info.pos().getY(), info.pos().getZ()));
                 }
