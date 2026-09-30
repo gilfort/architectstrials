@@ -3,6 +3,7 @@ package com.gilfort.architectstrials.travel;
 import java.util.Optional;
 
 import com.gilfort.architectstrials.ArchitectsTrials;
+import com.gilfort.architectstrials.editor.EditorDimension;
 import com.gilfort.architectstrials.instance.InstanceManager;
 import com.gilfort.architectstrials.portal.PortalEcho;
 import com.gilfort.architectstrials.registry.ModAttachments;
@@ -130,13 +131,13 @@ public final class ChallengeTravel {
     }
 
     /**
-     * Checks whether a dimension belongs to Architect's Trials (challenge themes; later also the editor).
+     * Checks whether a dimension belongs to Architect's Trials (challenge themes and the editor).
      *
      * @param dimension the dimension key
      * @return {@code true} if the dimension is managed by this mod
      */
     public static boolean isModDimension(ResourceKey<Level> dimension) {
-        return ChallengeThemes.isChallengeDimension(dimension);
+        return ChallengeThemes.isChallengeDimension(dimension) || EditorDimension.isEditor(dimension);
     }
 
     /**
