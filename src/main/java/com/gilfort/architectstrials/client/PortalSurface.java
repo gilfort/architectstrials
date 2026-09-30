@@ -13,8 +13,8 @@ import net.minecraft.resources.Identifier;
 import net.minecraft.util.LightCoordsUtil;
 
 /**
- * Draws the animated, translucent surface shared by entry portals and challenge exits: a double-sided quad
- * whose texture cycles through the frames of a vertical sprite sheet. Replaces dense particle clouds, which
+ * Draws the animated, translucent surface shared by entry portals and challenge exits: a single quad (visible
+ * from both sides, as the pipeline does not cull) whose texture cycles through the frames of a vertical sprite sheet. Replaces dense particle clouds, which
  * would cost far more performance.
  */
 final class PortalSurface {
@@ -50,10 +50,9 @@ final class PortalSurface {
         float halfWidth = width / 2.0F;
         poseStack.pushPose();
         poseStack.rotate(Axis.YP.rotationDegrees(-yaw));
-        collector.submitCustomGeometry(poseStack, RENDER_TYPE, (pose, buffer) -> {
-            quad(buffer, pose, -halfWidth, halfWidth, height, v0, v1);
-            quad(buffer, pose, halfWidth, -halfWidth, height, v0, v1);
-        });
+        // A single quad: the translucent entity pipeline does not cull back faces, so it is visible from both
+        // sides. A second, coplanar back quad would z-fight with it and make the surface flicker.
+        collector.submitCustomGeometry(poseStack, RENDER_TYPE, (pose, buffer) -> quad(buffer, pose, -halfWidth, halfWidth, height, v0, v1));
         poseStack.popPose();
     }
 
