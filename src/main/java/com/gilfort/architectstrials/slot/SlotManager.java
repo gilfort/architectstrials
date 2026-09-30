@@ -3,12 +3,14 @@ package com.gilfort.architectstrials.slot;
 import java.util.ArrayDeque;
 import java.util.Deque;
 import java.util.Optional;
+import java.util.function.Consumer;
 
 import com.gilfort.architectstrials.ArchitectsTrials;
 import com.gilfort.architectstrials.config.ArchitectsTrialsConfig;
 
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.level.levelgen.structure.BoundingBox;
 
 /**
  * Allocates and releases challenge slots in the offset grid of a dimension.
@@ -22,7 +24,7 @@ public final class SlotManager {
     /** Maximum number of non-empty chunk sections (16³ blocks each) cleared per server tick. */
     private static final int SECTIONS_PER_TICK = 16;
 
-    private static final Deque<SlotClearTask> CLEAR_QUEUE = new ArrayDeque<>();
+    private static final Deque<AreaClearTask> CLEAR_QUEUE = new ArrayDeque<>();
 
     private SlotManager() {
     }
@@ -77,8 +79,27 @@ public final class SlotManager {
         if (!data(level).markClearing(index)) {
             return false;
         }
-        CLEAR_QUEUE.add(new SlotClearTask(level, slot(level, index)));
+        queueSlotClearing(level, index);
         return true;
+    }
+
+    /**
+     * Schedules clearing of an arbitrary area, processed in the same tick budget as released slots.
+     *
+     * @param level  the level containing the area
+     * @param area   the area to clear (blocks, block entities and non-player entities)
+     * @param onDone called with the level once the area is empty
+     */
+    public static void clearArea(ServerLevel level, BoundingBox area, Consumer<ServerLevel> onDone) {
+        CLEAR_QUEUE.add(new AreaClearTask(level, area, onDone));
+    }
+
+    private static void queueSlotClearing(ServerLevel level, int index) {
+        Slot slot = slot(level, index);
+        clearArea(level, slot.area(level.getMinY(), level.getMaxY()), clearedLevel -> {
+            data(clearedLevel).markFree(index);
+            ArchitectsTrials.LOGGER.debug("Cleared slot {} in {}", index, clearedLevel.dimension().identifier());
+        });
     }
 
     /**
@@ -93,12 +114,12 @@ public final class SlotManager {
     }
 
     /**
-     * Advances the clearing of released slots. Called once per server tick.
+     * Advances the clearing of released slots and other areas. Called once per server tick.
      *
      * @param server the server
      */
     static void tick(MinecraftServer server) {
-        SlotClearTask task = CLEAR_QUEUE.peek();
+        AreaClearTask task = CLEAR_QUEUE.peek();
         if (task == null) {
             return;
         }
@@ -110,8 +131,7 @@ public final class SlotManager {
         task.step(level, SECTIONS_PER_TICK);
         if (task.isDone()) {
             CLEAR_QUEUE.poll();
-            data(level).markFree(task.index());
-            ArchitectsTrials.LOGGER.debug("Cleared slot {} in {}", task.index(), task.dimension().identifier());
+            task.onDone().accept(level);
         }
     }
 
@@ -123,7 +143,7 @@ public final class SlotManager {
     static void resume(MinecraftServer server) {
         for (ServerLevel level : server.getAllLevels()) {
             for (int index : data(level).clearing()) {
-                CLEAR_QUEUE.add(new SlotClearTask(level, slot(level, index)));
+                queueSlotClearing(level, index);
             }
         }
     }

@@ -195,6 +195,19 @@ architectstrials rank @s mypack:nether set 2
 
 Only the player opening a portal is checked — stronger players can open challenges for weaker ones.
 
+### Editor
+
+The mod ships its own void dimension `architectstrials:editor` where builders create structures — by hand,
+with WorldEdit, Litematica, a Create schematicannon, anything; only the placed blocks count. There is one
+shared build site: everyone in the editor works on the same structure. A world border limits it to exactly
+128 × 128 blocks, the maximum structure size. A 3×3 glass-looking Editor Platform at the center gives you
+something to start from (it is ignored when saving); structures placed on it end up at `structurePlacementY`.
+
+Commands (operators): `/architectstrials editor enter` (your game mode stays unchanged, no death
+protection), `/architectstrials exit` to leave, and `/architectstrials editor clear` followed by
+`/architectstrials editor clear confirm` within 30 seconds to empty the whole editor (all builders are put back
+onto the fresh platform).
+
 ### Markers
 
 Builders place marker blocks instead of final content; they are resolved when a structure is placed.
@@ -221,6 +234,8 @@ Markers are only available in the creative inventory (no recipes).
 | `/architectstrials slot list <theme>` | Lists occupied and clearing slots of a theme dimension |
 | `/architectstrials slot allocate <theme>` | Debug: allocates the next free slot |
 | `/architectstrials slot free <theme> <index>` | Debug: releases a slot; its content is cleared over the next ticks |
+| `/architectstrials editor enter` | Enters the shared editor dimension |
+| `/architectstrials editor clear` (+ `confirm`) | Empties the editor after confirmation within 30 s |
 | `/architectstrials exit [targets]` | Leaves any Architect's Trials dimension: back to the entry point, or to the respawn point / world spawn if none is stored |
 
 Players always return to the exact point they entered from, with their previous game mode, turned around

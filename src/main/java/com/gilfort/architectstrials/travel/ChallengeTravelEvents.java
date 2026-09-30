@@ -2,6 +2,7 @@ package com.gilfort.architectstrials.travel;
 
 import com.gilfort.architectstrials.ArchitectsTrials;
 import com.gilfort.architectstrials.instance.InstanceManager;
+import com.gilfort.architectstrials.theme.ChallengeThemes;
 
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
@@ -19,15 +20,16 @@ public final class ChallengeTravelEvents {
     }
 
     /**
-     * Returns players who log in inside an Architect's Trials dimension unless they still participate in a
-     * running instance (offline participants keep their instance alive until its time limit).
+     * Returns players who log in inside a challenge dimension unless they still participate in a running
+     * instance (offline participants keep their instance alive until its time limit). Builders logging in
+     * inside the editor stay there.
      *
      * @param event the login event
      */
     @SubscribeEvent
     static void onPlayerLoggedIn(PlayerEvent.PlayerLoggedInEvent event) {
         if (event.getEntity() instanceof ServerPlayer player
-                && ChallengeTravel.isModDimension(player.level().dimension())
+                && ChallengeThemes.isChallengeDimension(player.level().dimension())
                 && !InstanceManager.isParticipant(player)) {
             ChallengeTravel.exit(player);
             player.sendSystemMessage(Component.translatable("message.architectstrials.returned_on_login"));

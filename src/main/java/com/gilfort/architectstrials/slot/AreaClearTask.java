@@ -1,5 +1,7 @@
 package com.gilfort.architectstrials.slot;
 
+import java.util.function.Consumer;
+
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.SectionPos;
 import net.minecraft.resources.ResourceKey;
@@ -16,19 +18,20 @@ import net.minecraft.world.level.levelgen.structure.BoundingBox;
 import net.minecraft.world.phys.AABB;
 
 /**
- * Removes all blocks, block entities and non-player entities from a released slot, spread over many ticks.
+ * Removes all blocks, block entities and non-player entities from an area (a released slot, the editor
+ * dimension), spread over many ticks.
  * <p>
  * Works chunk section by chunk section and skips sections that contain only air, so empty space costs
  * almost nothing. Blocks are removed without drops, neighbour updates or block entity side effects.
  */
-final class SlotClearTask {
+final class AreaClearTask {
 
     /** Flags for silent removal: sync to clients, but no drops, neighbour updates or container spills. */
     private static final int CLEAR_FLAGS = Block.UPDATE_CLIENTS | Block.UPDATE_KNOWN_SHAPE
             | Block.UPDATE_SUPPRESS_DROPS | Block.UPDATE_SKIP_BLOCK_ENTITY_SIDEEFFECTS;
 
     private final ResourceKey<Level> dimension;
-    private final int index;
+    private final Consumer<ServerLevel> onDone;
     private final BoundingBox area;
     private final int minChunkX;
     private final int maxChunkX;
@@ -39,15 +42,16 @@ final class SlotClearTask {
     private boolean done;
 
     /**
-     * Creates a clear task for a slot.
+     * Creates a clear task.
      *
-     * @param level the level containing the slot
-     * @param slot  the slot to clear
+     * @param level  the level containing the area
+     * @param area   the area to clear
+     * @param onDone called with the level once the area is empty
      */
-    SlotClearTask(ServerLevel level, Slot slot) {
+    AreaClearTask(ServerLevel level, BoundingBox area, Consumer<ServerLevel> onDone) {
         this.dimension = level.dimension();
-        this.index = slot.index();
-        this.area = slot.area(level.getMinY(), level.getMaxY());
+        this.onDone = onDone;
+        this.area = area;
         this.minChunkX = SectionPos.blockToSectionCoord(this.area.minX());
         this.maxChunkX = SectionPos.blockToSectionCoord(this.area.maxX());
         this.maxChunkZ = SectionPos.blockToSectionCoord(this.area.maxZ());
@@ -55,14 +59,14 @@ final class SlotClearTask {
         this.chunkZ = SectionPos.blockToSectionCoord(this.area.minZ());
     }
 
-    /** @return the dimension of the slot */
+    /** @return the dimension of the area */
     ResourceKey<Level> dimension() {
         return this.dimension;
     }
 
-    /** @return the slot index */
-    int index() {
-        return this.index;
+    /** @return the callback run once the area is empty */
+    Consumer<ServerLevel> onDone() {
+        return this.onDone;
     }
 
     /** @return {@code true} once all content has been removed */
@@ -74,7 +78,7 @@ final class SlotClearTask {
      * Clears up to {@code sectionBudget} non-empty chunk sections. Removes the remaining entities once all
      * sections are processed.
      *
-     * @param level         the level containing the slot
+     * @param level         the level containing the area
      * @param sectionBudget the maximum number of non-empty sections to clear in this step
      */
     void step(ServerLevel level, int sectionBudget) {

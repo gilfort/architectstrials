@@ -21,6 +21,8 @@
   "block.architectstrials.exit_marker": "Exit Marker",
   "tooltip.architectstrials.exit_marker": "Editor marker: becomes the challenge exit. Walking through its portal completes the run. A redstone signal LOCKS the exit; unpowered it is open. Optional bonus loot table: /architectstrials marker loot_table <id>",
   "block.architectstrials.challenge_exit": "Challenge Exit",
+  "block.architectstrials.editor_platform": "Editor Platform",
+  "dimension.architectstrials.editor": "Editor",
   "tooltip.architectstrials.player_spawn_marker": "Editor marker: players entering the challenge spawn here, looking where the arrow points. Replaced by air when the structure is placed.",
 
   "commands.architectstrials.theme.unknown": "Unknown challenge theme: %s",
@@ -62,6 +64,14 @@
 
   "commands.architectstrials.rank.set": "Rank of %s for %s is now %s",
   "commands.architectstrials.rank.get": "Rank of %s for %s: %s",
+
+  "commands.architectstrials.editor.enter.success": "Welcome to the editor. Build within the border; leave with /architectstrials exit.",
+  "commands.architectstrials.editor.already_inside": "You are already in the editor.",
+  "commands.architectstrials.editor.missing": "The editor dimension is not loaded. Restart the server once after installing the mod.",
+  "commands.architectstrials.editor.clear.warning": "This removes EVERYTHING in the editor for all builders. Run /architectstrials editor clear confirm within 30 seconds to proceed.",
+  "commands.architectstrials.editor.clear.no_request": "No pending clear request – run /architectstrials editor clear first.",
+  "commands.architectstrials.editor.clear.started": "Clearing the editor…",
+  "commands.architectstrials.editor.clear.done": "The editor has been cleared.",
 
   "architectstrials.configuration.title": "Architect's Trials Configuration",
   "architectstrials.configuration.section.architectstrials.server.toml": "Server",
