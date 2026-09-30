@@ -6,6 +6,7 @@ import com.gilfort.architectstrials.block.ExitMarkerBlock;
 import com.gilfort.architectstrials.block.PlayerSpawnMarkerBlock;
 import com.gilfort.architectstrials.config.ArchitectsTrialsConfig;
 import com.gilfort.architectstrials.marker.MarkerResolvers;
+import com.gilfort.architectstrials.marker.SpawnMarkerResolvers;
 import com.gilfort.architectstrials.registry.ModAttachments;
 import com.gilfort.architectstrials.registry.ModBlockEntityTypes;
 import com.gilfort.architectstrials.registry.ModBlocks;
@@ -14,6 +15,7 @@ import com.gilfort.architectstrials.registry.ModCriteriaTriggers;
 import com.gilfort.architectstrials.registry.ModDataComponents;
 import com.gilfort.architectstrials.registry.ModEntityTypes;
 import com.gilfort.architectstrials.registry.ModItems;
+import com.gilfort.architectstrials.registry.ModMenuTypes;
 import com.mojang.logging.LogUtils;
 
 import net.minecraft.resources.Identifier;
@@ -53,6 +55,7 @@ public final class ArchitectsTrials {
         ModEntityTypes.register(modEventBus);
         ModBlockEntityTypes.register(modEventBus);
         ModCriteriaTriggers.register(modEventBus);
+        ModMenuTypes.register(modEventBus);
 
         modContainer.registerConfig(ModConfig.Type.SERVER, ArchitectsTrialsConfig.SPEC);
 
@@ -68,6 +71,8 @@ public final class ArchitectsTrials {
         event.enqueueWork(() -> {
             MarkerResolvers.register(ModBlocks.PLAYER_SPAWN_MARKER.get(), PlayerSpawnMarkerBlock::resolve);
             MarkerResolvers.register(ModBlocks.EXIT_MARKER.get(), ExitMarkerBlock::resolve);
+            MarkerResolvers.register(ModBlocks.DIRECT_SPAWN_MARKER.get(), SpawnMarkerResolvers::resolveDirect);
+            MarkerResolvers.register(ModBlocks.SPAWNER_MARKER.get(), SpawnMarkerResolvers::resolveSpawner);
         });
     }
 

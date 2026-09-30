@@ -5,6 +5,7 @@ import java.util.function.Supplier;
 import com.gilfort.architectstrials.ArchitectsTrials;
 import com.gilfort.architectstrials.block.ChallengeExitBlockEntity;
 import com.gilfort.architectstrials.block.ExitMarkerBlockEntity;
+import com.gilfort.architectstrials.block.SpawnMarkerBlockEntity;
 
 import net.minecraft.core.registries.Registries;
 import net.minecraft.world.level.block.entity.BlockEntityType;
@@ -27,6 +28,11 @@ public final class ModBlockEntityTypes {
     /** Block entity of the exit marker (optional bonus loot table). */
     public static final Supplier<BlockEntityType<ExitMarkerBlockEntity>> EXIT_MARKER = BLOCK_ENTITY_TYPES.register(
             "exit_marker", () -> new BlockEntityType<>(ExitMarkerBlockEntity::new, ModBlocks.EXIT_MARKER.get()));
+
+    /** Block entity shared by the direct spawn and spawner markers (spawn egg + equipment). */
+    public static final Supplier<BlockEntityType<SpawnMarkerBlockEntity>> SPAWN_MARKER = BLOCK_ENTITY_TYPES.register(
+            "spawn_marker", () -> new BlockEntityType<>(SpawnMarkerBlockEntity::new, ModBlocks.DIRECT_SPAWN_MARKER.get(),
+                    ModBlocks.SPAWNER_MARKER.get()));
 
     private ModBlockEntityTypes() {
     }

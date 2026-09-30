@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+import com.gilfort.architectstrials.block.SpawnMarkerBlockEntity;
 import com.gilfort.architectstrials.config.ArchitectsTrialsConfig;
 import com.gilfort.architectstrials.registry.ModBlocks;
 
@@ -98,8 +99,8 @@ public final class EditorCapture {
 
     /**
      * Validates a captured structure: at least one player spawn marker and one exit marker are required; spawn
-     * markers without two free blocks above them (checked in the world it was captured from) only produce a
-     * warning.
+     * markers without two free blocks above them and mob markers without a spawn egg (both checked in the world
+     * it was captured from) only produce a warning.
      *
      * @param level    the level the structure was captured from
      * @param captured the capture
@@ -122,6 +123,15 @@ public final class EditorCapture {
             if (!isFree(level, marker.above()) || !isFree(level, marker.above(2))) {
                 warnings.add(Component.translatable("message.architectstrials.save.spawn_marker_blocked",
                         spawn.pos().getX(), spawn.pos().getY(), spawn.pos().getZ()));
+            }
+        }
+        for (Block mobMarker : List.of(ModBlocks.DIRECT_SPAWN_MARKER.get(), ModBlocks.SPAWNER_MARKER.get())) {
+            for (StructureTemplate.StructureBlockInfo info : template.filterBlocks(BlockPos.ZERO, settings, mobMarker)) {
+                if (!(level.getBlockEntity(captured.origin().offset(info.pos())) instanceof SpawnMarkerBlockEntity marker)
+                        || marker.entityType() == null) {
+                    warnings.add(Component.translatable("message.architectstrials.save.mob_marker_empty", mobMarker.getName(),
+                            info.pos().getX(), info.pos().getY(), info.pos().getZ()));
+                }
             }
         }
         return new Validation(errors, warnings);
