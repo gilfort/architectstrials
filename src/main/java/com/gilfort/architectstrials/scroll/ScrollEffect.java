@@ -44,9 +44,15 @@ public record ScrollEffect(Target target, Holder<MobEffect> effect, int duration
             ByteBufCodecs.VAR_INT, ScrollEffect::amplifier,
             ScrollEffect::new);
 
-    /** @return a new effect instance to apply */
+    /**
+     * Creates the effect instance to apply. Player effects show no particles (several at once would only obscure
+     * the view); the icon stays visible. Mob effects keep their particles as a hint to the players.
+     *
+     * @return a new effect instance
+     */
     public MobEffectInstance instance() {
-        return new MobEffectInstance(this.effect, this.duration, this.amplifier);
+        boolean particles = this.target == Target.MOBS;
+        return new MobEffectInstance(this.effect, this.duration, this.amplifier, false, particles, true);
     }
 
     /**

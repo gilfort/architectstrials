@@ -128,13 +128,22 @@ public final class ScrollOptionsGameTests {
     }
 
     /**
-     * A timed portal closes when its seconds are over; the instance continues for its participant.
+     * A timed portal closes when its seconds are over (multiplayer scrolls: at least 15 s, even if a shorter time
+     * is configured); the instance continues for its participant.
      */
     private static void portalClosesOnTime(GameTestHelper helper) {
         ServerPlayer owner = ScrollPortalGameTests.qualified(TestPlayers.atStart(helper, GameType.SURVIVAL), TIER);
-        ChallengePortal portal = openActivePortal(helper, owner, new ScrollOptions(3, 1, false));
+        ScrollOptions options = new ScrollOptions(3, 1, false);
+        helper.assertTrue(options.portalOpenSeconds() == ScrollOptions.MIN_MULTIPLAYER_PORTAL_SECONDS,
+                "Multiplayer portal duration was not raised to the minimum");
+        ChallengePortal portal = openActivePortal(helper, owner, options);
         enter(helper, portal, owner);
-        for (int i = 0; i < ChallengeClock.TICKS_PER_SECOND + 5 && !portal.isRemoved(); i++) {
+        int openTicks = ScrollOptions.MIN_MULTIPLAYER_PORTAL_SECONDS * ChallengeClock.TICKS_PER_SECOND;
+        for (int i = 0; i < openTicks - 5; i++) {
+            portal.tick();
+        }
+        helper.assertFalse(portal.isRemoved(), "Multiplayer portal closed before the minimum duration");
+        for (int i = 0; i < 10 && !portal.isRemoved(); i++) {
             portal.tick();
         }
         helper.assertTrue(portal.isRemoved(), "Timed portal did not close");

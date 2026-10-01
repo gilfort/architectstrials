@@ -1,0 +1,13 @@
+{
+  "type": "architectstrials:scroll_upgrade",
+  "template": "minecraft:paper",
+  "base": "architectstrials:challenge_scroll",
+  "addition": "minecraft:glow_ink_sac",
+  "effects": [
+    {
+      "target": "mobs",
+      "effect": "minecraft:glowing",
+      "duration": -1
+    }
+  ]
+}

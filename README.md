@@ -127,7 +127,7 @@ a scroll is the solo default.
 | Field | Values | Default |
 |---|---|---|
 | `max_players` | `1` = only the scroll user, `n` = up to n distinct players, `0` = unlimited | `1` |
-| `portal_open_seconds` | `0` = closes after the first pass-through, `>0` = open that many seconds once active, `-1` = open until the time limit expires | `0` |
+| `portal_open_seconds` | `0` = closes after the first pass-through, `>0` = open that many seconds once active, `-1` = open until the time limit expires. Scrolls for more than one player stay open at least 15 s | `0` |
 | `allow_reentry` | `true` / `false` | `false` |
 
 ```json
@@ -166,7 +166,8 @@ all its data (theme, tier, time limit, options, earlier upgrades) plus the recip
 ```
 
 - `options` (optional): `max_players`, `portal_open_seconds`, `allow_reentry` — overwrite the scroll's values.
-- `effects` (optional): any mob effect, also from other mods. `duration` in ticks (`-1` = infinite),
+- `effects` (optional): any mob effect, also from other mods. Player effects show no particles (only the icon);
+  mob effects keep them. `duration` in ticks (`-1` = infinite),
   `amplifier` 0 = level I. `player` effects are applied to every player on each entry (infinite ones are removed
   when they leave the instance); `mobs` effects are applied to all mobs on the first entry and to every mob that
   spawns afterwards.

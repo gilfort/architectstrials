@@ -1,0 +1,14 @@
+{
+  "type": "architectstrials:scroll_upgrade",
+  "template": "minecraft:paper",
+  "base": "architectstrials:challenge_scroll",
+  "addition": "minecraft:blaze_powder",
+  "effects": [
+    {
+      "target": "mobs",
+      "effect": "minecraft:strength",
+      "duration": 6000,
+      "amplifier": 1
+    }
+  ]
+}

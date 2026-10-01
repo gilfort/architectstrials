@@ -78,6 +78,11 @@ public final class ScrollUpgradeGameTests {
         ServerLevel level = helper.getLevel();
         ScrollUpgradeRecipe luck = (ScrollUpgradeRecipe) level.getServer().getRecipeManager().byKey(LUCK_RECIPE)
                 .orElseThrow(() -> new IllegalStateException("Test recipe not loaded")).value();
+        for (String id : List.of("gametest_scroll_night_vision", "gametest_scroll_fire_resistance", "gametest_scroll_mob_strength",
+                "gametest_scroll_mob_glowing")) {
+            helper.assertTrue(level.getServer().getRecipeManager().byKey(ResourceKey.create(Registries.RECIPE, ArchitectsTrials.id(id)))
+                    .map(holder -> holder.value() instanceof ScrollUpgradeRecipe).orElse(false), "Dev recipe " + id + " not loaded");
+        }
         ItemStack scroll = new ItemStack(ModItems.CHALLENGE_SCROLL.get());
         scroll.set(ModDataComponents.SCROLL_TARGET.get(), new ScrollTarget(Level.NETHER.identifier(), 2));
         scroll.set(ModDataComponents.TIME_LIMIT.get(), 7);
@@ -127,8 +132,10 @@ public final class ScrollUpgradeGameTests {
         helper.assertTrue(InstanceManager.join(player, nether, instance), "Player could not join");
         MobEffectInstance regeneration = player.getEffect(MobEffects.REGENERATION);
         helper.assertTrue(regeneration != null && regeneration.isInfiniteDuration(), "Player effect not applied on entry");
+        helper.assertFalse(regeneration.isVisible(), "Player effect shows particles");
         MobEffectInstance speed = before.getEffect(MobEffects.SPEED);
         helper.assertTrue(speed != null && speed.getAmplifier() == 1, "Mob effect not applied to existing mob on first entry");
+        helper.assertTrue(speed.isVisible(), "Mob effect hides its particles");
         Zombie after = spawnZombie(nether, mobPos);
         helper.assertTrue(after.hasEffect(MobEffects.SPEED), "Mob effect not applied to a mob spawned after the first entry");
 
