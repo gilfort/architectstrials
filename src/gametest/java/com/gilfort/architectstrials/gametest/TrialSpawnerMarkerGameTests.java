@@ -14,6 +14,7 @@ import com.gilfort.architectstrials.marker.SpawnMarkerResolvers;
 import com.gilfort.architectstrials.marker.TrialSpawnerMarkerResolver;
 import com.gilfort.architectstrials.menu.MarkerSlot;
 import com.gilfort.architectstrials.registry.ModBlocks;
+import com.gilfort.architectstrials.scroll.ScrollEffects;
 import com.gilfort.architectstrials.scroll.ScrollOptions;
 
 import net.minecraft.core.BlockPos;
@@ -179,7 +180,7 @@ public final class TrialSpawnerMarkerGameTests {
 
     private static MarkerContext context(ServerLevel level, BlockPos origin) {
         ChallengeInstance dummy = new ChallengeInstance(UUID.randomUUID(), Level.NETHER.identifier(), 1, ArchitectsTrials.id("dummy"),
-                0, origin, Rotation.NONE, Mirror.NONE, List.of(), List.of(), 0L, 0L, -1L, ScrollOptions.DEFAULT, InstanceRoster.EMPTY);
+                0, origin, Rotation.NONE, Mirror.NONE, List.of(), List.of(), 0L, 0L, -1L, ScrollOptions.DEFAULT, ScrollEffects.NONE, InstanceRoster.EMPTY);
         return new MarkerContext(level, dummy, level.getRandom());
     }
 }

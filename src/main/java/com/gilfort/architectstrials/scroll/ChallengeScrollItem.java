@@ -91,6 +91,12 @@ public class ChallengeScrollItem extends Item {
                 builder.accept(Component.translatable("tooltip.architectstrials.challenge_scroll.reentry").withStyle(ChatFormatting.DARK_AQUA));
             }
         }
+        for (ScrollEffect effect : stack.getOrDefault(ModDataComponents.SCROLL_EFFECTS.get(), ScrollEffects.NONE).entries()) {
+            boolean forPlayers = effect.target() == ScrollEffect.Target.PLAYER;
+            builder.accept(Component.translatable(forPlayers ? "tooltip.architectstrials.challenge_scroll.effect.player"
+                            : "tooltip.architectstrials.challenge_scroll.effect.mobs", effect.describe(context.tickRate()))
+                    .withStyle(forPlayers ? ChatFormatting.BLUE : ChatFormatting.RED));
+        }
         int minutes = stack.getOrDefault(ModDataComponents.TIME_LIMIT.get(), ArchitectsTrialsConfig.DEFAULT_TIME_LIMIT_MINUTES.getAsInt());
         builder.accept(Component.translatable("tooltip.architectstrials.challenge_scroll.time_limit", minutes).withStyle(ChatFormatting.DARK_GRAY));
     }

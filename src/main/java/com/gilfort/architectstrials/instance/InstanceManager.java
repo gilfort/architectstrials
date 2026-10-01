@@ -10,6 +10,7 @@ import com.gilfort.architectstrials.marker.MarkerContext;
 import com.gilfort.architectstrials.marker.MarkerResolvers;
 import com.gilfort.architectstrials.portal.ChallengePortal;
 import com.gilfort.architectstrials.registry.ModAttachments;
+import com.gilfort.architectstrials.scroll.ScrollEffects;
 import com.gilfort.architectstrials.scroll.ScrollOptions;
 import com.gilfort.architectstrials.slot.Slot;
 import com.gilfort.architectstrials.slot.SlotManager;
@@ -70,6 +71,24 @@ public final class InstanceManager {
      */
     public static InstanceCreation create(ServerLevel level, ChallengeTheme theme, int tier, RandomSource random,
             long timeLimitTicks, ScrollOptions options) {
+        return create(level, theme, tier, random, timeLimitTicks, options, ScrollEffects.NONE);
+    }
+
+    /**
+     * Creates an instance like {@link #create(ServerLevel, ChallengeTheme, int, RandomSource, long, ScrollOptions)},
+     * with the effect upgrades of the scroll.
+     *
+     * @param level          the level of the theme dimension
+     * @param theme          the theme
+     * @param tier           the tier
+     * @param random         the random source for structure selection and transformation
+     * @param timeLimitTicks the time limit; raised to at least the portal open duration
+     * @param options        the multiplayer options of the scroll, fixed into the instance
+     * @param effects        the effect upgrades of the scroll, fixed into the instance
+     * @return the outcome
+     */
+    public static InstanceCreation create(ServerLevel level, ChallengeTheme theme, int tier, RandomSource random,
+            long timeLimitTicks, ScrollOptions options, ScrollEffects effects) {
         Optional<Identifier> drawn = ChallengeStructures.draw(theme.id(), tier, random);
         if (drawn.isEmpty()) {
             return new InstanceCreation.Failure(Component.translatable("message.architectstrials.instance.pool_empty",
@@ -105,7 +124,7 @@ public final class InstanceManager {
         long timeLimit = Math.max(timeLimitTicks, portalOpenTicks);
         ChallengeInstance placed = new ChallengeInstance(UUID.randomUUID(), theme.id(), tier, drawn.get(),
                 slot.get().index(), origin, rotation, mirror, List.of(), List.of(),
-                timeLimit, now + timeLimit, now + portalOpenTicks, options, InstanceRoster.EMPTY);
+                timeLimit, now + timeLimit, now + portalOpenTicks, options, effects, InstanceRoster.EMPTY);
 
         PaintingPlacement.place(level, template.get(), origin, settings, random, Block.UPDATE_CLIENTS);
         MarkerContext context = new MarkerContext(level, placed, random);
@@ -209,6 +228,7 @@ public final class InstanceManager {
             ServerPlayer online = server.getPlayerList().getPlayer(player);
             if (online != null) {
                 InstanceTimerBars.hideFrom(ref.id(), online);
+                ScrollEffectApplication.onLeave(online, instance);
             }
         });
     }
@@ -281,6 +301,7 @@ public final class InstanceManager {
         ChallengeTravel.bindInstance(player, new EntryPoint.InstanceRef(level.dimension(), instance.id()));
         ChallengeInstance current = data(level).get(instance.id()).orElse(instance);
         update(level, current.withRoster(current.roster().entered(player.getUUID())));
+        ScrollEffectApplication.onEntry(player, level, current);
         return true;
     }
 

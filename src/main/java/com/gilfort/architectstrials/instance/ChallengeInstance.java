@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.UUID;
 
+import com.gilfort.architectstrials.scroll.ScrollEffects;
 import com.gilfort.architectstrials.scroll.ScrollOptions;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
@@ -16,7 +17,7 @@ import net.minecraft.world.level.block.Rotation;
 
 /**
  * A placed challenge instance. The structure is drawn once on creation; from then on the instance is fixed to
- * that structure, slot, transformation and scroll options — later entries never re-roll.
+ * that structure, slot, transformation and scroll options and effects — later entries never re-roll.
  *
  * @param id             the unique instance id
  * @param theme          the theme (dimension) id
@@ -33,6 +34,7 @@ import net.minecraft.world.level.block.Rotation;
  * @param portalDeadline the clock value until which the entry portal may still let players in, or {@code -1}
  *                       once the portal is closed
  * @param options        the multiplayer options of the scroll that opened the instance
+ * @param effects        the effect upgrades of the scroll that opened the instance
  * @param roster         the players of the instance
  */
 public record ChallengeInstance(
@@ -50,6 +52,7 @@ public record ChallengeInstance(
         long deadline,
         long portalDeadline,
         ScrollOptions options,
+        ScrollEffects effects,
         InstanceRoster roster
 ) {
 
@@ -69,6 +72,7 @@ public record ChallengeInstance(
             Codec.LONG.optionalFieldOf("deadline", 0L).forGetter(ChallengeInstance::deadline),
             Codec.LONG.optionalFieldOf("portal_deadline", -1L).forGetter(ChallengeInstance::portalDeadline),
             ScrollOptions.CODEC.optionalFieldOf("options", ScrollOptions.DEFAULT).forGetter(ChallengeInstance::options),
+            ScrollEffects.CODEC.optionalFieldOf("effects", ScrollEffects.NONE).forGetter(ChallengeInstance::effects),
             InstanceRoster.CODEC.optionalFieldOf("roster", InstanceRoster.EMPTY).forGetter(ChallengeInstance::roster)
     ).apply(instance, ChallengeInstance::new));
 
@@ -101,7 +105,7 @@ public record ChallengeInstance(
      */
     public ChallengeInstance withSpawnPoints(List<SpawnPoint> points) {
         return new ChallengeInstance(this.id, this.theme, this.tier, this.structure, this.slot, this.origin, this.rotation,
-                this.mirror, points, this.exits, this.timeLimit, this.deadline, this.portalDeadline, this.options, this.roster);
+                this.mirror, points, this.exits, this.timeLimit, this.deadline, this.portalDeadline, this.options, this.effects, this.roster);
     }
 
     /**
@@ -112,7 +116,7 @@ public record ChallengeInstance(
      */
     public ChallengeInstance withExits(List<BlockPos> exitPositions) {
         return new ChallengeInstance(this.id, this.theme, this.tier, this.structure, this.slot, this.origin, this.rotation,
-                this.mirror, this.spawnPoints, exitPositions, this.timeLimit, this.deadline, this.portalDeadline, this.options, this.roster);
+                this.mirror, this.spawnPoints, exitPositions, this.timeLimit, this.deadline, this.portalDeadline, this.options, this.effects, this.roster);
     }
 
     /**
@@ -123,7 +127,7 @@ public record ChallengeInstance(
      */
     public ChallengeInstance withDeadline(long newDeadline) {
         return new ChallengeInstance(this.id, this.theme, this.tier, this.structure, this.slot, this.origin, this.rotation,
-                this.mirror, this.spawnPoints, this.exits, this.timeLimit, newDeadline, this.portalDeadline, this.options, this.roster);
+                this.mirror, this.spawnPoints, this.exits, this.timeLimit, newDeadline, this.portalDeadline, this.options, this.effects, this.roster);
     }
 
     /**
@@ -134,7 +138,7 @@ public record ChallengeInstance(
      */
     public ChallengeInstance withPortalDeadline(long newPortalDeadline) {
         return new ChallengeInstance(this.id, this.theme, this.tier, this.structure, this.slot, this.origin, this.rotation,
-                this.mirror, this.spawnPoints, this.exits, this.timeLimit, this.deadline, newPortalDeadline, this.options, this.roster);
+                this.mirror, this.spawnPoints, this.exits, this.timeLimit, this.deadline, newPortalDeadline, this.options, this.effects, this.roster);
     }
 
     /**
@@ -145,7 +149,7 @@ public record ChallengeInstance(
      */
     public ChallengeInstance withRoster(InstanceRoster newRoster) {
         return new ChallengeInstance(this.id, this.theme, this.tier, this.structure, this.slot, this.origin, this.rotation,
-                this.mirror, this.spawnPoints, this.exits, this.timeLimit, this.deadline, this.portalDeadline, this.options, newRoster);
+                this.mirror, this.spawnPoints, this.exits, this.timeLimit, this.deadline, this.portalDeadline, this.options, this.effects, newRoster);
     }
 
     /**

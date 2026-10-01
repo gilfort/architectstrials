@@ -1,0 +1,16 @@
+{
+  "type": "architectstrials:scroll_upgrade",
+  "template": "minecraft:paper",
+  "base": "architectstrials:challenge_scroll",
+  "addition": "minecraft:rabbit_foot",
+  "options": {
+    "max_players": 4
+  },
+  "effects": [
+    {
+      "target": "player",
+      "effect": "minecraft:luck",
+      "duration": -1
+    }
+  ]
+}

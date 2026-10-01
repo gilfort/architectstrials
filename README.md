@@ -145,6 +145,37 @@ a scroll is the solo default.
   `max_players`. Players who completed the run via an exit can never re-enter.
 - The time limit is automatically at least as long as the portal stays open.
 
+### Scroll upgrades (smithing table)
+
+Scrolls can be upgraded at the smithing table with the recipe type `architectstrials:scroll_upgrade`. Template
+and addition are freely chosen per recipe; the mod ships no template item. The result is the same scroll with
+all its data (theme, tier, time limit, options, earlier upgrades) plus the recipe's upgrades:
+
+```json
+{
+  "type": "architectstrials:scroll_upgrade",
+  "template": "minecraft:paper",
+  "base": "architectstrials:challenge_scroll",
+  "addition": "minecraft:rabbit_foot",
+  "options": { "max_players": 4 },
+  "effects": [
+    { "target": "player", "effect": "minecraft:luck", "duration": -1 },
+    { "target": "mobs", "effect": "minecraft:speed", "duration": 6000, "amplifier": 1 }
+  ]
+}
+```
+
+- `options` (optional): `max_players`, `portal_open_seconds`, `allow_reentry` — overwrite the scroll's values.
+- `effects` (optional): any mob effect, also from other mods. `duration` in ticks (`-1` = infinite),
+  `amplifier` 0 = level I. `player` effects are applied to every player on each entry (infinite ones are removed
+  when they leave the instance); `mobs` effects are applied to all mobs on the first entry and to every mob that
+  spawns afterwards.
+- Applying an effect the scroll already has replaces it if the new one is stronger or longer; otherwise (and if
+  a recipe would change nothing) the smithing table shows no result. There is no upgrade cap — control it via
+  your recipes.
+- Recipes from other systems usually cannot keep the scroll's data: create base scrolls there, upgrade them with
+  this recipe type (or KubeJS).
+
 ### Time limit & cleanup
 
 Every challenge has a time limit, shown to all participants as a boss bar ("Time left: mm:ss", red in the

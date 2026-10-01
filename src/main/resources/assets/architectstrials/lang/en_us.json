@@ -11,6 +11,8 @@
   "tooltip.architectstrials.challenge_scroll.portal_seconds": "Portal stays open for %s seconds",
   "tooltip.architectstrials.challenge_scroll.portal_time_limit": "Portal stays open until the time runs out",
   "tooltip.architectstrials.challenge_scroll.reentry": "Re-entry allowed after a defeat",
+  "tooltip.architectstrials.challenge_scroll.effect.player": "Players: %s",
+  "tooltip.architectstrials.challenge_scroll.effect.mobs": "Enemies: %s",
   "tooltip.architectstrials.challenge_scroll.time_limit": "Time limit: %s minutes",
   "tooltip.architectstrials.challenge_scroll.requires": "Requires rank %s",
   "tooltip.architectstrials.challenge_scroll.blank": "This scroll is not bound to any challenge.",
