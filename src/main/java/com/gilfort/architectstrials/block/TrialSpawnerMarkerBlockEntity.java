@@ -2,6 +2,8 @@ package com.gilfort.architectstrials.block;
 
 import java.util.Optional;
 
+import com.gilfort.architectstrials.loot.LootSetup;
+import com.gilfort.architectstrials.loot.LootSetupHolder;
 import com.gilfort.architectstrials.menu.TrialSpawnerMarkerMenu;
 import com.gilfort.architectstrials.registry.ModBlockEntityTypes;
 
@@ -23,7 +25,7 @@ import net.minecraft.world.level.storage.loot.LootTable;
  * spawn egg counts (the counts also act as spawn weights). Further settings: whether the spawner may turn
  * ominous, the reward loot table and an optional ominous reward loot table.
  */
-public class TrialSpawnerMarkerBlockEntity extends MobMarkerBlockEntity implements LootTableReference {
+public class TrialSpawnerMarkerBlockEntity extends MobMarkerBlockEntity implements LootTableReference, LootSetupHolder {
 
     /** Number of mob rows per page. */
     public static final int ROWS = 3;
@@ -56,12 +58,16 @@ public class TrialSpawnerMarkerBlockEntity extends MobMarkerBlockEntity implemen
     private static final String OMINOUS_SIMULTANEOUS_TAG = "ominous_simultaneous_mobs";
     private static final String OMINOUS_ALLOWED_TAG = "ominous_allowed";
     private static final String OMINOUS_LOOT_TABLE_TAG = "ominous_loot_table";
+    private static final String SETUP_TAG = "loot_setup";
+    private static final String OMINOUS_SETUP_TAG = "ominous_loot_setup";
 
     private int simultaneousMobs = DEFAULT_SIMULTANEOUS;
     private int ominousSimultaneousMobs = DEFAULT_SIMULTANEOUS;
     private boolean ominousAllowed;
     private Optional<ResourceKey<LootTable>> lootTable = Optional.empty();
     private Optional<ResourceKey<LootTable>> ominousLootTable = Optional.empty();
+    private LootSetup lootSetup = LootSetup.EMPTY;
+    private LootSetup ominousLootSetup = LootSetup.EMPTY;
 
     /** Synchronizes the page settings with open menus. */
     private final ContainerData data = new ContainerData() {
@@ -229,6 +235,26 @@ public class TrialSpawnerMarkerBlockEntity extends MobMarkerBlockEntity implemen
     }
 
     @Override
+    public LootSetup lootSetup(boolean ominous) {
+        return ominous ? this.ominousLootSetup : this.lootSetup;
+    }
+
+    @Override
+    public void setLootSetup(boolean ominous, LootSetup setup) {
+        if (ominous) {
+            this.ominousLootSetup = setup;
+        } else {
+            this.lootSetup = setup;
+        }
+        this.setChanged();
+    }
+
+    @Override
+    public boolean hasOminousVariant() {
+        return true;
+    }
+
+    @Override
     protected AbstractContainerMenu createMenu(int containerId, Inventory inventory) {
         return new TrialSpawnerMarkerMenu(containerId, inventory, this, this.data);
     }
@@ -242,6 +268,8 @@ public class TrialSpawnerMarkerBlockEntity extends MobMarkerBlockEntity implemen
         this.ominousAllowed = input.getBooleanOr(OMINOUS_ALLOWED_TAG, false);
         this.lootTable = LootTableReference.read(input);
         this.ominousLootTable = input.read(OMINOUS_LOOT_TABLE_TAG, ResourceKey.codec(Registries.LOOT_TABLE));
+        this.lootSetup = input.read(SETUP_TAG, LootSetup.CODEC).orElse(LootSetup.EMPTY);
+        this.ominousLootSetup = input.read(OMINOUS_SETUP_TAG, LootSetup.CODEC).orElse(LootSetup.EMPTY);
     }
 
     @Override
@@ -252,5 +280,11 @@ public class TrialSpawnerMarkerBlockEntity extends MobMarkerBlockEntity implemen
         output.putBoolean(OMINOUS_ALLOWED_TAG, this.ominousAllowed);
         LootTableReference.write(output, this.lootTable);
         this.ominousLootTable.ifPresent(key -> output.store(OMINOUS_LOOT_TABLE_TAG, ResourceKey.codec(Registries.LOOT_TABLE), key));
+        if (!this.lootSetup.isEmpty()) {
+            output.store(SETUP_TAG, LootSetup.CODEC, this.lootSetup);
+        }
+        if (!this.ominousLootSetup.isEmpty()) {
+            output.store(OMINOUS_SETUP_TAG, LootSetup.CODEC, this.ominousLootSetup);
+        }
     }
 }

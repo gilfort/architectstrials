@@ -128,7 +128,7 @@ public final class WorldImportGameTests {
 
         ServerLevel target = level.getServer().getLevel(Level.END);
         BoundingBox box = BoundingBox.fromCorners(helper.absolutePos(new BlockPos(0, 1, 0)), helper.absolutePos(new BlockPos(6, 4, 6)));
-        WorldImport.Result result = WorldImport.importInto(level, box, target);
+        WorldImport.Result result = WorldImport.importInto(level, box, target, 1000, 0);
         BoundingBox placed = result.placed();
         BlockPos origin = new BlockPos(placed.minX(), placed.minY(), placed.minZ());
         try {

@@ -147,8 +147,21 @@ public final class EditorCapture {
      * @return the box the template was placed into
      */
     public static BoundingBox place(ServerLevel level, StructureTemplate template) {
+        return place(level, template, 0, 0);
+    }
+
+    /**
+     * Places a template centered on a horizontal position, bottom at the structure placement height.
+     *
+     * @param level    the level
+     * @param template the template
+     * @param centerX  the x coordinate to center on
+     * @param centerZ  the z coordinate to center on
+     * @return the box the template was placed into
+     */
+    public static BoundingBox place(ServerLevel level, StructureTemplate template, int centerX, int centerZ) {
         Vec3i size = template.getSize();
-        BlockPos origin = new BlockPos(-size.getX() / 2, ArchitectsTrialsConfig.STRUCTURE_PLACEMENT_Y.getAsInt(), -size.getZ() / 2);
+        BlockPos origin = new BlockPos(centerX - size.getX() / 2, ArchitectsTrialsConfig.STRUCTURE_PLACEMENT_Y.getAsInt(), centerZ - size.getZ() / 2);
         StructurePlaceSettings settings = new StructurePlaceSettings();
         PaintingPlacement.place(level, template, origin, settings, level.getRandom(), Block.UPDATE_CLIENTS);
         return template.getBoundingBox(settings, origin);
