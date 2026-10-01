@@ -75,14 +75,8 @@ public class TrialSpawnerMarkerMenu extends MarkerMenu {
     }
 
     @Override
-    protected MarkerSlot createSlot(Container container, int index, int x, int y) {
-        boolean ominousSlot = index >= PAGE_SLOTS;
-        return new MarkerSlot(container, index, x, y) {
-            @Override
-            public boolean isActive() {
-                return ominousSlot == TrialSpawnerMarkerMenu.this.ominousPage();
-            }
-        };
+    protected boolean isSlotActive(int index) {
+        return (index >= PAGE_SLOTS) == this.ominousPage();
     }
 
     /** @return {@code true} while the ominous page is shown */
@@ -147,7 +141,7 @@ public class TrialSpawnerMarkerMenu extends MarkerMenu {
         int containerSize = this.container().getContainerSize();
         int pageStart = this.ominousPage() ? PAGE_SLOTS : 0;
         boolean moved = slotIndex < containerSize
-                ? this.moveItemStackTo(stack, containerSize, this.slots.size(), true)
+                ? this.moveItemStackTo(stack, containerSize, this.inventoryEnd(), true)
                 : this.moveItemStackTo(stack, pageStart, pageStart + PAGE_SLOTS, false);
         if (!moved) {
             return ItemStack.EMPTY;

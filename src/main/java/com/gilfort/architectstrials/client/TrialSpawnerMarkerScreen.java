@@ -44,6 +44,7 @@ public class TrialSpawnerMarkerScreen extends AbstractContainerScreen<TrialSpawn
     @Override
     protected void init() {
         super.init();
+        CursorMemory.restore();
         this.addRenderableWidget(Button.builder(Component.translatable("gui.architectstrials.trial_spawner_marker.decrease"),
                         button -> this.click(TrialSpawnerMarkerMenu.BUTTON_DECREASE))
                 .bounds(this.leftPos + 134, this.topPos + CONTROL_Y - 3, BUTTON_SIZE, BUTTON_SIZE)
@@ -98,5 +99,20 @@ public class TrialSpawnerMarkerScreen extends AbstractContainerScreen<TrialSpawn
         graphics.text(this.font, total, 8, CONTROL_Y, color, false);
         Component simultaneous = Component.translatable("gui.architectstrials.trial_spawner_marker.simultaneous", this.menu.simultaneousMobs());
         graphics.text(this.font, simultaneous, 130 - this.font.width(simultaneous), CONTROL_Y, color, false);
+    }
+
+    /**
+     * Draws the equipment slot hints on top of the slots (after the slot icons and items).
+     */
+    @Override
+    protected void extractSlots(GuiGraphicsExtractor graphics, int mouseX, int mouseY) {
+        super.extractSlots(graphics, mouseX, mouseY);
+        MarkerSlotOverlay.extract(graphics, this.menu, this.font);
+    }
+
+    @Override
+    public void removed() {
+        CursorMemory.remember();
+        super.removed();
     }
 }

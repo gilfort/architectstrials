@@ -43,12 +43,30 @@ The Direct Spawn, Spawner and Trial Spawner Markers define enemies. Right-click 
 to open its inventory. Each **mob row** has:
 
 - one **spawn egg** slot — the entity type (eggs from any mod work); the stack size is the count,
-- six **equipment** slots — head, chest, legs, feet, main hand, off hand.
+- six **equipment** slots — head, chest, legs, feet, main hand, off hand (fixed item or random list, see below).
 
-Equipment rules:
+Each equipment slot is one of three things:
 
-- Mobs first get their normal setup (a skeleton still gets its bow), then every filled slot replaces the natural
-  item. Leave a slot empty to keep the natural equipment.
+- **Empty** — the mob keeps its natural equipment (a skeleton still gets its bow). Empty slots show a small dice
+  icon in their top-right corner.
+- **A fixed item** — drag or shift-click an item into the slot. It is always used; the slot shows "100%". To turn
+  it into a random slot, take the item out first.
+- **A random list** — **click an empty slot** (with nothing on the cursor) to open its list: up to 9 items, each
+  with a chance in percent (one decimal, e.g. `0.5`). Exactly one item is drawn per mob, the remainder up to 100 %
+  means **nothing** — the slot is then empty, even if the mob would naturally carry something. A slot with a list
+  shows its most likely item plus the dice icon; click it to edit the list, "Back" returns to the marker.
+
+Example — zombies with 90 % no weapon, 3 % each fishing rod, stone sword or bow, 1 % iron spear: click the
+main hand slot and enter fishing rod 3, stone sword 3, bow 3, iron spear 1 → "Nothing: 90 %".
+
+Further rules:
+
+- Chances can never add up to more than 100 % — a value that would exceed it is reduced automatically.
+- Lists are rolled **per mob**: for every directly spawned mob and for every spawn of a spawner or trial spawner.
+- **Equipment loot table per row:** `/at marker equipment_table <row> <id>` (rows count from 1; on the Trial
+  Spawner Marker rows 4–6 are the ominous page) gives every mob of the row the equipment of a loot table of type
+  `minecraft:equipment`, e.g. `minecraft:equipment/trial_chamber_melee`. Imported vanilla spawners keep theirs.
+  Order on spawn: natural equipment → equipment table → fixed items → random lists.
 - Equipment never drops (0 % drop chance) — loot comes from mob loot tables and [loot containers](Loot).
 - A mob marker without a spawn egg triggers a warning on save and is removed without spawning anything.
 
@@ -101,4 +119,4 @@ ominous variant with 3 wither skeletons and nether fortress loot:
 ## Inspecting markers
 
 `/at marker info` shows the loot table of the marker or container you are looking at; for Trial Spawner Markers
-also the ominous setting and the ominous reward.
+also the ominous setting and the ominous reward, for mob markers the equipment tables of their rows.
