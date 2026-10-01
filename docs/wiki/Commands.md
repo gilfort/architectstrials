@@ -29,6 +29,7 @@ modpack to be safe).
 |---|---|
 | `/at editor enter` | Enters the shared editor dimension |
 | `/at editor clear` + `/at editor clear confirm` | Empties the editor (confirm within 30 s) |
+| `/at editor import` (+ `confirm` above 100,000 blocks) | Copies the area selected with the Selection Tool into the empty editor; spawners become markers |
 | `/at editor save <theme> <tier> <id> [overwrite]` | Saves the editor content as a pool structure |
 | `/at editor load <theme> <tier> <id>` | Loads a stored structure into the empty editor |
 | `/at structure list [theme] [tier]` | Lists stored structures |

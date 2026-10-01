@@ -144,11 +144,68 @@ public final class EditorCapture {
      *
      * @param level    the editor level
      * @param template the template
+     * @return the box the template was placed into
      */
-    public static void place(ServerLevel level, StructureTemplate template) {
+    public static BoundingBox place(ServerLevel level, StructureTemplate template) {
         Vec3i size = template.getSize();
         BlockPos origin = new BlockPos(-size.getX() / 2, ArchitectsTrialsConfig.STRUCTURE_PLACEMENT_Y.getAsInt(), -size.getZ() / 2);
-        PaintingPlacement.place(level, template, origin, new StructurePlaceSettings(), level.getRandom(), Block.UPDATE_CLIENTS);
+        StructurePlaceSettings settings = new StructurePlaceSettings();
+        PaintingPlacement.place(level, template, origin, settings, level.getRandom(), Block.UPDATE_CLIENTS);
+        return template.getBoundingBox(settings, origin);
+    }
+
+    /**
+     * Copies a box of any level 1:1 into a template — blocks, block entities and decoration entities, no mobs —
+     * without trimming (used for importing world areas).
+     *
+     * @param level the level
+     * @param box   the box
+     * @return the template
+     */
+    public static StructureTemplate copy(ServerLevel level, BoundingBox box) {
+        StructureTemplate template = new StructureTemplate();
+        template.fillFromWorld(level, new BlockPos(box.minX(), box.minY(), box.minZ()),
+                new Vec3i(box.getXSpan(), box.getYSpan(), box.getZSpan()), true, List.of());
+        return withoutMobs(level, template);
+    }
+
+    /**
+     * Counts the non-air blocks of a box, skipping empty chunk sections.
+     *
+     * @param level the level
+     * @param box   the box
+     * @return the number of non-air blocks
+     */
+    public static int countBlocks(ServerLevel level, BoundingBox box) {
+        int count = 0;
+        BlockPos.MutableBlockPos pos = new BlockPos.MutableBlockPos();
+        for (int chunkX = SectionPos.blockToSectionCoord(box.minX()); chunkX <= SectionPos.blockToSectionCoord(box.maxX()); chunkX++) {
+            for (int chunkZ = SectionPos.blockToSectionCoord(box.minZ()); chunkZ <= SectionPos.blockToSectionCoord(box.maxZ()); chunkZ++) {
+                LevelChunkSection[] sections = level.getChunk(chunkX, chunkZ).getSections();
+                for (int index = 0; index < sections.length; index++) {
+                    if (sections[index].hasOnlyAir()) {
+                        continue;
+                    }
+                    int sectionMinY = SectionPos.sectionToBlockCoord(level.getSectionYFromSectionIndex(index));
+                    int fromY = Math.max(box.minY(), sectionMinY);
+                    int toY = Math.min(box.maxY(), sectionMinY + SectionPos.SECTION_SIZE - 1);
+                    int fromX = Math.max(box.minX(), SectionPos.sectionToBlockCoord(chunkX));
+                    int toX = Math.min(box.maxX(), SectionPos.sectionToBlockCoord(chunkX, 15));
+                    int fromZ = Math.max(box.minZ(), SectionPos.sectionToBlockCoord(chunkZ));
+                    int toZ = Math.min(box.maxZ(), SectionPos.sectionToBlockCoord(chunkZ, 15));
+                    for (int y = fromY; y <= toY; y++) {
+                        for (int z = fromZ; z <= toZ; z++) {
+                            for (int x = fromX; x <= toX; x++) {
+                                if (!level.getBlockState(pos.set(x, y, z)).isAir()) {
+                                    count++;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        return count;
     }
 
     /**

@@ -165,6 +165,23 @@ public final class SpawnMarkerResolvers {
     }
 
     /**
+     * Reads the equipment configured in a spawner's entity tag: the marker equipment if the spawner was created
+     * from a marker, otherwise the vanilla {@code equipment} field.
+     *
+     * @param level  the level (for registry access)
+     * @param entity the entity tag of the spawn data
+     * @return the equipment by slot (possibly empty)
+     */
+    public static Map<EquipmentSlot, ItemStack> readEquipment(ServerLevel level, CompoundTag entity) {
+        RegistryOps<Tag> ops = ops(level.registryAccess());
+        CompoundTag persistent = entity.getCompoundOrEmpty("NeoForgeData");
+        if (persistent.contains(EQUIPMENT_KEY)) {
+            return persistent.read(EQUIPMENT_KEY, EQUIPMENT_CODEC, ops).orElse(Map.of());
+        }
+        return entity.read("equipment", EQUIPMENT_CODEC, ops).orElse(Map.of());
+    }
+
+    /**
      * Applies marker equipment to mobs spawned by a spawner created from a Spawner Marker. The spawner does not
      * run the mob's spawn initialization for configured entities, so it is run here before the equipment is
      * applied.
