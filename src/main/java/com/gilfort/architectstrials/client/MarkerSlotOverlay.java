@@ -13,8 +13,8 @@ import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 
 /**
- * Draws the equipment slot hints of the mob marker screens (in screen-relative coordinates, i.e. from
- * {@code extractLabels}):
+ * Draws the equipment slot hints of the mob marker screens (in screen-relative coordinates, after the slots so the
+ * hints lie on top of slot icons and items):
  * <ul>
  * <li>a fixed item gets a small "100%" at its bottom,</li>
  * <li>a slot with a weighted list shows the list's most likely item plus the dice icon,</li>
@@ -39,6 +39,7 @@ public final class MarkerSlotOverlay {
      * @param font     the font
      */
     public static void extract(GuiGraphicsExtractor graphics, MarkerMenu menu, Font font) {
+        graphics.nextStratum();
         for (Slot slot : menu.slots) {
             if (!(slot instanceof MarkerSlot) || !slot.isActive() || slot.getContainerSlot() % MarkerSlot.ROW_SIZE == 0) {
                 continue;

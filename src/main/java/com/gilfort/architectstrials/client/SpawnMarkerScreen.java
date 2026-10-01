@@ -38,9 +38,25 @@ public class SpawnMarkerScreen extends AbstractContainerScreen<SpawnMarkerMenu> 
         graphics.blit(RenderPipelines.GUI_TEXTURED, TEXTURE, x, y, 0.0F, 0.0F, this.imageWidth, this.imageHeight, 256, 256);
     }
 
+
+    /**
+     * Draws the equipment slot hints on top of the slots (after the slot icons and items).
+     */
     @Override
-    protected void extractLabels(GuiGraphicsExtractor graphics, int mouseX, int mouseY) {
-        super.extractLabels(graphics, mouseX, mouseY);
+    protected void extractSlots(GuiGraphicsExtractor graphics, int mouseX, int mouseY) {
+        super.extractSlots(graphics, mouseX, mouseY);
         MarkerSlotOverlay.extract(graphics, this.menu, this.font);
+    }
+
+    @Override
+    protected void init() {
+        super.init();
+        CursorMemory.restore();
+    }
+
+    @Override
+    public void removed() {
+        CursorMemory.remember();
+        super.removed();
     }
 }

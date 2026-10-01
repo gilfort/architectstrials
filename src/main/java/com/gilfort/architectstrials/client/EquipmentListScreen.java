@@ -47,6 +47,7 @@ public class EquipmentListScreen extends AbstractContainerScreen<EquipmentListMe
     @Override
     protected void init() {
         super.init();
+        CursorMemory.restore();
         this.fields.clear();
         for (int position = 0; position < EquipmentList.MAX_ENTRIES; position++) {
             int x = this.leftPos + EquipmentListMenu.GRID_X + (position % 3) * EquipmentListMenu.CELL_WIDTH + 19;
@@ -128,5 +129,11 @@ public class EquipmentListScreen extends AbstractContainerScreen<EquipmentListMe
         }
         graphics.text(this.font, Component.translatable("gui.architectstrials.equipment_list.nothing", format(this.menu.remainder())),
                 8, 91, TEXT_COLOR, false);
+    }
+
+    @Override
+    public void removed() {
+        CursorMemory.remember();
+        super.removed();
     }
 }
