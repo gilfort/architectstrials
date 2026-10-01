@@ -1,0 +1,8 @@
+{
+  "type": "minecraft:function",
+  "environment": "minecraft:default",
+  "function": "architectstrials:trial_spawner_marker_ominous_config",
+  "max_ticks": 100,
+  "structure": "minecraft:empty",
+  "padding": 16
+}

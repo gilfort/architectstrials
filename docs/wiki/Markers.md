@@ -64,23 +64,41 @@ cycle**. All other settings (delay, range, max nearby) stay at vanilla defaults.
 
 ### Trial Spawner Marker
 
-Becomes a vanilla trial spawner (no vault). Its inventory has **three mob rows** plus a counter:
+Becomes a vanilla trial spawner (no vault). Its inventory has **two pages** — normal and ominous — with
+**three mob rows** each, switched with the "Page" button. Per page:
 
-- **Total mobs** = sum of all egg counts; the counts also act as spawn weights
+- **Total mobs** = sum of the page's egg counts; the counts also act as spawn weights
   (4 zombie eggs + 2 skeleton eggs = 6 mobs, about twice as many zombies).
 - **At once** — how many mobs are alive at the same time — set with the +/- buttons (1–32, default 2).
-- **Reward:** look at the marker and run `/at marker loot_table <id>`; it is ejected after the wave is cleared.
-  Without a loot table there is no reward.
-- Vanilla per-player scaling stays active (+2 total and +1 at once per additional player), as do spawn delay,
-  range and cooldown.
-- These trial spawners **never turn ominous** — Bad Omen and Trial Omen are ignored and not consumed.
 
-Example: a trial spawner with 4 zombies (iron helmet) and 2 skeletons, 3 at once, rewarding dungeon loot:
+Rewards (look at the marker):
+
+- `/at marker loot_table <id>` — ejected after a cleared wave. Without one there is no reward.
+- `/at marker ominous_loot_table <id>` — reward of the ominous variant; without one the normal reward is used.
+
+Vanilla per-player scaling stays active (+2 total and +1 at once per additional player), as do spawn delay,
+range and cooldown.
+
+#### Ominous variant
+
+The "Ominous" button toggles whether the spawner may turn ominous:
+
+- **blocked** (default): the spawner never turns ominous — Bad Omen and Trial Omen are ignored and not consumed.
+- **allowed**: like vanilla, it turns ominous when a player with Bad Omen or Trial Omen comes into range (Bad Omen
+  becomes Trial Omen). It then spawns the **ominous page** — e.g. wither skeletons with netherite swords instead
+  of skeletons — with that page's "at once" value, drops vanilla ominous items (potions, arrows, …) during the
+  fight and ejects the ominous reward. If the ominous page is empty, the normal rows are used.
+
+Example: a trial spawner with 4 zombies (iron helmet) and 2 skeletons, 3 at once, rewarding dungeon loot, and an
+ominous variant with 3 wither skeletons and nether fortress loot:
 
 1. Place the Trial Spawner Marker and right-click it.
-2. Row 1: 4 zombie spawn eggs + iron helmet; row 2: 2 skeleton spawn eggs. Press + once (3 at once).
-3. Look at it: `/at marker loot_table minecraft:chests/simple_dungeon`.
+2. Normal page — row 1: 4 zombie spawn eggs + iron helmet; row 2: 2 skeleton spawn eggs. Press + once (3 at once).
+3. Switch to the ominous page — row 1: 3 wither skeleton spawn eggs. Toggle "Ominous: allowed".
+4. Look at the marker: `/at marker loot_table minecraft:chests/simple_dungeon` and
+   `/at marker ominous_loot_table minecraft:chests/nether_bridge`.
 
 ## Inspecting markers
 
-`/at marker info` shows the loot table of the marker or container you are looking at.
+`/at marker info` shows the loot table of the marker or container you are looking at; for Trial Spawner Markers
+also the ominous setting and the ominous reward.

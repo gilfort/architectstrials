@@ -74,7 +74,8 @@ What happens:
 - **Spawners become markers:** a monster spawner becomes a [Spawner Marker](Markers#spawner-marker) (spawn egg
   of its mob, stack size = spawn count, equipment taken over); a trial spawner becomes a
   [Trial Spawner Marker](Markers#trial-spawner-marker) (its three most frequent mobs as rows, egg counts summing up
-  to its total mobs, "at once" and the main reward loot table taken over). Mobs without a spawn egg are listed in
+  to its total mobs, "at once" and the main reward loot table taken over; a vanilla ominous configuration fills the
+  ominous page, with ominous still blocked until you allow it). Mobs without a spawn egg are listed in
   the result message and leave their row empty.
 - The result message reports how many blocks were copied and how many spawners were converted.
 
