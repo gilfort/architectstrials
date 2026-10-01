@@ -97,8 +97,45 @@ A setup has up to **five groups** and a **consolation list**, each a page in the
 - Loot tables can come out empty: chest tables with empty entries, mob tables with counts from 0 or
   "killed by player" conditions. Fixed items or chest tables are the safe choice for guaranteed rewards.
 
-Example: group 1 = dungeon loot 70 %, diamond 30 %; group 2 = emerald 100 %. Every roll gives the emerald and
-either dungeon loot or a diamond.
+Groups are rolled in order (1 to 5), each drawing once; then the consolation list follows if nothing came out.
+The order does not change any chances — it only decides in which order the items are created. A roll therefore
+gives anything from nothing (→ consolation) up to one entry from each of the five groups.
+
+**Five groups of nine entries are not the same as one group of 45:** one group gives *at most one* entry,
+five groups give *up to five*. Rule of thumb: what should exclude each other ("either … or") goes into **one**
+group; what may drop independently ("and maybe also") goes into **different** groups.
+
+#### Example 1 — main reward plus a side reward
+
+| Page | Entries |
+|------|---------|
+| Group 1 | iron sword 60 %, diamond sword 30 %, netherite sword 10 % |
+| Group 2 | `minecraft:chests/simple_dungeon` 100 % |
+
+Always **exactly one** sword **and** dungeon loot. With all four entries in one group, players would get either
+a sword or the dungeon loot, never both.
+
+#### Example 2 — independent rare bonuses
+
+| Page | Entries |
+|------|---------|
+| Group 1 | `minecraft:chests/simple_dungeon` 100 % |
+| Group 2 | enchanted golden apple 5 % |
+| Group 3 | diamond 20 %, rolls 1–3 |
+
+The base loot always drops; the apple in 5 % of the rolls, 1–3 diamonds in 20 %, both together in 1 %. Each
+bonus has its own chance and a rare find never blocks another one — in a single group the apple would exclude
+the diamonds.
+
+#### Example 3 — jackpot or consolation
+
+| Page | Entries |
+|------|---------|
+| Group 1 | elytra 2 %, totem of undying 10 % (88 % nothing) |
+| Consolation | emerald, rolls 3–3 |
+
+2 % elytra, 10 % totem, otherwise (88 %) three emeralds. Nobody leaves empty-handed, and the jackpot is not
+watered down: whoever hits it gets no emeralds on top.
 
 ### Where setups apply
 
