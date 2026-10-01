@@ -1,0 +1,8 @@
+{
+  "type": "minecraft:function",
+  "environment": "minecraft:default",
+  "function": "architectstrials:slot_clear_removes_unloaded_entities",
+  "max_ticks": 2400,
+  "structure": "minecraft:empty",
+  "padding": 4
+}
