@@ -2,7 +2,7 @@
   "itemGroup.architectstrials.main": "Architect's Trials",
 
   "item.architectstrials.selection_tool": "Selection Tool",
-  "tooltip.architectstrials.selection_tool": "Left click: corner 1, right click: corner 2. /at editor import copies the selection into the empty editor.",
+  "tooltip.architectstrials.selection_tool": "Left click: corner 1, right click: corner 2, shift + right click: edit the corners by coordinates. /at editor import copies the selection into the empty editor.",
   "tooltip.architectstrials.selection_tool.size": "Selection: %s × %s × %s in %s",
   "item.architectstrials.challenge_scroll": "Blank Challenge Scroll",
   "item.architectstrials.challenge_scroll.named": "Challenge Scroll – %s, Tier %s",
@@ -115,6 +115,17 @@
   "gui.architectstrials.trial_spawner_marker.simultaneous": "At once: %s",
   "gui.architectstrials.trial_spawner_marker.decrease": "-",
   "gui.architectstrials.trial_spawner_marker.increase": "+",
+
+  "gui.architectstrials.selection_editor.title": "Edit Selection",
+  "gui.architectstrials.selection_editor.corner": "Corner %s",
+  "gui.architectstrials.selection_editor.x": "X",
+  "gui.architectstrials.selection_editor.y": "Y",
+  "gui.architectstrials.selection_editor.z": "Z",
+  "gui.architectstrials.selection_editor.decrease": "-",
+  "gui.architectstrials.selection_editor.increase": "+",
+  "gui.architectstrials.selection_editor.here": "Here",
+  "gui.architectstrials.selection_editor.size": "Size: %s × %s × %s",
+  "gui.architectstrials.selection_editor.invalid": "Enter whole numbers for all coordinates.",
 
   "architectstrials.configuration.title": "Architect's Trials Configuration",
   "architectstrials.configuration.section.architectstrials.server.toml": "Server",

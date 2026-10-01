@@ -11,6 +11,8 @@ schematicannon — only the placed blocks count.
 - A 3 × 3 glass-looking **Editor Platform** at the center gives you something to start from. It is ignored
   when saving; whatever stands on it ends up at the structure placement height (`structurePlacementY`).
 - Your game mode stays unchanged and there is no death protection in the editor.
+- Entering puts you on the platform, or on top of whatever has been built at the center (e.g. after loading or
+  importing a structure). Builders who end up inside blocks after a load or import are moved there too.
 
 | Command | Description |
 |---|---|
@@ -58,6 +60,9 @@ copied straight into the editor and turned into a challenge there.
 2. **Left click** a block: corner 1. **Right click** a block: corner 2. The tool never breaks blocks. While you
    hold it, both corners and the selected box are drawn as an outline — white if the box can be imported, red if
    it is too large. The tooltip shows the size.
+   **Shift + right click** opens the corner editor: change every coordinate by typing or with -/+, or set a corner
+   to your position with "Here". Handy for corners high up in the air — set the corner on the ground, then raise
+   its Y value.
 3. Run `/at editor import` (the editor must be empty — `editor clear` first). The tool can be in your hand or
    anywhere in your inventory.
 

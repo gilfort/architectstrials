@@ -143,6 +143,7 @@ final class EditorCommand {
 
     private static int runImport(CommandSourceStack source, ImportTarget target) {
         WorldImport.Result result = WorldImport.importInto(target.level(), target.box(), target.editor());
+        EditorDimension.freeStuckPlayers(target.editor());
         source.sendSuccess(() -> Component.translatable("commands.architectstrials.editor.import.success", result.copiedBlocks(),
                 result.spawners()), true);
         if (!result.missingEggs().isEmpty()) {

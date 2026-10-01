@@ -3,6 +3,7 @@ package com.gilfort.architectstrials.editor;
 import java.util.function.Consumer;
 
 import com.gilfort.architectstrials.ArchitectsTrials;
+import com.gilfort.architectstrials.client.SelectionEditorAccess;
 import com.gilfort.architectstrials.registry.ModDataComponents;
 import com.gilfort.architectstrials.slot.Slot;
 import com.gilfort.architectstrials.travel.ChallengeTravel;
@@ -11,6 +12,7 @@ import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
@@ -28,7 +30,8 @@ import net.neoforged.neoforge.event.entity.player.PlayerInteractEvent;
 
 /**
  * Selection tool for copying areas of the world into the editor ({@code /at editor import}). Left click on a
- * block sets the first corner, right click the second; the selection is stored on the tool
+ * block sets the first corner, right click the second; shift + right click opens a screen to edit both corners
+ * by coordinates (e.g. to move a corner set on the ground up into the air). The selection is stored on the tool
  * ({@link Selection}) and drawn as an outline while the tool is held. The tool never breaks blocks.
  */
 @EventBusSubscriber(modid = ArchitectsTrials.MOD_ID)
@@ -45,10 +48,43 @@ public class SelectionToolItem extends Item {
 
     @Override
     public InteractionResult useOn(UseOnContext context) {
-        if (context.getPlayer() instanceof ServerPlayer player) {
-            setCorner(player, context.getItemInHand(), context.getClickedPos(), false);
+        Player player = context.getPlayer();
+        if (player != null && player.isSecondaryUseActive()) {
+            return this.openEditor(context.getLevel(), player, context.getHand());
+        }
+        if (player instanceof ServerPlayer serverPlayer) {
+            setCorner(serverPlayer, context.getItemInHand(), context.getClickedPos(), false);
         }
         return InteractionResult.SUCCESS;
+    }
+
+    @Override
+    public InteractionResult use(Level level, Player player, InteractionHand hand) {
+        return player.isSecondaryUseActive() ? this.openEditor(level, player, hand) : InteractionResult.PASS;
+    }
+
+    /**
+     * Opens the corner editor screen on the client (shift + right click).
+     */
+    private InteractionResult openEditor(Level level, Player player, InteractionHand hand) {
+        if (level.isClientSide()) {
+            SelectionEditorAccess.open(hand);
+        }
+        return InteractionResult.SUCCESS;
+    }
+
+    /**
+     * Sets both corners at once (from the corner editor screen), in the player's current dimension.
+     *
+     * @param player the player
+     * @param stack  the tool
+     * @param first  the first corner
+     * @param second the second corner
+     */
+    static void setCorners(ServerPlayer player, ItemStack stack, BlockPos first, BlockPos second) {
+        Selection selection = Selection.withCorner(stack.get(ModDataComponents.SELECTION.get()), player.level().dimension(), first, true);
+        stack.set(ModDataComponents.SELECTION.get(), selection);
+        setCorner(player, stack, second, false);
     }
 
     @Override
