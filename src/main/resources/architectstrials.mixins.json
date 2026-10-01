@@ -4,6 +4,7 @@
   "package": "com.gilfort.architectstrials.mixin",
   "compatibilityLevel": "JAVA_21",
   "mixins": [
+    "StructureTemplateMixin",
     "TrialSpawnerStateDataMixin"
   ],
   "injectors": {
