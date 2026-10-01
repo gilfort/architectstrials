@@ -27,11 +27,15 @@ import net.minecraft.world.level.storage.loot.LootTable;
 /**
  * Resolver of the Trial Spawner Marker: replaces the marker by a vanilla trial spawner.
  * <p>
- * Configuration: one spawn potential per filled row (egg entity + marker equipment, weight = egg count), total
- * mobs = sum of all egg counts, simultaneous mobs from the marker, the marker's loot table as the only reward
- * (none if unset). Spawn range, spawn delay, cooldown and the vanilla per-player scaling stay at their
- * defaults. No vault is placed. The spawner can never turn ominous: its ominous config equals the normal one
- * and ominous detection is skipped for it (see {@link #isOminousBlocked}).
+ * Normal configuration: one spawn potential per filled row of the normal page (egg entity + marker equipment,
+ * weight = egg count), total mobs = sum of the page's egg counts, the page's simultaneous mobs, the marker's loot
+ * table as the only reward (none if unset). Spawn range, spawn delay, cooldown and the vanilla per-player scaling
+ * stay at their defaults. No vault is placed.
+ * <p>
+ * Ominous: if the marker blocks it (default), the ominous config equals the normal one and ominous detection is
+ * skipped for the spawner (see {@link #isOminousBlocked}). If it is allowed, the ominous config is built the same
+ * way from the ominous page (falling back to the normal rows if that page is empty), with the ominous reward
+ * (falling back to the normal reward) and the vanilla items dropped during ominous waves.
  */
 public final class TrialSpawnerMarkerResolver {
 
@@ -55,13 +59,14 @@ public final class TrialSpawnerMarkerResolver {
             level.setBlock(pos, Blocks.AIR.defaultBlockState(), Block.UPDATE_CLIENTS);
             return;
         }
-        TrialSpawnerConfig config = config(level, marker);
+        TrialSpawnerConfig config = config(level, marker, false);
+        TrialSpawnerConfig ominousConfig = marker.ominousAllowed() ? config(level, marker, true) : config;
         BlockState spawnerState = Blocks.TRIAL_SPAWNER.defaultBlockState();
         level.setBlock(pos, spawnerState, Block.UPDATE_ALL);
         if (!(level.getBlockEntity(pos) instanceof TrialSpawnerBlockEntity spawner)) {
             return;
         }
-        TrialSpawner.FullConfig fullConfig = new TrialSpawner.FullConfig(Holder.direct(config), Holder.direct(config),
+        TrialSpawner.FullConfig fullConfig = new TrialSpawner.FullConfig(Holder.direct(config), Holder.direct(ominousConfig),
                 TrialSpawner.FullConfig.DEFAULT.targetCooldownLength(), TrialSpawner.FullConfig.DEFAULT.requiredPlayerRange());
         CompoundTag data = new CompoundTag();
         data.store(TrialSpawner.FullConfig.MAP_CODEC, level.registryAccess().createSerializationContext(NbtOps.INSTANCE), fullConfig);
@@ -69,7 +74,9 @@ public final class TrialSpawnerMarkerResolver {
                 ArchitectsTrials.LOGGER)) {
             spawner.getTrialSpawner().load(TagValueInput.create(reporter, level.registryAccess(), data));
         }
-        spawner.getPersistentData().putBoolean(NO_OMINOUS_KEY, true);
+        if (!marker.ominousAllowed()) {
+            spawner.getPersistentData().putBoolean(NO_OMINOUS_KEY, true);
+        }
         spawner.setChanged();
         level.sendBlockUpdated(pos, spawnerState, spawnerState, Block.UPDATE_ALL);
     }
@@ -87,15 +94,19 @@ public final class TrialSpawnerMarkerResolver {
     }
 
     /**
-     * Builds the trial spawner configuration of a marker.
+     * Builds the normal or ominous trial spawner configuration of a marker. The ominous configuration uses the
+     * ominous page, or the normal rows if that page is empty.
      *
-     * @param level  the level
-     * @param marker the marker
+     * @param level   the level
+     * @param marker  the marker
+     * @param ominous {@code true} for the ominous configuration
      * @return the configuration
      */
-    public static TrialSpawnerConfig config(ServerLevel level, TrialSpawnerMarkerBlockEntity marker) {
+    public static TrialSpawnerConfig config(ServerLevel level, TrialSpawnerMarkerBlockEntity marker, boolean ominous) {
+        boolean ominousRows = ominous && marker.hasEggs(true);
+        int firstRow = TrialSpawnerMarkerBlockEntity.firstRow(ominousRows);
         WeightedList.Builder<SpawnData> potentials = WeightedList.builder();
-        for (int row = 0; row < marker.rows(); row++) {
+        for (int row = firstRow; row < firstRow + TrialSpawnerMarkerBlockEntity.ROWS; row++) {
             EntityType<?> type = marker.entityType(row);
             if (type != null) {
                 CompoundTag entity = SpawnMarkerResolvers.spawnerEntityTag(level, type, marker.egg(row), marker.equipment(row));
@@ -103,9 +114,9 @@ public final class TrialSpawnerMarkerResolver {
             }
         }
         WeightedList.Builder<ResourceKey<LootTable>> loot = WeightedList.builder();
-        marker.lootTableReference().ifPresent(loot::add);
+        (ominous ? marker.ominousLootTable().or(marker::lootTableReference) : marker.lootTableReference()).ifPresent(loot::add);
         TrialSpawnerConfig defaults = TrialSpawnerConfig.DEFAULT;
-        return new TrialSpawnerConfig(defaults.spawnRange(), marker.totalMobs(), marker.simultaneousMobs(),
+        return new TrialSpawnerConfig(defaults.spawnRange(), marker.totalMobs(ominousRows), marker.simultaneousMobs(ominous),
                 defaults.totalMobsAddedPerPlayer(), defaults.simultaneousMobsAddedPerPlayer(), defaults.ticksBetweenSpawn(),
                 potentials.build(), loot.build(), defaults.itemsToDropWhenOminous());
     }

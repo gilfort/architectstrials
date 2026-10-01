@@ -59,6 +59,9 @@ public final class TrialSpawnerMarkerGameTests {
     private static final ResourceKey<LootTable> REWARD = ResourceKey.create(Registries.LOOT_TABLE,
             Identifier.withDefaultNamespace("chests/simple_dungeon"));
 
+    private static final ResourceKey<LootTable> OMINOUS_REWARD = ResourceKey.create(Registries.LOOT_TABLE,
+            Identifier.withDefaultNamespace("chests/nether_bridge"));
+
     private TrialSpawnerMarkerGameTests() {
     }
 
@@ -72,6 +75,7 @@ public final class TrialSpawnerMarkerGameTests {
         event.register(Registries.TEST_FUNCTION, helper -> {
             register(helper, "trial_spawner_marker_config", TrialSpawnerMarkerGameTests::config);
             register(helper, "trial_spawner_marker_never_ominous", TrialSpawnerMarkerGameTests::neverOminous);
+            register(helper, "trial_spawner_marker_ominous_config", TrialSpawnerMarkerGameTests::ominousConfig);
         });
     }
 
@@ -127,13 +131,16 @@ public final class TrialSpawnerMarkerGameTests {
         prepare(helper);
         BlockPos markerPos = new BlockPos(5, 1, 1);
         BlockPos vanillaPos = new BlockPos(1, 1, 5);
+        BlockPos allowedPos = new BlockPos(5, 1, 5);
         placeMarker(helper, markerPos);
         TrialSpawnerMarkerResolver.resolve(context(level, helper.absolutePos(BlockPos.ZERO)), helper.absolutePos(markerPos));
+        placeMarker(helper, allowedPos).setOminousAllowed(true);
+        TrialSpawnerMarkerResolver.resolve(context(level, helper.absolutePos(BlockPos.ZERO)), helper.absolutePos(allowedPos));
         helper.setBlock(vanillaPos, Blocks.TRIAL_SPAWNER);
         helper.getBlockEntity(vanillaPos, TrialSpawnerBlockEntity.class).setEntityId(EntityTypes.ZOMBIE, level.getRandom());
         // The GameTest server disables mob spawning and mock players always report creative mode: let both
         // spawners run anyway and detect creative players.
-        for (BlockPos pos : List.of(vanillaPos, markerPos)) {
+        for (BlockPos pos : List.of(vanillaPos, markerPos, allowedPos)) {
             TrialSpawner trialSpawner = helper.getBlockEntity(pos, TrialSpawnerBlockEntity.class).getTrialSpawner();
             trialSpawner.overridePeacefulAndMobSpawnRule();
             trialSpawner.setPlayerDetector(PlayerDetector.INCLUDING_CREATIVE_PLAYERS);
@@ -145,6 +152,8 @@ public final class TrialSpawnerMarkerGameTests {
         helper.runAfterDelay(45, () -> {
             helper.assertTrue(helper.getBlockState(vanillaPos).getValue(TrialSpawnerBlock.OMINOUS),
                     "Control: vanilla trial spawner did not turn ominous (player not detected?)");
+            helper.assertTrue(helper.getBlockState(allowedPos).getValue(TrialSpawnerBlock.OMINOUS),
+                    "Marker-created trial spawner with ominous allowed did not turn ominous");
             helper.assertFalse(helper.getBlockState(markerPos).getValue(TrialSpawnerBlock.OMINOUS),
                     "Marker-created trial spawner turned ominous");
             TrialSpawnerBlockEntity spawner = helper.getBlockEntity(markerPos, TrialSpawnerBlockEntity.class);
@@ -154,6 +163,48 @@ public final class TrialSpawnerMarkerGameTests {
                     .inflate(16)).forEach(Mob::discard);
             TestPlayers.finish(helper, player);
         });
+    }
+
+    /**
+     * With ominous allowed, the ominous config comes from the ominous page (mobs, counts, at once, ominous reward,
+     * vanilla items to drop); an empty ominous page falls back to the normal rows and reward. Allowed spawners are
+     * not flagged as never-ominous.
+     */
+    private static void ominousConfig(GameTestHelper helper) {
+        ServerLevel level = helper.getLevel();
+        prepare(helper);
+        BlockPos withPage = new BlockPos(5, 1, 1);
+        TrialSpawnerMarkerBlockEntity marker = placeMarker(helper, withPage);
+        marker.setOminousAllowed(true);
+        int ominousRow = TrialSpawnerMarkerBlockEntity.OMINOUS_FIRST_ROW;
+        marker.setItem(ominousRow * MarkerSlot.ROW_SIZE, new ItemStack(Items.WITHER_SKELETON_SPAWN_EGG, 3));
+        marker.setItem(MarkerSlot.indexOf(ominousRow, EquipmentSlot.MAINHAND), new ItemStack(Items.NETHERITE_SWORD));
+        marker.setSimultaneousMobs(true, 4);
+        marker.setOminousLootTable(Optional.of(OMINOUS_REWARD));
+        TrialSpawnerMarkerResolver.resolve(context(level, helper.absolutePos(BlockPos.ZERO)), helper.absolutePos(withPage));
+
+        TrialSpawnerBlockEntity spawner = helper.getBlockEntity(withPage, TrialSpawnerBlockEntity.class);
+        TrialSpawnerConfig ominous = spawner.getTrialSpawner().ominousConfig();
+        List<Weighted<SpawnData>> potentials = ominous.spawnPotentialsDefinition().unwrap();
+        helper.assertTrue(potentials.size() == 1 && potentials.getFirst().value().entityToSpawn().getStringOr("id", "")
+                .equals("minecraft:wither_skeleton") && potentials.getFirst().weight() == 3, "Ominous mobs not taken from the ominous page");
+        helper.assertTrue(ominous.totalMobs() == 3.0F && ominous.simultaneousMobs() == 4.0F, "Ominous counts wrong: " + ominous);
+        helper.assertTrue(ominous.lootTablesToEject().unwrap().stream().map(Weighted::value).toList().equals(List.of(OMINOUS_REWARD)),
+                "Ominous reward not set");
+        helper.assertTrue(ominous.itemsToDropWhenOminous().equals(TrialSpawnerConfig.DEFAULT.itemsToDropWhenOminous()),
+                "Vanilla ominous items missing");
+        helper.assertTrue(spawner.getTrialSpawner().normalConfig().totalMobs() == 6.0F, "Normal config changed");
+        helper.assertFalse(TrialSpawnerMarkerResolver.isOminousBlocked(level, helper.absolutePos(withPage)), "Allowed spawner is blocked");
+
+        BlockPos fallback = new BlockPos(1, 1, 5);
+        placeMarker(helper, fallback).setOminousAllowed(true);
+        TrialSpawnerMarkerResolver.resolve(context(level, helper.absolutePos(BlockPos.ZERO)), helper.absolutePos(fallback));
+        TrialSpawnerConfig fallbackConfig = helper.getBlockEntity(fallback, TrialSpawnerBlockEntity.class).getTrialSpawner().ominousConfig();
+        helper.assertTrue(fallbackConfig.spawnPotentialsDefinition().unwrap().size() == 2 && fallbackConfig.totalMobs() == 6.0F,
+                "Empty ominous page did not fall back to the normal rows");
+        helper.assertTrue(fallbackConfig.lootTablesToEject().unwrap().stream().map(Weighted::value).toList().equals(List.of(REWARD)),
+                "Missing ominous reward did not fall back to the normal reward");
+        helper.succeed();
     }
 
     private static TrialSpawnerMarkerBlockEntity placeMarker(GameTestHelper helper, BlockPos pos) {

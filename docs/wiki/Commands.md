@@ -44,7 +44,8 @@ modpack to be safe).
 |---|---|
 | `/at marker loot_table <id>` | Sets the loot table of the marker or container you are looking at: Exit Marker = completion bonus override, Trial Spawner Marker = reward, lootable container = pool loot |
 | `/at marker loot_table clear` | Removes it |
-| `/at marker info` | Shows the loot table of the marker or container you are looking at |
+| `/at marker ominous_loot_table <id>\|clear` | Sets or removes the reward of the ominous variant of the Trial Spawner Marker you are looking at |
+| `/at marker info` | Shows the loot table of the marker or container you are looking at (Trial Spawner Marker: also the ominous setting and reward) |
 
 ## Instances & slots (debugging)
 

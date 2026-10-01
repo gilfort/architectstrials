@@ -3,6 +3,7 @@ package com.gilfort.architectstrials.command;
 import java.util.Optional;
 
 import com.gilfort.architectstrials.block.LootTableReference;
+import com.gilfort.architectstrials.block.TrialSpawnerMarkerBlockEntity;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
@@ -28,7 +29,10 @@ import net.minecraft.world.phys.HitResult;
  * <ul>
  * <li>{@code /architectstrials marker loot_table <id>} — sets the loot table</li>
  * <li>{@code /architectstrials marker loot_table clear} — removes the loot table</li>
- * <li>{@code /architectstrials marker info} — shows the loot table (otherwise invisible in the editor)</li>
+ * <li>{@code /architectstrials marker ominous_loot_table <id>|clear} — reward of the ominous variant of a Trial
+ * Spawner Marker</li>
+ * <li>{@code /architectstrials marker info} — shows the loot table(s) and, for Trial Spawner Markers, the ominous
+ * setting (otherwise invisible in the editor)</li>
  * </ul>
  * Supported targets: every block whose block entity is a {@link LootTableReference} — the exit marker (overrides
  * the completion bonus) and the trial spawner marker (wave reward) — and every vanilla lootable container
@@ -51,6 +55,11 @@ final class MarkerCommand {
     static LiteralArgumentBuilder<CommandSourceStack> build() {
         return Commands.literal("marker")
                 .then(Commands.literal("info").executes(MarkerCommand::info))
+                .then(Commands.literal("ominous_loot_table")
+                        .then(Commands.literal("clear").executes(context -> setOminousLootTable(context, Optional.empty())))
+                        .then(Commands.argument("id", IdentifierArgument.id())
+                                .suggests(LOOT_TABLE_SUGGESTIONS)
+                                .executes(context -> setOminousLootTable(context, Optional.of(IdentifierArgument.getId(context, "id"))))))
                 .then(Commands.literal("loot_table")
                         .then(Commands.literal("clear").executes(context -> setLootTable(context, Optional.empty())))
                         .then(Commands.argument("id", IdentifierArgument.id())
@@ -78,6 +87,21 @@ final class MarkerCommand {
         return 1;
     }
 
+    private static int setOminousLootTable(CommandContext<CommandSourceStack> context, Optional<Identifier> id)
+            throws CommandSyntaxException {
+        CommandSourceStack source = context.getSource();
+        if (!(target(source.getPlayerOrException()).orElse(null) instanceof TrialSpawnerMarkerBlockEntity marker)) {
+            source.sendFailure(Component.translatable("commands.architectstrials.marker.no_trial_target"));
+            return 0;
+        }
+        Optional<ResourceKey<LootTable>> key = id.map(value -> ResourceKey.create(Registries.LOOT_TABLE, value));
+        marker.setOminousLootTable(key);
+        source.sendSuccess(() -> key
+                .map(value -> Component.translatable("commands.architectstrials.marker.ominous_loot_table.set", value.identifier().toString()))
+                .orElseGet(() -> Component.translatable("commands.architectstrials.marker.ominous_loot_table.cleared")), false);
+        return 1;
+    }
+
     private static int info(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
         CommandSourceStack source = context.getSource();
         Optional<BlockEntity> target = target(source.getPlayerOrException());
@@ -94,6 +118,14 @@ final class MarkerCommand {
         source.sendSuccess(() -> key
                 .map(value -> Component.translatable("commands.architectstrials.marker.info.loot_table", name, value.identifier().toString()))
                 .orElseGet(() -> Component.translatable("commands.architectstrials.marker.info.none", name)), false);
+        if (target.get() instanceof TrialSpawnerMarkerBlockEntity marker) {
+            Component ominous = Component.translatable(marker.ominousAllowed()
+                    ? "commands.architectstrials.marker.info.ominous_allowed" : "commands.architectstrials.marker.info.ominous_blocked");
+            Component reward = marker.ominousLootTable()
+                    .map(value -> Component.translatable("commands.architectstrials.marker.info.ominous_loot_table", value.identifier().toString()))
+                    .orElseGet(() -> Component.translatable("commands.architectstrials.marker.info.ominous_loot_table_default"));
+            source.sendSuccess(() -> Component.translatable("commands.architectstrials.marker.info.ominous", ominous, reward), false);
+        }
         return key.isPresent() ? 1 : 0;
     }
 

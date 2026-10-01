@@ -38,12 +38,25 @@ public abstract class MarkerMenu extends AbstractContainerMenu {
         container.startOpen(inventory.player);
         for (int row = 0; row < rowYs.length; row++) {
             int base = row * MarkerSlot.ROW_SIZE;
-            this.addSlot(new MarkerSlot(container, base, eggX, rowYs[row]));
+            this.addSlot(this.createSlot(container, base, eggX, rowYs[row]));
             for (int i = 0; i < MarkerSlot.EQUIPMENT_SLOTS.size(); i++) {
-                this.addSlot(new MarkerSlot(container, base + 1 + i, equipmentXs[i], rowYs[row] + equipmentDy));
+                this.addSlot(this.createSlot(container, base + 1 + i, equipmentXs[i], rowYs[row] + equipmentDy));
             }
         }
         this.addStandardInventorySlots(inventory, 8, inventoryY);
+    }
+
+    /**
+     * Creates a marker slot. Called from the constructor, before subclass fields are initialized.
+     *
+     * @param container the marker container
+     * @param index     the container index
+     * @param x         the x position in the screen
+     * @param y         the y position in the screen
+     * @return the slot
+     */
+    protected MarkerSlot createSlot(Container container, int index, int x, int y) {
+        return new MarkerSlot(container, index, x, y);
     }
 
     /** @return the marker container */

@@ -44,7 +44,8 @@ import net.minecraft.world.level.storage.loot.LootTable;
  * <p>
  * The area is copied 1:1 like a saved structure (blocks, block entities incl. loot tables, decoration entities,
  * no mobs) and placed into the empty editor like {@code editor load}. Afterwards vanilla spawners become Spawner
- * Markers and trial spawners become Trial Spawner Markers, so the builder can adjust them like any marker.
+ * Markers and trial spawners become Trial Spawner Markers (incl. their ominous page), so the builder can adjust
+ * them like any marker.
  */
 public final class WorldImport {
 
@@ -123,32 +124,46 @@ public final class WorldImport {
     }
 
     /**
-     * Replaces a trial spawner by a Trial Spawner Marker: up to three spawn potentials (highest weights first) as
-     * rows with egg counts distributed by weight so they sum up to the spawner's total mobs, simultaneous mobs and
-     * the highest-weighted reward loot table. The ominous config is ignored.
+     * Replaces a trial spawner by a Trial Spawner Marker. The normal config fills the normal page, a differing
+     * ominous config the ominous page (ominous stays blocked until the builder allows it): per page up to three
+     * spawn potentials (highest weights first) as rows with egg counts distributed by weight so they sum up to the
+     * config's total mobs, simultaneous mobs and the highest-weighted reward loot table.
      */
     private static void convertTrialSpawner(ServerLevel level, TrialSpawnerBlockEntity trialSpawner, List<Identifier> missing) {
-        TrialSpawnerConfig config = trialSpawner.getTrialSpawner().normalConfig();
-        List<Weighted<SpawnData>> potentials = config.spawnPotentialsDefinition().unwrap().stream()
-                .sorted(Comparator.comparingInt((Weighted<SpawnData> entry) -> entry.weight()).reversed())
-                .limit(TrialSpawnerMarkerBlockEntity.ROWS)
-                .toList();
-        Optional<ResourceKey<LootTable>> reward = config.lootTablesToEject().unwrap().stream()
-                .max(Comparator.comparingInt(Weighted::weight)).map(Weighted::value);
+        TrialSpawnerConfig normal = trialSpawner.getTrialSpawner().normalConfig();
+        TrialSpawnerConfig ominous = trialSpawner.getTrialSpawner().ominousConfig();
         BlockPos pos = trialSpawner.getBlockPos();
         if (!(replace(level, pos, ModBlocks.TRIAL_SPAWNER_MARKER.get()) instanceof TrialSpawnerMarkerBlockEntity marker)) {
             return;
         }
+        fillPage(level, marker, normal, false, missing);
+        if (!ominous.equals(normal)) {
+            fillPage(level, marker, ominous, true, missing);
+        }
+    }
+
+    private static void fillPage(ServerLevel level, TrialSpawnerMarkerBlockEntity marker, TrialSpawnerConfig config, boolean ominous,
+            List<Identifier> missing) {
+        List<Weighted<SpawnData>> potentials = config.spawnPotentialsDefinition().unwrap().stream()
+                .sorted(Comparator.comparingInt((Weighted<SpawnData> entry) -> entry.weight()).reversed())
+                .limit(TrialSpawnerMarkerBlockEntity.ROWS)
+                .toList();
         int total = Math.max(1, Math.round(config.totalMobs()));
         int weightSum = potentials.stream().mapToInt(Weighted::weight).sum();
+        int firstRow = TrialSpawnerMarkerBlockEntity.firstRow(ominous);
         for (int row = 0; row < potentials.size(); row++) {
             Weighted<SpawnData> potential = potentials.get(row);
             int count = Math.max(1, Math.round((float) total * potential.weight() / Math.max(1, weightSum)));
-            fillRow(level, marker, row, potential.value().entityToSpawn(), count, missing);
+            fillRow(level, marker, firstRow + row, potential.value().entityToSpawn(), count, missing);
         }
-        marker.setSimultaneousMobs(Mth.clamp(Math.round(config.simultaneousMobs()), TrialSpawnerMarkerBlockEntity.MIN_SIMULTANEOUS,
-                TrialSpawnerMarkerBlockEntity.MAX_SIMULTANEOUS));
-        marker.setLootTableReference(reward);
+        marker.setSimultaneousMobs(ominous, Math.round(config.simultaneousMobs()));
+        Optional<ResourceKey<LootTable>> reward = config.lootTablesToEject().unwrap().stream()
+                .max(Comparator.comparingInt(Weighted::weight)).map(Weighted::value);
+        if (ominous) {
+            marker.setOminousLootTable(reward);
+        } else {
+            marker.setLootTableReference(reward);
+        }
     }
 
     private static MobMarkerBlockEntity replace(ServerLevel level, BlockPos pos, Block markerBlock) {
