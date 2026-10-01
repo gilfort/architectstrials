@@ -4,6 +4,7 @@ import java.util.function.Supplier;
 
 import com.gilfort.architectstrials.ArchitectsTrials;
 import com.gilfort.architectstrials.rank.PlayerRank;
+import com.gilfort.architectstrials.scroll.ParkedEffects;
 import com.gilfort.architectstrials.run.RunStatistics;
 import com.gilfort.architectstrials.travel.EntryPoint;
 
@@ -53,6 +54,13 @@ public final class ModAttachments {
                     .sync((holder, player) -> holder == player, PlayerRank.STREAM_CODEC)
                     .copyOnDeath()
                     .build());
+
+    /**
+     * Infinite scroll effects applied to a player and the player's own effects they replaced; persisted and kept
+     * on death, removed once the player has left the instance.
+     */
+    public static final Supplier<AttachmentType<ParkedEffects>> PARKED_EFFECTS = ATTACHMENT_TYPES.register("parked_effects",
+            () -> AttachmentType.builder(() -> ParkedEffects.EMPTY).serialize(ParkedEffects.MAP_CODEC).copyOnDeath().build());
 
     private ModAttachments() {
     }

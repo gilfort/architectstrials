@@ -1,0 +1,13 @@
+{
+  "type": "architectstrials:scroll_upgrade",
+  "template": "minecraft:paper",
+  "base": "architectstrials:challenge_scroll",
+  "addition": "minecraft:magma_cream",
+  "effects": [
+    {
+      "target": "player",
+      "effect": "minecraft:fire_resistance",
+      "duration": -1
+    }
+  ]
+}

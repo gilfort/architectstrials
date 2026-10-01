@@ -1,0 +1,13 @@
+{
+  "type": "architectstrials:scroll_upgrade",
+  "template": "minecraft:paper",
+  "base": "architectstrials:challenge_scroll",
+  "addition": "minecraft:golden_carrot",
+  "effects": [
+    {
+      "target": "player",
+      "effect": "minecraft:night_vision",
+      "duration": -1
+    }
+  ]
+}

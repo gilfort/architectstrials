@@ -5,6 +5,7 @@ import java.util.Optional;
 import com.gilfort.architectstrials.ArchitectsTrials;
 import com.gilfort.architectstrials.editor.EditorDimension;
 import com.gilfort.architectstrials.instance.InstanceManager;
+import com.gilfort.architectstrials.instance.ScrollEffectApplication;
 import com.gilfort.architectstrials.portal.PortalEcho;
 import com.gilfort.architectstrials.registry.ModAttachments;
 import com.gilfort.architectstrials.theme.ChallengeThemes;
@@ -78,7 +79,8 @@ public final class ChallengeTravel {
 
     /**
      * Returns a player to their stored entry point, restores their game mode, applies the return portal
-     * cooldown, clears the entry point and removes the player from their instance.
+     * cooldown, clears the entry point, removes the player from their instance and gives back effects parked by
+     * infinite scroll effects.
      * <p>
      * The player comes back facing the opposite direction than when they entered (they step out of the portal
      * they walked into), and a short rune echo of the portal appears behind them.
@@ -111,6 +113,7 @@ public final class ChallengeTravel {
         player.setGameMode(entry.gameMode());
         player.setPortalCooldown(RETURN_PORTAL_COOLDOWN_TICKS);
         player.removeData(ModAttachments.ENTRY_POINT);
+        ScrollEffectApplication.restore(player);
         return true;
     }
 
@@ -127,6 +130,7 @@ public final class ChallengeTravel {
         }
         player.teleport(player.findRespawnPositionAndUseSpawnBlock(false, TeleportTransition.DO_NOTHING));
         player.setPortalCooldown(RETURN_PORTAL_COOLDOWN_TICKS);
+        ScrollEffectApplication.restore(player);
         return false;
     }
 

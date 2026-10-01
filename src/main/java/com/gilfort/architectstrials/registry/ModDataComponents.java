@@ -3,6 +3,7 @@ package com.gilfort.architectstrials.registry;
 import java.util.function.Supplier;
 
 import com.gilfort.architectstrials.ArchitectsTrials;
+import com.gilfort.architectstrials.scroll.ScrollEffects;
 import com.gilfort.architectstrials.scroll.ScrollOptions;
 import com.gilfort.architectstrials.scroll.ScrollTarget;
 
@@ -36,6 +37,10 @@ public final class ModDataComponents {
     /** Multiplayer options of a scroll ({@code architectstrials:options}); absent = solo default. */
     public static final Supplier<DataComponentType<ScrollOptions>> SCROLL_OPTIONS = DATA_COMPONENTS.registerComponentType(
             "options", builder -> builder.persistent(ScrollOptions.CODEC).networkSynchronized(ScrollOptions.STREAM_CODEC));
+
+    /** Effect upgrades of a scroll ({@code architectstrials:effects}); absent = none. */
+    public static final Supplier<DataComponentType<ScrollEffects>> SCROLL_EFFECTS = DATA_COMPONENTS.registerComponentType(
+            "effects", builder -> builder.persistent(ScrollEffects.CODEC).networkSynchronized(ScrollEffects.STREAM_CODEC));
 
     private ModDataComponents() {
     }

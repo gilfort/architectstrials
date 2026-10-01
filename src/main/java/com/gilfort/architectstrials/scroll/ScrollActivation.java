@@ -88,7 +88,9 @@ public final class ScrollActivation {
                 ? stack.get(ModDataComponents.TIME_LIMIT.get()) * 60L * ChallengeClock.TICKS_PER_SECOND
                 : InstanceManager.defaultTimeLimitTicks();
         ScrollOptions options = stack.getOrDefault(ModDataComponents.SCROLL_OPTIONS.get(), ScrollOptions.DEFAULT);
-        InstanceCreation creation = InstanceManager.create(themeLevel, theme.get(), target.tier(), themeLevel.getRandom(), timeLimitTicks, options);
+        ScrollEffects effects = stack.getOrDefault(ModDataComponents.SCROLL_EFFECTS.get(), ScrollEffects.NONE);
+        InstanceCreation creation = InstanceManager.create(themeLevel, theme.get(), target.tier(), themeLevel.getRandom(), timeLimitTicks,
+                options, effects);
         if (creation instanceof InstanceCreation.Failure(Component reason)) {
             return Result.failure(reason);
         }

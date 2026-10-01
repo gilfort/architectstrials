@@ -127,7 +127,7 @@ a scroll is the solo default.
 | Field | Values | Default |
 |---|---|---|
 | `max_players` | `1` = only the scroll user, `n` = up to n distinct players, `0` = unlimited | `1` |
-| `portal_open_seconds` | `0` = closes after the first pass-through, `>0` = open that many seconds once active, `-1` = open until the time limit expires | `0` |
+| `portal_open_seconds` | `0` = closes after the first pass-through, `>0` = open that many seconds once active, `-1` = open until the time limit expires. Scrolls for more than one player stay open at least 15 s | `0` |
 | `allow_reentry` | `true` / `false` | `false` |
 
 ```json
@@ -144,6 +144,40 @@ a scroll is the solo default.
 - Re-entry is for players who left without completing (e.g. after a defeat) and does not count against
   `max_players`. Players who completed the run via an exit can never re-enter.
 - The time limit is automatically at least as long as the portal stays open.
+
+### Scroll upgrades (smithing table)
+
+Scrolls can be upgraded at the smithing table with the recipe type `architectstrials:scroll_upgrade`. Template
+and addition are freely chosen per recipe; the mod ships no template item. The result is the same scroll with
+all its data (theme, tier, time limit, options, earlier upgrades) plus the recipe's upgrades:
+
+```json
+{
+  "type": "architectstrials:scroll_upgrade",
+  "template": "minecraft:paper",
+  "base": "architectstrials:challenge_scroll",
+  "addition": "minecraft:rabbit_foot",
+  "options": { "max_players": 4 },
+  "effects": [
+    { "target": "player", "effect": "minecraft:luck", "duration": -1 },
+    { "target": "mobs", "effect": "minecraft:speed", "duration": 6000, "amplifier": 1 }
+  ]
+}
+```
+
+- `options` (optional): `max_players`, `portal_open_seconds`, `allow_reentry` — overwrite the scroll's values.
+- `effects` (optional): any mob effect, also from other mods. Player effects show no particles (only the icon);
+  mob effects keep them. `duration` in ticks (`-1` = infinite),
+  `amplifier` 0 = level I. `player` effects are applied to every player on each entry, on top of an
+  effect of the same type the player already has (e.g. a potion): behind a finite scroll effect the player's
+  own effect is parked and resumes once the scroll effect runs out; an infinite scroll effect is removed when
+  the player leaves, and the player's own effect comes back with the time it had on entry; `mobs` effects are applied to all mobs on the first entry and to every mob that
+  spawns afterwards.
+- Applying an effect the scroll already has replaces it if the new one is stronger or longer; otherwise (and if
+  a recipe would change nothing) the smithing table shows no result. There is no upgrade cap — control it via
+  your recipes.
+- Recipes from other systems usually cannot keep the scroll's data: create base scrolls there, upgrade them with
+  this recipe type (or KubeJS).
 
 ### Time limit & cleanup
 

@@ -6,6 +6,7 @@ import java.util.function.Consumer;
 
 import com.gilfort.architectstrials.ArchitectsTrials;
 import com.gilfort.architectstrials.instance.InstanceRoster;
+import com.gilfort.architectstrials.scroll.ScrollEffects;
 import com.gilfort.architectstrials.scroll.ScrollOptions;
 import com.gilfort.architectstrials.instance.ChallengeInstance;
 import com.gilfort.architectstrials.instance.InstanceCreation;
@@ -130,7 +131,7 @@ public final class SpawnMarkerGameTests {
         template.placeInWorld(level, origin, origin, settings, level.getRandom(), Block.UPDATE_CLIENTS);
 
         ChallengeInstance dummy = new ChallengeInstance(UUID.randomUUID(), Level.NETHER.identifier(), PLATFORM_TIER, PLATFORM,
-                0, origin, Rotation.CLOCKWISE_90, Mirror.NONE, List.of(), List.of(), 0L, 0L, -1L, ScrollOptions.DEFAULT, InstanceRoster.EMPTY);
+                0, origin, Rotation.CLOCKWISE_90, Mirror.NONE, List.of(), List.of(), 0L, 0L, -1L, ScrollOptions.DEFAULT, ScrollEffects.NONE, InstanceRoster.EMPTY);
         MarkerContext context = new MarkerContext(level, dummy, level.getRandom());
         MarkerResolvers.resolveAll(context, template, origin, settings);
 
