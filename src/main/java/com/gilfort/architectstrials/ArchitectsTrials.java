@@ -17,6 +17,7 @@ import com.gilfort.architectstrials.registry.ModDataComponents;
 import com.gilfort.architectstrials.registry.ModEntityTypes;
 import com.gilfort.architectstrials.registry.ModItems;
 import com.gilfort.architectstrials.registry.ModMenuTypes;
+import com.gilfort.architectstrials.registry.ModTicketTypes;
 import com.mojang.logging.LogUtils;
 
 import net.minecraft.resources.Identifier;
@@ -57,6 +58,7 @@ public final class ArchitectsTrials {
         ModBlockEntityTypes.register(modEventBus);
         ModCriteriaTriggers.register(modEventBus);
         ModMenuTypes.register(modEventBus);
+        ModTicketTypes.register(modEventBus);
 
         modContainer.registerConfig(ModConfig.Type.SERVER, ArchitectsTrialsConfig.SPEC);
 

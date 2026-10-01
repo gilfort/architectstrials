@@ -7,6 +7,7 @@ import java.util.Optional;
 import com.gilfort.architectstrials.block.MobMarkerBlockEntity;
 import com.gilfort.architectstrials.config.ArchitectsTrialsConfig;
 import com.gilfort.architectstrials.registry.ModBlocks;
+import com.gilfort.architectstrials.structure.PaintingPlacement;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.SectionPos;
@@ -33,8 +34,8 @@ import net.minecraft.world.phys.AABB;
 /**
  * Turns what was built in the editor into a structure template and back.
  * <p>
- * Capturing takes everything inside the given area, trimmed to the blocks actually built; Editor Platform blocks
- * are ignored. Non-player entities such as item frames, armor stands and paintings are included, mobs are not
+ * Capturing takes everything inside the given area, trimmed to the blocks actually built (grown to include kept
+ * entities such as item frames on outer walls); Editor Platform blocks are ignored. Non-player entities such as item frames, armor stands and paintings are included, mobs are not
  * (enemies are placed with spawn markers).
  */
 public final class EditorCapture {
@@ -77,7 +78,7 @@ public final class EditorCapture {
         if (built.isEmpty()) {
             return Optional.empty();
         }
-        BoundingBox box = built.get();
+        BoundingBox box = withDecorations(level, area, built.get());
         BlockPos origin = new BlockPos(box.minX(), box.minY(), box.minZ());
         StructureTemplate template = new StructureTemplate();
         template.fillFromWorld(level, origin, new Vec3i(box.getXSpan(), box.getYSpan(), box.getZSpan()), true,
@@ -147,7 +148,7 @@ public final class EditorCapture {
     public static void place(ServerLevel level, StructureTemplate template) {
         Vec3i size = template.getSize();
         BlockPos origin = new BlockPos(-size.getX() / 2, ArchitectsTrialsConfig.STRUCTURE_PLACEMENT_Y.getAsInt(), -size.getZ() / 2);
-        template.placeInWorld(level, origin, origin, new StructurePlaceSettings(), level.getRandom(), Block.UPDATE_CLIENTS);
+        PaintingPlacement.place(level, template, origin, new StructurePlaceSettings(), level.getRandom(), Block.UPDATE_CLIENTS);
     }
 
     /**
@@ -194,6 +195,33 @@ public final class EditorCapture {
             }
         }
         return minX == Integer.MAX_VALUE ? Optional.empty() : Optional.of(new BoundingBox(minX, minY, minZ, maxX, maxY, maxZ));
+    }
+
+    /**
+     * Grows the built block bounds so they also contain every kept entity (item frames, paintings, armor stands,
+     * …) inside the area: an item frame hanging on the outermost wall occupies an otherwise empty block and would
+     * be cut off otherwise.
+     */
+    private static BoundingBox withDecorations(ServerLevel level, BoundingBox area, BoundingBox blocks) {
+        int minX = blocks.minX();
+        int minY = blocks.minY();
+        int minZ = blocks.minZ();
+        int maxX = blocks.maxX();
+        int maxY = blocks.maxY();
+        int maxZ = blocks.maxZ();
+        for (Entity entity : level.getEntities((Entity) null, AABB.of(area),
+                entity -> !(entity instanceof Player) && entity.getType().getCategory() == MobCategory.MISC)) {
+            BlockPos pos = entity.blockPosition();
+            if (area.isInside(pos)) {
+                minX = Math.min(minX, pos.getX());
+                minY = Math.min(minY, pos.getY());
+                minZ = Math.min(minZ, pos.getZ());
+                maxX = Math.max(maxX, pos.getX());
+                maxY = Math.max(maxY, pos.getY());
+                maxZ = Math.max(maxZ, pos.getZ());
+            }
+        }
+        return new BoundingBox(minX, minY, minZ, maxX, maxY, maxZ);
     }
 
     /**

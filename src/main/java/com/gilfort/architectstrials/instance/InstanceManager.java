@@ -13,6 +13,7 @@ import com.gilfort.architectstrials.registry.ModAttachments;
 import com.gilfort.architectstrials.scroll.ScrollOptions;
 import com.gilfort.architectstrials.slot.Slot;
 import com.gilfort.architectstrials.slot.SlotManager;
+import com.gilfort.architectstrials.structure.PaintingPlacement;
 import com.gilfort.architectstrials.structure.ChallengeStructure;
 import com.gilfort.architectstrials.structure.ChallengeStructures;
 import com.gilfort.architectstrials.theme.ChallengeTheme;
@@ -106,7 +107,7 @@ public final class InstanceManager {
                 slot.get().index(), origin, rotation, mirror, List.of(), List.of(),
                 timeLimit, now + timeLimit, now + portalOpenTicks, options, InstanceRoster.EMPTY);
 
-        template.get().placeInWorld(level, origin, origin, settings, random, Block.UPDATE_CLIENTS);
+        PaintingPlacement.place(level, template.get(), origin, settings, random, Block.UPDATE_CLIENTS);
         MarkerContext context = new MarkerContext(level, placed, random);
         int markers = MarkerResolvers.resolveAll(context, template.get(), origin, settings);
         ChallengeInstance instance = placed.withSpawnPoints(context.spawnPoints()).withExits(context.exits());

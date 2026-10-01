@@ -256,6 +256,18 @@ loot comes from mob loot tables and loot containers. When the structure is rotat
 position moves. A mob marker without a spawn egg triggers a warning on save and is removed without spawning
 anything.
 
+### Loot in structures
+
+There are no loot marker blocks — vanilla containers cover both cases:
+
+- **Pool loot:** place any lootable container (chest, barrel, shulker box, dispenser, …), look at it and run
+  `/architectstrials marker loot_table <id>` (tab completion lists all loot tables). The contents are rolled when
+  a player first opens it, so every instance gets fresh loot, and changes to the loot table apply without
+  re-saving the structure. Every placement gives each container a new random seed. `marker info` shows the
+  reference. In the editor such containers cannot be opened — that would roll the loot and remove the reference.
+- **Guaranteed loot:** fill a container by hand, or put an item into an item frame (only fixed items). Both are
+  reproduced identically in every instance.
+
 ### Commands (operators only)
 
 | Command | Description |
@@ -266,7 +278,8 @@ anything.
 | `/architectstrials instance list` | Lists all instances with state, remaining time and participant count |
 | `/architectstrials instance close <id>` | Returns the participants and removes an instance |
 | `/architectstrials instance create <theme> <tier> [join]` | Debug: creates an instance — draws a structure, places it in a free slot, runs the marker pass; `join` lets you enter at a random spawn marker |
-| `/architectstrials marker loot_table <id>\|clear` | Sets or removes the loot table of the marker you are looking at (Exit Marker: completion bonus override) |
+| `/architectstrials marker loot_table <id>\|clear` | Sets or removes the loot table of the marker or container you are looking at (Exit Marker: completion bonus override; Trial Spawner Marker: reward; chest/barrel/…: pool loot) |
+| `/architectstrials marker info` | Shows the loot table of the marker or container you are looking at |
 | `/architectstrials rank <targets> <theme> set <level>` / `add <amount>` / `get` | Sets, changes or reads ranks (usable in functions; `get` returns the level) |
 | `/architectstrials scroll give <theme> <tier> [targets]` | Gives a challenge scroll bound to a theme and tier |
 | `/architectstrials slot list <theme>` | Lists occupied and clearing slots of a theme dimension |
