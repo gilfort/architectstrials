@@ -85,7 +85,8 @@ The tool never breaks blocks, also not in creative mode.
 
 A setup has up to **five groups** and a **consolation list**, each a page in the GUI with up to nine entries.
 
-- An entry is either a **loot table** (click "+ Loot table" in an empty cell for a searchable list) or a
+- An entry is either a **loot table** (click "+ Loot table" in an empty cell for a searchable list;
+  block drop tables like `minecraft:blocks/…` are left out) or a
   **fixed item** (put the item into the cell's slot).
 - Every entry has a **chance** (0.1 % steps) and a **roll range** (min–max, up to 64): a drawn entry rolls its
   loot table, or gives its item, that many times.

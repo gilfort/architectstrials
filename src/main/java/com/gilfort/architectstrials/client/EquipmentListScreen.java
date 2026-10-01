@@ -12,6 +12,7 @@ import com.gilfort.architectstrials.menu.EquipmentListMenu;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.EditBox;
+import net.minecraft.client.input.KeyEvent;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.network.chat.Component;
@@ -135,5 +136,21 @@ public class EquipmentListScreen extends AbstractContainerScreen<EquipmentListMe
     public void removed() {
         CursorMemory.remember();
         super.removed();
+    }
+
+    /**
+     * Lets a focused text field consume key presses, so typing (e.g. the inventory key "e" or the hotbar number
+     * keys) does not close the screen or move items. Escape still closes the screen.
+     *
+     * @param event the key event
+     * @return {@code true} if the key was handled
+     */
+    @Override
+    public boolean keyPressed(KeyEvent event) {
+        if (!event.isEscape() && this.getFocused() instanceof EditBox field && field.isVisible() && field.canConsumeInput()) {
+            field.keyPressed(event);
+            return true;
+        }
+        return super.keyPressed(event);
     }
 }

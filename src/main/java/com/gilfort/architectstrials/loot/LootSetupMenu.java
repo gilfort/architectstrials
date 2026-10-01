@@ -152,12 +152,23 @@ public class LootSetupMenu extends AbstractContainerMenu {
         if (withTables) {
             List<Identifier> ids = new ArrayList<>();
             this.player.level().getServer().reloadableRegistries().lookup().lookupOrThrow(Registries.LOOT_TABLE).listElementIds()
-                    .map(ResourceKey::identifier).filter(id -> !id.equals(LootSetups.PLACEHOLDER.identifier())).sorted().forEach(ids::add);
+                    .map(ResourceKey::identifier).filter(LootSetupMenu::listed).sorted().forEach(ids::add);
             PacketDistributor.sendToPlayer(this.player, new LootNetwork.TableList(this.containerId, ids));
         }
         PacketDistributor.sendToPlayer(this.player, new LootNetwork.Sync(this.containerId, this.setup, this.page, this.ominous,
                 this.hasOminousVariant));
         this.broadcastChanges();
+    }
+
+    /**
+     * Decides whether a loot table is offered in the picker: block drop tables ({@code <ns>:blocks/...}) and the
+     * placeholder table are left out.
+     *
+     * @param id the loot table id
+     * @return {@code true} if the table is listed
+     */
+    private static boolean listed(Identifier id) {
+        return !id.equals(LootSetups.PLACEHOLDER.identifier()) && !id.getPath().startsWith("blocks/");
     }
 
     /**
