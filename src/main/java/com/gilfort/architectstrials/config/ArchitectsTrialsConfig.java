@@ -40,7 +40,7 @@ public final class ArchitectsTrialsConfig {
     /** Rank every player starts with in every theme; 0 blocks all scrolls until upgraded. */
     public static final ModConfigSpec.IntValue STARTING_RANK = BUILDER
             .comment("Rank every player starts with in every theme. A scroll of tier N needs level N or higher.",
-                    "0 blocks all scrolls until the player receives an upgrade (e.g. via /architectstrials rank in an advancement reward).")
+                    "0 blocks all scrolls until the player receives an upgrade (e.g. via /at rank in an advancement reward).")
             .defineInRange("startingRank", 1, 0, 1000);
 
     /** Time limit of challenges whose scroll defines none, in minutes. */

@@ -208,7 +208,7 @@ the structure's own loot. Items go straight into the inventory; overflow drops a
 loot context contains the player and their luck.
 
 Loot table lookup: a loot table set on the used exit (look at an Exit Marker in the editor and run
-`/architectstrials marker loot_table <id>`) → otherwise the convention
+`/at marker loot_table <id>`) → otherwise the convention
 `<ns>:architectstrials/completion/<theme>/tier_<n>` (namespace and path of the theme id) → otherwise no bonus.
 
 Advancements can react to completed runs with the criterion `architectstrials:run_completed`:
@@ -248,12 +248,12 @@ shared build site: everyone in the editor works on the same structure. A world b
 128 × 128 blocks, the maximum structure size. A 3×3 glass-looking Editor Platform at the center gives you
 something to start from (it is ignored when saving); structures placed on it end up at `structurePlacementY`.
 
-Commands (operators): `/architectstrials editor enter` (your game mode stays unchanged, no death
-protection), `/architectstrials exit` to leave, and `/architectstrials editor clear` followed by
-`/architectstrials editor clear confirm` within 30 seconds to empty the whole editor (all builders are put back
+Commands (operators): `/at editor enter` (your game mode stays unchanged, no death
+protection), `/at exit` to leave, and `/at editor clear` followed by
+`/at editor clear confirm` within 30 seconds to empty the whole editor (all builders are put back
 onto the fresh platform).
 
-**Saving.** `/architectstrials editor save <theme> <tier> <id>` captures everything inside the border, trimmed
+**Saving.** `/at editor save <theme> <tier> <id>` captures everything inside the border, trimmed
 to what was actually built (the platform is ignored; item frames, armor stands and paintings are kept, mobs
 are not — use spawn markers). A structure needs at least one Player Spawn Marker and one Exit Marker; spawn
 markers without two free blocks above them and mob markers without a spawn egg only produce a warning. The files go into the managed datapack
@@ -261,12 +261,12 @@ markers without two free blocks above them and mob markers without a spawn egg o
 is in the pool immediately. To ship your structures, copy that one folder into your modpack. Add `overwrite`
 to replace an existing id (weight, rotation and name are kept).
 
-**Tier copies.** `/architectstrials editor load <theme> <tier> <id>` loads a stored structure into the empty
+**Tier copies.** `/at editor load <theme> <tier> <id>` loads a stored structure into the empty
 editor (after `editor clear`), e.g. to turn a tier-1 build into a harder tier-3 variant and save it again.
 
-**Managing.** `/architectstrials structure list [theme] [tier]`,
-`/architectstrials structure set <theme> <tier> <id> weight <n> | rotation <true|false> | name <text>` and
-`/architectstrials structure delete <theme> <tier> <id>` (+ `confirm` within 30 s). Editing and deleting only
+**Managing.** `/at structure list [theme] [tier]`,
+`/at structure set <theme> <tier> <id> weight <n> | rotation <true|false> | name <text>` and
+`/at structure delete <theme> <tier> <id>` (+ `confirm` within 30 s). Editing and deleting only
 work for structures in the managed datapack.
 
 ### Markers
@@ -280,7 +280,7 @@ Markers are only available in the creative inventory (no recipes).
 | Exit Marker | Becomes the challenge exit: a base block with an animated portal surface above it. Up to three bases side by side (same facing, in a line across it) form one combined portal of n × (n+1) blocks; a signal at any base locks the whole portal. Walking through the open portal completes the run ("Run Completed") and returns the player to their entry point. **A redstone signal locks the exit** (only the base remains visible); unpowered it is open. Wire it to any redstone logic to decide when a run can be finished. Using an exit is the only way to complete a run. |
 | Direct Spawn Marker | Turns into air and spawns the configured mobs right away. They never despawn. |
 | Spawner Marker | Becomes a vanilla monster spawner for the configured mob. The egg count is the number of mobs per spawn cycle. All other spawner settings stay at vanilla defaults. |
-| Trial Spawner Marker | Becomes a vanilla trial spawner (no vault). Up to three mob types; **total mobs** = sum of all egg counts (the counts are also the spawn weights), **mobs at once** set with the +/- buttons. Reward: the loot table set with `/architectstrials marker loot_table <id>` (no reward if none is set). Vanilla per-player scaling (+2 total / +1 at once per additional player), spawn delay and cooldown stay unchanged. These spawners **never turn ominous** — Bad Omen / Trial Omen are ignored and not consumed. |
+| Trial Spawner Marker | Becomes a vanilla trial spawner (no vault). Up to three mob types; **total mobs** = sum of all egg counts (the counts are also the spawn weights), **mobs at once** set with the +/- buttons. Reward: the loot table set with `/at marker loot_table <id>` (no reward if none is set). Vanilla per-player scaling (+2 total / +1 at once per additional player), spawn delay and cooldown stay unchanged. These spawners **never turn ominous** — Bad Omen / Trial Omen are ignored and not consumed. |
 
 **Configuring mob markers.** Right-click a Direct Spawn, Spawner or Trial Spawner Marker (creative mode + operator)
 to open its inventory. Each mob row has one spawn egg slot (the entity type — eggs from any mod work; the stack size is the count) and six
@@ -295,7 +295,7 @@ anything.
 There are no loot marker blocks — vanilla containers cover both cases:
 
 - **Pool loot:** place any lootable container (chest, barrel, shulker box, dispenser, …), look at it and run
-  `/architectstrials marker loot_table <id>` (tab completion lists all loot tables). The contents are rolled when
+  `/at marker loot_table <id>` (tab completion lists all loot tables). The contents are rolled when
   a player first opens it, so every instance gets fresh loot, and changes to the loot table apply without
   re-saving the structure. Every placement gives each container a new random seed. `marker info` shows the
   reference. In the editor such containers cannot be opened — that would roll the loot and remove the reference.
@@ -304,27 +304,30 @@ There are no loot marker blocks — vanilla containers cover both cases:
 
 ### Commands (operators only)
 
+All commands are available as `/at …` and, equivalently, as `/architectstrials …`. If another mod also registers
+`/at`, the mod loaded last wins — `/architectstrials` always works.
+
 | Command | Description |
 |---|---|
-| `/architectstrials theme list` | Lists all loaded themes and their available tiers |
-| `/architectstrials theme tp <theme>` | Teleports you into a theme's dimension (void world — use creative/spectator); stores your entry point, keeps your game mode |
-| `/architectstrials enter <theme>` | Debug entry into a theme like a real challenge: stores your entry point, switches to Adventure |
-| `/architectstrials instance list` | Lists all instances with state, remaining time and participant count |
-| `/architectstrials instance close <id>` | Returns the participants and removes an instance |
-| `/architectstrials instance create <theme> <tier> [join]` | Debug: creates an instance — draws a structure, places it in a free slot, runs the marker pass; `join` lets you enter at a random spawn marker |
-| `/architectstrials marker loot_table <id>\|clear` | Sets or removes the loot table of the marker or container you are looking at (Exit Marker: completion bonus override; Trial Spawner Marker: reward; chest/barrel/…: pool loot) |
-| `/architectstrials marker info` | Shows the loot table of the marker or container you are looking at |
-| `/architectstrials rank <targets> <theme> set <level>` / `add <amount>` / `get` | Sets, changes or reads ranks (usable in functions; `get` returns the level) |
-| `/architectstrials scroll give <theme> <tier> [targets]` | Gives a challenge scroll bound to a theme and tier |
-| `/architectstrials slot list <theme>` | Lists occupied and clearing slots of a theme dimension |
-| `/architectstrials slot allocate <theme>` | Debug: allocates the next free slot |
-| `/architectstrials slot free <theme> <index>` | Debug: releases a slot; its content is cleared over the next ticks |
-| `/architectstrials editor enter` | Enters the shared editor dimension |
-| `/architectstrials editor clear` (+ `confirm`) | Empties the editor after confirmation within 30 s |
-| `/architectstrials editor save <theme> <tier> <id> [overwrite]` | Saves the editor content as a pool structure |
-| `/architectstrials editor load <theme> <tier> <id>` | Loads a stored structure into the empty editor |
-| `/architectstrials structure list\|set\|delete …` | Lists, edits (weight, rotation, name) or deletes stored structures |
-| `/architectstrials exit [targets]` | Leaves any Architect's Trials dimension: back to the entry point, or to the respawn point / world spawn if none is stored |
+| `/at theme list` | Lists all loaded themes and their available tiers |
+| `/at theme tp <theme>` | Teleports you into a theme's dimension (void world — use creative/spectator); stores your entry point, keeps your game mode |
+| `/at enter <theme>` | Debug entry into a theme like a real challenge: stores your entry point, switches to Adventure |
+| `/at instance list` | Lists all instances with state, remaining time and participant count |
+| `/at instance close <id>` | Returns the participants and removes an instance |
+| `/at instance create <theme> <tier> [join]` | Debug: creates an instance — draws a structure, places it in a free slot, runs the marker pass; `join` lets you enter at a random spawn marker |
+| `/at marker loot_table <id>\|clear` | Sets or removes the loot table of the marker or container you are looking at (Exit Marker: completion bonus override; Trial Spawner Marker: reward; chest/barrel/…: pool loot) |
+| `/at marker info` | Shows the loot table of the marker or container you are looking at |
+| `/at rank <targets> <theme> set <level>` / `add <amount>` / `get` | Sets, changes or reads ranks (usable in functions; `get` returns the level) |
+| `/at scroll give <theme> <tier> [targets]` | Gives a challenge scroll bound to a theme and tier |
+| `/at slot list <theme>` | Lists occupied and clearing slots of a theme dimension |
+| `/at slot allocate <theme>` | Debug: allocates the next free slot |
+| `/at slot free <theme> <index>` | Debug: releases a slot; its content is cleared over the next ticks |
+| `/at editor enter` | Enters the shared editor dimension |
+| `/at editor clear` (+ `confirm`) | Empties the editor after confirmation within 30 s |
+| `/at editor save <theme> <tier> <id> [overwrite]` | Saves the editor content as a pool structure |
+| `/at editor load <theme> <tier> <id>` | Loads a stored structure into the empty editor |
+| `/at structure list\|set\|delete …` | Lists, edits (weight, rotation, name) or deletes stored structures |
+| `/at exit [targets]` | Leaves any Architect's Trials dimension: back to the entry point, or to the respawn point / world spawn if none is stored |
 
 Players always return to the exact point they entered from, with their previous game mode, turned around
 (they step back out of the portal they walked into) and with a short rune echo of the portal behind them. Players who log
@@ -371,9 +374,9 @@ Other mods can react to completed runs via `com.gilfort.architectstrials.run.Run
 
 GameTests and their test datapack live in `src/gametest` and are never included in the mod jar.
 The dev test datapack also defines the dimension `architectstrials:gametest_theme` for manual testing in
-`runClient` (`/architectstrials theme tp architectstrials:gametest_theme`), with a tier-1 pool containing a small
+`runClient` (`/at theme tp architectstrials:gametest_theme`), with a tier-1 pool containing a small
 spawn-marker platform with a 2×3 exit and a completion bonus of 5 emeralds
-(`/architectstrials instance create architectstrials:gametest_theme 1 join`).
+(`/at instance create architectstrials:gametest_theme 1 join`).
 
 ## License
 
