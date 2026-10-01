@@ -84,12 +84,15 @@ public final class LootNetwork {
      * Client → server: chance and roll range of an entry of the current page.
      *
      * @param containerId the container id
+     * @param page        the page the client edited (ignored by the server if it shows another page)
+     * @param ominous     whether the client edited the ominous setup
      * @param position    the position
      * @param chance      the chance in tenths of a percent
      * @param min         the minimum rolls
      * @param max         the maximum rolls
      */
-    public record EditValues(int containerId, int position, int chance, int min, int max) implements CustomPacketPayload {
+    public record EditValues(int containerId, int page, boolean ominous, int position, int chance, int min, int max)
+            implements CustomPacketPayload {
 
         /** Payload type. */
         public static final Type<EditValues> TYPE = new Type<>(ArchitectsTrials.id("loot_entry_values"));
@@ -97,6 +100,8 @@ public final class LootNetwork {
         /** Network codec. */
         public static final StreamCodec<RegistryFriendlyByteBuf, EditValues> STREAM_CODEC = StreamCodec.composite(
                 ByteBufCodecs.VAR_INT, EditValues::containerId,
+                ByteBufCodecs.VAR_INT, EditValues::page,
+                ByteBufCodecs.BOOL, EditValues::ominous,
                 ByteBufCodecs.VAR_INT, EditValues::position,
                 ByteBufCodecs.VAR_INT, EditValues::chance,
                 ByteBufCodecs.VAR_INT, EditValues::min,
@@ -113,10 +118,13 @@ public final class LootNetwork {
      * Client → server: the loot table of an entry of the current page (empty removes it).
      *
      * @param containerId the container id
+     * @param page        the page the client edited (ignored by the server if it shows another page)
+     * @param ominous     whether the client edited the ominous setup
      * @param position    the position
      * @param table       the loot table id
      */
-    public record EditTable(int containerId, int position, Optional<Identifier> table) implements CustomPacketPayload {
+    public record EditTable(int containerId, int page, boolean ominous, int position, Optional<Identifier> table)
+            implements CustomPacketPayload {
 
         /** Payload type. */
         public static final Type<EditTable> TYPE = new Type<>(ArchitectsTrials.id("loot_entry_table"));
@@ -124,6 +132,8 @@ public final class LootNetwork {
         /** Network codec. */
         public static final StreamCodec<RegistryFriendlyByteBuf, EditTable> STREAM_CODEC = StreamCodec.composite(
                 ByteBufCodecs.VAR_INT, EditTable::containerId,
+                ByteBufCodecs.VAR_INT, EditTable::page,
+                ByteBufCodecs.BOOL, EditTable::ominous,
                 ByteBufCodecs.VAR_INT, EditTable::position,
                 ByteBufCodecs.optional(Identifier.STREAM_CODEC), EditTable::table,
                 EditTable::new);
@@ -147,10 +157,10 @@ public final class LootNetwork {
         registrar.playToClient(TableList.TYPE, TableList.STREAM_CODEC, (payload, context) -> menu(context, payload.containerId())
                 .ifPresent(menu -> menu.applyTables(payload.tables())));
         registrar.playToServer(EditValues.TYPE, EditValues.STREAM_CODEC, (payload, context) -> menu(context, payload.containerId())
-                .filter(menu -> validPosition(payload.position()))
+                .filter(menu -> validPosition(payload.position()) && menu.shows(payload.page(), payload.ominous()))
                 .ifPresent(menu -> menu.setValues(payload.position(), payload.chance(), payload.min(), payload.max())));
         registrar.playToServer(EditTable.TYPE, EditTable.STREAM_CODEC, (payload, context) -> menu(context, payload.containerId())
-                .filter(menu -> validPosition(payload.position()))
+                .filter(menu -> validPosition(payload.position()) && menu.shows(payload.page(), payload.ominous()))
                 .ifPresent(menu -> menu.setTable(payload.position(), payload.table().map(id -> ResourceKey.create(Registries.LOOT_TABLE, id)))));
     }
 

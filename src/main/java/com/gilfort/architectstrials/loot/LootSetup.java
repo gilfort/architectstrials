@@ -2,7 +2,6 @@ package com.gilfort.architectstrials.loot;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
@@ -23,8 +22,8 @@ import net.minecraft.world.level.storage.loot.LootTable;
  * <li>Up to {@value #MAX_GROUPS} {@link LootGroup groups}, rolled independently of each other; each draws at most
  * one entry by chance (the remainder means "nothing").</li>
  * <li>An entry rolls a loot table or gives a fixed item, a random number of times within its roll range.</li>
- * <li>The <em>consolation list</em> is given completely (every entry, chances ignored) only if no group drew
- * anything.</li>
+ * <li>The <em>consolation list</em> is given completely (every entry, chances ignored) only if the groups
+ * produced no item — because no group drew an entry or the drawn loot tables came out empty.</li>
  * </ul>
  *
  * @param groups      the groups (exactly {@value #MAX_GROUPS}, possibly empty)
@@ -95,15 +94,17 @@ public record LootSetup(List<LootGroup> groups, LootGroup consolation) {
      * @param output     receives the resulting items
      */
     public void roll(RandomSource random, BiConsumer<ResourceKey<LootTable>, Consumer<ItemStack>> rollTable, Consumer<ItemStack> output) {
-        boolean drawn = false;
-        for (LootGroup group : this.groups) {
-            Optional<LootEntry> entry = group.draw(random);
-            if (entry.isPresent()) {
-                drawn = true;
-                give(entry.get(), random, rollTable, output);
+        boolean[] produced = {false};
+        Consumer<ItemStack> tracking = stack -> {
+            if (!stack.isEmpty()) {
+                produced[0] = true;
             }
+            output.accept(stack);
+        };
+        for (LootGroup group : this.groups) {
+            group.draw(random).ifPresent(entry -> give(entry, random, rollTable, tracking));
         }
-        if (!drawn) {
+        if (!produced[0]) {
             this.consolation.entries().forEach(entry -> give(entry, random, rollTable, output));
         }
     }

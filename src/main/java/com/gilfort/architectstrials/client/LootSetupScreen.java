@@ -49,6 +49,9 @@ public class LootSetupScreen extends AbstractContainerScreen<LootSetupMenu> {
     private Button cancelPicking;
     private int pickingPosition = -1;
     private int listOffset;
+    private boolean refreshing;
+    private int shownPage = -1;
+    private boolean shownOminous;
 
     /**
      * Creates the screen.
@@ -118,6 +121,9 @@ public class LootSetupScreen extends AbstractContainerScreen<LootSetupMenu> {
     }
 
     private void sendValues(int position) {
+        if (this.refreshing) {
+            return;
+        }
         Optional<LootEntry> entry = this.group().at(position);
         if (entry.isEmpty()) {
             return;
@@ -129,7 +135,8 @@ public class LootSetupScreen extends AbstractContainerScreen<LootSetupMenu> {
             return;
         }
         if (chance != entry.get().chance() || min != entry.get().rollsMin() || max != entry.get().rollsMax()) {
-            ClientPacketDistributor.sendToServer(new LootNetwork.EditValues(this.menu.containerId, position, chance, min, max));
+            ClientPacketDistributor.sendToServer(new LootNetwork.EditValues(this.menu.containerId, this.menu.page(), this.menu.ominous(),
+                    position, chance, min, max));
         }
     }
 
@@ -171,10 +178,29 @@ public class LootSetupScreen extends AbstractContainerScreen<LootSetupMenu> {
         return this.menu.lootTables().stream().filter(id -> filter.isEmpty() || id.toString().contains(filter)).toList();
     }
 
-    /** Shows the widgets of the current mode and page and fills the fields with the stored values. */
+    /**
+     * Shows the widgets of the current mode and page and fills the fields with the stored values. Filling the
+     * fields sends nothing to the server; after a page switch a focused field loses its focus, so its old text
+     * cannot end up in the new page.
+     */
     private void refreshWidgets() {
+        this.refreshing = true;
+        try {
+            this.refreshWidgetsNow();
+        } finally {
+            this.refreshing = false;
+        }
+    }
+
+    private void refreshWidgetsNow() {
         boolean picking = this.pickingPosition >= 0;
         LootGroup group = this.group();
+        boolean pageChanged = this.shownPage != this.menu.page() || this.shownOminous != this.menu.ominous();
+        this.shownPage = this.menu.page();
+        this.shownOminous = this.menu.ominous();
+        if (pageChanged && this.getFocused() instanceof EditBox focused && focused != this.search) {
+            this.setFocused(null);
+        }
         for (int page = 0; page < this.tabs.size(); page++) {
             this.tabs.get(page).visible = !picking;
             this.tabs.get(page).active = page != this.menu.page();
@@ -240,7 +266,8 @@ public class LootSetupScreen extends AbstractContainerScreen<LootSetupMenu> {
     }
 
     private void pick(Optional<Identifier> table) {
-        ClientPacketDistributor.sendToServer(new LootNetwork.EditTable(this.menu.containerId, this.pickingPosition, table));
+        ClientPacketDistributor.sendToServer(new LootNetwork.EditTable(this.menu.containerId, this.menu.page(), this.menu.ominous(),
+                this.pickingPosition, table));
         this.stopPicking();
     }
 

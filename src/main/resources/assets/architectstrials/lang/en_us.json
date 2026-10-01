@@ -165,7 +165,7 @@
   "gui.architectstrials.loot_setup.title": "Loot Setup: %s",
   "gui.architectstrials.loot_setup.group": "%s",
   "gui.architectstrials.loot_setup.consolation": "Consolation",
-  "gui.architectstrials.loot_setup.consolation_hint": "Given completely if no group drew anything",
+  "gui.architectstrials.loot_setup.consolation_hint": "Given completely if the groups gave no item",
   "gui.architectstrials.loot_setup.nothing": "One entry is drawn – nothing: %s %%",
   "gui.architectstrials.loot_setup.normal": "Normal",
   "gui.architectstrials.loot_setup.ominous": "Ominous",

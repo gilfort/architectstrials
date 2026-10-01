@@ -135,6 +135,18 @@ public class LootSetupMenu extends AbstractContainerMenu {
         return this.lootTables;
     }
 
+    /**
+     * Checks whether the menu currently shows a page, so edits made by the client for another page (sent while a
+     * page switch was on its way) are not applied to the wrong group.
+     *
+     * @param shownPage    the page
+     * @param shownOminous whether the ominous setup is meant
+     * @return {@code true} if the menu shows exactly that page
+     */
+    public boolean shows(int shownPage, boolean shownOminous) {
+        return this.page == shownPage && this.ominous == shownOminous;
+    }
+
     /** @return {@code true} if the current page is the consolation list */
     public boolean consolationPage() {
         return this.page == LootSetup.MAX_GROUPS;

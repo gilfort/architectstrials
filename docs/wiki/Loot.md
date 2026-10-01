@@ -92,8 +92,10 @@ A setup has up to **five groups** and a **consolation list**, each a page in the
   loot table, or gives its item, that many times.
 - **Every group draws at most one entry.** The chances of a group add up to at most 100 %; the rest is the
   chance that the group gives nothing (shown below the grid). Groups are independent of each other.
-- The **consolation list** is given completely — all its entries, without chances — if **no group** drew
-  anything.
+- The **consolation list** is given completely — all its entries, without chances — if the groups produced
+  **no item**: no group drew an entry, or the drawn loot tables came out empty.
+- Loot tables can come out empty: chest tables with empty entries, mob tables with counts from 0 or
+  "killed by player" conditions. Fixed items or chest tables are the safe choice for guaranteed rewards.
 
 Example: group 1 = dungeon loot 70 %, diamond 30 %; group 2 = emerald 100 %. Every roll gives the emerald and
 either dungeon loot or a diamond.
