@@ -49,7 +49,8 @@ Restart the world (Minecraft only creates new dimensions on startup). `/at theme
 `mypack:crypt`.
 
 **2. Build.** `/at editor enter` takes you to the shared editor dimension. Build something on the glass
-platform. Place at least one **Player Spawn Marker** (where players arrive) and one **Exit Marker** (where they
+platform — or import an existing build from your world with the Selection Tool
+([Importing areas](Building-Challenges#importing-areas-of-the-world)). Place at least one **Player Spawn Marker** (where players arrive) and one **Exit Marker** (where they
 complete the run) from the creative tab. Optionally add a **Direct Spawn Marker** with zombie spawn eggs and a
 chest with `/at marker loot_table minecraft:chests/simple_dungeon`.
 

@@ -3,6 +3,7 @@ package com.gilfort.architectstrials.registry;
 import java.util.function.Supplier;
 
 import com.gilfort.architectstrials.ArchitectsTrials;
+import com.gilfort.architectstrials.editor.Selection;
 import com.gilfort.architectstrials.scroll.ScrollEffects;
 import com.gilfort.architectstrials.scroll.ScrollOptions;
 import com.gilfort.architectstrials.scroll.ScrollTarget;
@@ -41,6 +42,10 @@ public final class ModDataComponents {
     /** Effect upgrades of a scroll ({@code architectstrials:effects}); absent = none. */
     public static final Supplier<DataComponentType<ScrollEffects>> SCROLL_EFFECTS = DATA_COMPONENTS.registerComponentType(
             "effects", builder -> builder.persistent(ScrollEffects.CODEC).networkSynchronized(ScrollEffects.STREAM_CODEC));
+
+    /** The area selected with the selection tool ({@code architectstrials:selection}). */
+    public static final Supplier<DataComponentType<Selection>> SELECTION = DATA_COMPONENTS.registerComponentType(
+            "selection", builder -> builder.persistent(Selection.CODEC).networkSynchronized(Selection.STREAM_CODEC));
 
     private ModDataComponents() {
     }

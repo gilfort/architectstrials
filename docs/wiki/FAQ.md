@@ -39,5 +39,9 @@ open an issue.
 ### Can I use `/at` in my datapack functions?
 Yes, but if another mod in the pack registers `/at`, it may win. `/architectstrials` always works.
 
+### The import says the selection is too large or too high.
+The footprint may be at most 128 × 128 blocks, and the height has to fit into the editor above the placement
+height (`structurePlacementY`). Select a smaller part, or lower `structurePlacementY` for very tall imports.
+
 ### Where are my saved structures?
 In `<world>/datapacks/architectstrials_structures/`. Copy that folder into your modpack to ship them.

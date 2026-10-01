@@ -1,0 +1,8 @@
+{
+  "type": "minecraft:function",
+  "environment": "minecraft:default",
+  "function": "architectstrials:world_import_area",
+  "max_ticks": 20,
+  "structure": "minecraft:empty",
+  "padding": 8
+}

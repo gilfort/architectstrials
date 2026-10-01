@@ -186,6 +186,7 @@ final class StructureCommand {
             return 0;
         }
         EditorCapture.place(editor, template.get());
+        EditorDimension.freeStuckPlayers(editor);
         source.sendSuccess(() -> Component.translatable("commands.architectstrials.structure.load.success", entry.name()), true);
         return 1;
     }

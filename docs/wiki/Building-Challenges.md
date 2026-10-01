@@ -11,6 +11,8 @@ schematicannon — only the placed blocks count.
 - A 3 × 3 glass-looking **Editor Platform** at the center gives you something to start from. It is ignored
   when saving; whatever stands on it ends up at the structure placement height (`structurePlacementY`).
 - Your game mode stays unchanged and there is no death protection in the editor.
+- Entering puts you on the platform, or on top of whatever has been built at the center (e.g. after loading or
+  importing a structure). Builders who end up inside blocks after a load or import are moved there too.
 
 | Command | Description |
 |---|---|
@@ -48,6 +50,42 @@ To ship your structures with a modpack, copy that one folder into the modpack's 
 
 Loads a stored structure into the **empty** editor (run `editor clear` first) — e.g. to turn a tier-1 build into
 a harder tier-3 variant and save it under the new tier.
+
+## Importing areas of the world
+
+Existing builds — bastions, nether fortresses, ancient cities, large caves, your own survival builds — can be
+copied straight into the editor and turned into a challenge there.
+
+1. Take the **Selection Tool** from the creative tab.
+2. **Left click** a block: corner 1. **Right click** a block: corner 2. The tool never breaks blocks. While you
+   hold it, both corners and the selected box are drawn as an outline — white if the box can be imported, red if
+   it is too large. The tooltip shows the size.
+   **Shift + right click** opens the corner editor: change every coordinate by typing or with -/+, or set a corner
+   to your position with "Here". Handy for corners high up in the air — set the corner on the ground, then raise
+   its Y value.
+3. Run `/at editor import` (the editor must be empty — `editor clear` first). The tool can be in your hand or
+   anywhere in your inventory.
+
+What happens:
+
+- The box is copied 1:1 like a saved structure: blocks, block entities (unopened containers keep their loot
+  table and become [pool loot](Loot#pool-loot)), item frames, armor stands and paintings. **Mobs are not copied.**
+- It is placed into the editor like `editor load`: centered, bottom at the placement height.
+- **Spawners become markers:** a monster spawner becomes a [Spawner Marker](Markers#spawner-marker) (spawn egg
+  of its mob, stack size = spawn count, equipment taken over); a trial spawner becomes a
+  [Trial Spawner Marker](Markers#trial-spawner-marker) (its three most frequent mobs as rows, egg counts summing up
+  to its total mobs, "at once" and the main reward loot table taken over). Mobs without a spawn egg are listed in
+  the result message and leave their row empty.
+- The result message reports how many blocks were copied and how many spawners were converted.
+
+Limits:
+
+- At most **128 × 128** blocks footprint; the height must fit into the editor above the placement height.
+- Areas of Architect's Trials dimensions (challenges, editor) cannot be selected.
+- Selections with more than **100,000 blocks** ask for confirmation (`/at editor import confirm` within
+  30 seconds) because copying happens in one go and may freeze the server for a few seconds.
+
+Then add Player Spawn and Exit Markers, adjust loot and enemies and save it with `editor save` as usual.
 
 ## Managing stored structures
 

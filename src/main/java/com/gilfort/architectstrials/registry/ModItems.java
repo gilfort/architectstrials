@@ -2,6 +2,7 @@ package com.gilfort.architectstrials.registry;
 
 import com.gilfort.architectstrials.ArchitectsTrials;
 import com.gilfort.architectstrials.block.MarkerBlockItem;
+import com.gilfort.architectstrials.editor.SelectionToolItem;
 import com.gilfort.architectstrials.scroll.ChallengeScrollItem;
 
 import net.minecraft.world.item.Rarity;
@@ -38,6 +39,10 @@ public final class ModItems {
     /** Item of the {@link ModBlocks#TRIAL_SPAWNER_MARKER}; creative/editor only, no recipe. */
     public static final DeferredItem<MarkerBlockItem> TRIAL_SPAWNER_MARKER = ITEMS.registerItem("trial_spawner_marker",
             properties -> new MarkerBlockItem(ModBlocks.TRIAL_SPAWNER_MARKER.get(), properties.rarity(Rarity.EPIC).useBlockDescriptionPrefix()));
+
+    /** Selection tool for importing world areas into the editor; creative/editor only, no recipe. */
+    public static final DeferredItem<SelectionToolItem> SELECTION_TOOL = ITEMS.registerItem("selection_tool",
+            properties -> new SelectionToolItem(properties.stacksTo(1).rarity(Rarity.EPIC)));
 
     /** The challenge scroll; theme and tier come from the {@code architectstrials:challenge} data component. */
     public static final DeferredItem<ChallengeScrollItem> CHALLENGE_SCROLL = ITEMS.registerItem("challenge_scroll",

@@ -19,6 +19,7 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.border.WorldBorder;
 import net.minecraft.world.level.levelgen.structure.BoundingBox;
+import net.minecraft.world.level.levelgen.Heightmap;
 import net.minecraft.world.phys.Vec3;
 
 /**
@@ -82,6 +83,35 @@ public final class EditorDimension {
     }
 
     /**
+     * Returns a free position at the platform center for entering builders: on the platform if nothing has been
+     * built there, otherwise on top of the highest block at the center (e.g. after loading or importing a
+     * structure that covers the platform).
+     *
+     * @param level the editor level
+     * @return the bottom center of a free block
+     */
+    public static Vec3 safeSpawnPosition(ServerLevel level) {
+        int top = level.getHeight(Heightmap.Types.MOTION_BLOCKING, 0, 0);
+        return new Vec3(0.5, Math.max(platformY() + 1, top), 0.5);
+    }
+
+    /**
+     * Moves builders who are stuck inside blocks (e.g. after a structure was loaded or imported around them) to
+     * the free position at the platform center.
+     *
+     * @param level the editor level
+     */
+    public static void freeStuckPlayers(ServerLevel level) {
+        Vec3 spawn = safeSpawnPosition(level);
+        for (ServerPlayer player : List.copyOf(level.players())) {
+            if (!level.noCollision(player, player.getBoundingBox())) {
+                player.teleportTo(spawn.x, spawn.y, spawn.z);
+                player.resetFallDistance();
+            }
+        }
+    }
+
+    /**
      * Limits the level to the buildable area with its world border (per dimension in 26.3).
      *
      * @param level the editor level
@@ -111,7 +141,8 @@ public final class EditorDimension {
 
     /**
      * Moves a player into the editor: stores their entry point (no Adventure mode, no death protection),
-     * creates the platform on first entry and puts them on it. Their game mode stays unchanged.
+     * creates the platform on first entry and puts them on it — or on top of whatever has been built at the
+     * center. Their game mode stays unchanged.
      *
      * @param player the player
      * @param level  the editor level
@@ -119,7 +150,7 @@ public final class EditorDimension {
     public static void enter(ServerPlayer player, ServerLevel level) {
         applyWorldBorder(level);
         ensurePlatform(level);
-        ChallengeTravel.enter(player, level, spawnPosition(), player.getYRot(), player.getXRot(), false);
+        ChallengeTravel.enter(player, level, safeSpawnPosition(level), player.getYRot(), player.getXRot(), false);
     }
 
     /**
