@@ -72,7 +72,7 @@ What happens:
   table and become [pool loot](Loot#pool-loot)), item frames, armor stands and paintings. **Mobs are not copied.**
 - It is placed into the editor like `editor load`: centered, bottom at the placement height.
 - **Spawners become markers:** a monster spawner becomes a [Spawner Marker](Markers#spawner-marker) (spawn egg
-  of its mob, stack size = spawn count, equipment taken over); a trial spawner becomes a
+  of its mob, stack size = spawn count, equipment and equipment loot table taken over); a trial spawner becomes a
   [Trial Spawner Marker](Markers#trial-spawner-marker) (its three most frequent mobs as rows, egg counts summing up
   to its total mobs, "at once" and the main reward loot table taken over; a vanilla ominous configuration fills the
   ominous page, with ominous still blocked until you allow it). Mobs without a spawn egg are listed in

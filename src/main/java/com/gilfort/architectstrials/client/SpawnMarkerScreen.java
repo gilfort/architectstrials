@@ -37,4 +37,10 @@ public class SpawnMarkerScreen extends AbstractContainerScreen<SpawnMarkerMenu> 
         int y = (this.height - this.imageHeight) / 2;
         graphics.blit(RenderPipelines.GUI_TEXTURED, TEXTURE, x, y, 0.0F, 0.0F, this.imageWidth, this.imageHeight, 256, 256);
     }
+
+    @Override
+    protected void extractLabels(GuiGraphicsExtractor graphics, int mouseX, int mouseY) {
+        super.extractLabels(graphics, mouseX, mouseY);
+        MarkerSlotOverlay.extract(graphics, this.menu, this.font);
+    }
 }

@@ -93,6 +93,7 @@ public class TrialSpawnerMarkerScreen extends AbstractContainerScreen<TrialSpawn
     @Override
     protected void extractLabels(GuiGraphicsExtractor graphics, int mouseX, int mouseY) {
         super.extractLabels(graphics, mouseX, mouseY);
+        MarkerSlotOverlay.extract(graphics, this.menu, this.font);
         int color = this.menu.ominousPage() ? OMINOUS_COLOR : TEXT_COLOR;
         Component total = Component.translatable("gui.architectstrials.trial_spawner_marker.total", this.menu.totalMobs());
         graphics.text(this.font, total, 8, CONTROL_Y, color, false);

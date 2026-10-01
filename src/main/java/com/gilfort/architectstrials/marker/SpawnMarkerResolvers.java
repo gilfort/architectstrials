@@ -1,6 +1,5 @@
 package com.gilfort.architectstrials.marker;
 
-import java.util.EnumMap;
 import java.util.Map;
 import java.util.Optional;
 
@@ -42,10 +41,10 @@ import net.neoforged.neoforge.event.entity.living.FinalizeSpawnEvent;
  * Resolvers of the Direct Spawn Marker and the Spawner Marker, plus the equipment handling of mobs spawned
  * from them.
  * <p>
- * Mobs always go through their normal spawn initialization first (e.g. a skeleton gets its bow); every
- * equipment slot filled in the marker then replaces the natural item. All equipment drop chances are 0 %.
- * Spawners carry the marker equipment in the entity's persistent data; it is applied when the spawner
- * finalizes a spawned mob (see {@link #onFinalizeSpawn}).
+ * Mobs always go through their normal spawn initialization first (e.g. a skeleton gets its bow); then the
+ * row's {@link MarkerEquipment} is applied (equipment table, fixed items, weighted lists — rolled per mob). All
+ * equipment drop chances are 0 %. Spawners carry the equipment configuration in the entity's persistent data; it
+ * is applied when the spawner finalizes a spawned mob (see {@link #onFinalizeSpawn}).
  */
 @EventBusSubscriber(modid = ArchitectsTrials.MOD_ID)
 public final class SpawnMarkerResolvers {
@@ -53,7 +52,7 @@ public final class SpawnMarkerResolvers {
     /** Key in an entity's persistent data holding the marker equipment to apply on spawn. */
     public static final String EQUIPMENT_KEY = ArchitectsTrials.MOD_ID + ":marker_equipment";
 
-    private static final Codec<Map<EquipmentSlot, ItemStack>> EQUIPMENT_CODEC = Codec.unboundedMap(EquipmentSlot.CODEC, ItemStack.CODEC);
+    private static final Codec<Map<EquipmentSlot, ItemStack>> FIXED_CODEC = Codec.unboundedMap(EquipmentSlot.CODEC, ItemStack.CODEC);
 
     private static final double SPREAD_RADIUS = 1.5;
 
@@ -85,7 +84,7 @@ public final class SpawnMarkerResolvers {
             Vec3 spot = i == 0 ? Vec3.atBottomCenterOf(pos) : spreadPosition(level, type, pos, context.random());
             entity.snapTo(spot.x, spot.y, spot.z, entity.getYRot(), entity.getXRot());
             if (entity instanceof Mob mob) {
-                equip(mob, marker.get().equipment());
+                marker.get().equipment().apply(mob, level.getRandom());
                 mob.setPersistenceRequired();
             }
         }
@@ -151,34 +150,45 @@ public final class SpawnMarkerResolvers {
      * @param level     the level (for registry access)
      * @param type      the entity type
      * @param egg       the spawn egg stack
-     * @param equipment the marker equipment by slot
+     * @param equipment the equipment configuration of the marker row
      * @return the entity tag
      */
-    public static CompoundTag spawnerEntityTag(ServerLevel level, EntityType<?> type, ItemStack egg, Map<EquipmentSlot, ItemStack> equipment) {
+    public static CompoundTag spawnerEntityTag(ServerLevel level, EntityType<?> type, ItemStack egg, MarkerEquipment equipment) {
         TypedEntityData<EntityType<?>> eggData = egg.get(DataComponents.ENTITY_DATA);
         CompoundTag entity = eggData != null ? eggData.copyTagWithoutId() : new CompoundTag();
         entity.putString("id", BuiltInRegistries.ENTITY_TYPE.getKey(type).toString());
         CompoundTag persistent = entity.getCompoundOrEmpty("NeoForgeData");
-        persistent.store(EQUIPMENT_KEY, EQUIPMENT_CODEC, ops(level.registryAccess()), equipment);
+        persistent.store(EQUIPMENT_KEY, MarkerEquipment.CODEC, ops(level.registryAccess()), equipment);
         entity.put("NeoForgeData", persistent);
         return entity;
     }
 
     /**
-     * Reads the equipment configured in a spawner's entity tag: the marker equipment if the spawner was created
-     * from a marker, otherwise the vanilla {@code equipment} field.
+     * Reads the equipment configured in a spawner's entity tag: the marker configuration if the spawner was
+     * created from a marker, otherwise the vanilla {@code equipment} field as fixed items.
      *
      * @param level  the level (for registry access)
      * @param entity the entity tag of the spawn data
-     * @return the equipment by slot (possibly empty)
+     * @return the equipment configuration (possibly {@link MarkerEquipment#NONE})
      */
-    public static Map<EquipmentSlot, ItemStack> readEquipment(ServerLevel level, CompoundTag entity) {
+    public static MarkerEquipment readEquipment(ServerLevel level, CompoundTag entity) {
         RegistryOps<Tag> ops = ops(level.registryAccess());
         CompoundTag persistent = entity.getCompoundOrEmpty("NeoForgeData");
         if (persistent.contains(EQUIPMENT_KEY)) {
-            return persistent.read(EQUIPMENT_KEY, EQUIPMENT_CODEC, ops).orElse(Map.of());
+            return readMarkerEquipment(persistent, ops);
         }
-        return entity.read("equipment", EQUIPMENT_CODEC, ops).orElse(Map.of());
+        return entity.read("equipment", FIXED_CODEC, ops)
+                .map(fixed -> new MarkerEquipment(fixed, Map.of(), Optional.empty())).orElse(MarkerEquipment.NONE);
+    }
+
+    /**
+     * Reads the marker equipment from persistent data; spawners from before weighted lists stored a plain map of
+     * fixed items.
+     */
+    private static MarkerEquipment readMarkerEquipment(CompoundTag persistent, RegistryOps<Tag> ops) {
+        return persistent.read(EQUIPMENT_KEY, MarkerEquipment.CODEC, ops)
+                .or(() -> persistent.read(EQUIPMENT_KEY, FIXED_CODEC, ops).map(fixed -> new MarkerEquipment(fixed, Map.of(), Optional.empty())))
+                .orElse(MarkerEquipment.NONE);
     }
 
     /**
@@ -195,25 +205,12 @@ public final class SpawnMarkerResolvers {
         if (!persistent.contains(EQUIPMENT_KEY)) {
             return;
         }
-        Map<EquipmentSlot, ItemStack> equipment = persistent.read(EQUIPMENT_KEY, EQUIPMENT_CODEC, ops(mob.registryAccess())).orElse(Map.of());
+        MarkerEquipment equipment = readMarkerEquipment(persistent, ops(mob.registryAccess()));
         persistent.remove(EQUIPMENT_KEY);
         if (!event.isSpawnCancelled()) {
             mob.finalizeSpawn(event.getLevel(), event.getDifficulty(), event.getSpawnType(), event.getSpawnData());
         }
-        equip(mob, equipment);
-    }
-
-    /**
-     * Equips a mob: every given slot replaces the mob's item, and all drop chances are set to 0 %.
-     *
-     * @param mob       the mob
-     * @param equipment the equipment by slot
-     */
-    public static void equip(Mob mob, Map<EquipmentSlot, ItemStack> equipment) {
-        equipment.forEach((slot, stack) -> mob.setItemSlot(slot, stack.copy()));
-        for (EquipmentSlot slot : EquipmentSlot.values()) {
-            mob.setDropChance(slot, 0.0F);
-        }
+        equipment.apply(mob, mob.getRandom());
     }
 
     /**
@@ -221,7 +218,7 @@ public final class SpawnMarkerResolvers {
      */
     private static Optional<Marker> read(ServerLevel level, BlockPos pos) {
         if (level.getBlockEntity(pos) instanceof SpawnMarkerBlockEntity marker && marker.entityType() != null) {
-            return Optional.of(new Marker(marker.entityType(), marker.egg().copy(), new EnumMap<>(marker.equipment())));
+            return Optional.of(new Marker(marker.entityType(), marker.egg().copy(), marker.markerEquipment(0)));
         }
         ArchitectsTrials.LOGGER.warn("Spawn marker at {} in {} has no spawn egg; removed without spawning", pos, level.dimension().identifier());
         return Optional.empty();
@@ -236,8 +233,8 @@ public final class SpawnMarkerResolvers {
      *
      * @param type      the entity type
      * @param egg       a copy of the spawn egg stack
-     * @param equipment the equipment by slot
+     * @param equipment the equipment configuration
      */
-    private record Marker(EntityType<?> type, ItemStack egg, Map<EquipmentSlot, ItemStack> equipment) {
+    private record Marker(EntityType<?> type, ItemStack egg, MarkerEquipment equipment) {
     }
 }

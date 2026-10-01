@@ -109,7 +109,7 @@ public final class TrialSpawnerMarkerResolver {
         for (int row = firstRow; row < firstRow + TrialSpawnerMarkerBlockEntity.ROWS; row++) {
             EntityType<?> type = marker.entityType(row);
             if (type != null) {
-                CompoundTag entity = SpawnMarkerResolvers.spawnerEntityTag(level, type, marker.egg(row), marker.equipment(row));
+                CompoundTag entity = SpawnMarkerResolvers.spawnerEntityTag(level, type, marker.egg(row), marker.markerEquipment(row));
                 potentials.add(new SpawnData(entity, Optional.empty(), Optional.empty()), marker.egg(row).getCount());
             }
         }

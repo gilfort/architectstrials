@@ -3,12 +3,12 @@ package com.gilfort.architectstrials.editor;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 
 import com.gilfort.architectstrials.ArchitectsTrials;
 import com.gilfort.architectstrials.block.MobMarkerBlockEntity;
 import com.gilfort.architectstrials.block.TrialSpawnerMarkerBlockEntity;
+import com.gilfort.architectstrials.marker.MarkerEquipment;
 import com.gilfort.architectstrials.marker.SpawnMarkerResolvers;
 import com.gilfort.architectstrials.menu.MarkerSlot;
 import com.gilfort.architectstrials.registry.ModBlocks;
@@ -25,7 +25,7 @@ import net.minecraft.util.Mth;
 import net.minecraft.util.ProblemReporter;
 import net.minecraft.util.random.Weighted;
 import net.minecraft.world.entity.EntityType;
-import net.minecraft.world.entity.EquipmentSlot;
+import net.minecraft.world.entity.EquipmentTable;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.SpawnEggItem;
@@ -114,12 +114,14 @@ public final class WorldImport {
             spawner.getSpawner().save(output);
             data = output.buildResult();
         }
-        CompoundTag entity = data.getCompoundOrEmpty("SpawnData").getCompoundOrEmpty("entity");
+        Optional<SpawnData> spawnData = data.read("SpawnData", SpawnData.CODEC);
+        CompoundTag entity = spawnData.map(SpawnData::entityToSpawn).orElseGet(CompoundTag::new);
+        Optional<ResourceKey<LootTable>> table = spawnData.flatMap(SpawnData::getEquipment).map(EquipmentTable::lootTable);
         int count = data.getShortOr("SpawnCount", (short) 4);
         BlockPos pos = spawner.getBlockPos();
         MobMarkerBlockEntity marker = replace(level, pos, ModBlocks.SPAWNER_MARKER.get());
         if (marker != null) {
-            fillRow(level, marker, 0, entity, count, missing);
+            fillRow(level, marker, 0, entity, table, count, missing);
         }
     }
 
@@ -154,7 +156,8 @@ public final class WorldImport {
         for (int row = 0; row < potentials.size(); row++) {
             Weighted<SpawnData> potential = potentials.get(row);
             int count = Math.max(1, Math.round((float) total * potential.weight() / Math.max(1, weightSum)));
-            fillRow(level, marker, firstRow + row, potential.value().entityToSpawn(), count, missing);
+            fillRow(level, marker, firstRow + row, potential.value().entityToSpawn(),
+                    potential.value().getEquipment().map(EquipmentTable::lootTable), count, missing);
         }
         marker.setSimultaneousMobs(ominous, Math.round(config.simultaneousMobs()));
         Optional<ResourceKey<LootTable>> reward = config.lootTablesToEject().unwrap().stream()
@@ -172,11 +175,12 @@ public final class WorldImport {
     }
 
     /**
-     * Fills one marker row from a spawner entity tag: the entity's spawn egg (count capped to the stack size) and
-     * its configured equipment. Entities without a spawn egg are reported and leave the row empty.
+     * Fills one marker row from a spawner entity tag: the entity's spawn egg (count capped to the stack size), its
+     * configured equipment (fixed items and weighted lists) and the spawn data's equipment loot table. Entities
+     * without a spawn egg are reported and leave the row empty.
      */
-    private static void fillRow(ServerLevel level, MobMarkerBlockEntity marker, int row, CompoundTag entity, int count,
-            List<Identifier> missing) {
+    private static void fillRow(ServerLevel level, MobMarkerBlockEntity marker, int row, CompoundTag entity,
+            Optional<ResourceKey<LootTable>> table, int count, List<Identifier> missing) {
         Identifier id = Identifier.tryParse(entity.getStringOr("id", ""));
         Optional<EntityType<?>> type = id == null ? Optional.empty() : BuiltInRegistries.ENTITY_TYPE.getOptional(id);
         Optional<Holder<Item>> egg = type.flatMap(SpawnEggItem::byId);
@@ -189,12 +193,18 @@ public final class WorldImport {
         ItemStack eggs = new ItemStack(egg.get());
         eggs.setCount(Mth.clamp(count, 1, eggs.getMaxStackSize()));
         marker.setItem(row * MarkerSlot.ROW_SIZE, eggs);
-        Map<EquipmentSlot, ItemStack> equipment = SpawnMarkerResolvers.readEquipment(level, entity);
-        equipment.forEach((slot, stack) -> {
+        MarkerEquipment equipment = SpawnMarkerResolvers.readEquipment(level, entity);
+        equipment.fixed().forEach((slot, stack) -> {
             if (MarkerSlot.EQUIPMENT_SLOTS.contains(slot)) {
                 marker.setItem(MarkerSlot.indexOf(row, slot), stack.copyWithCount(1));
             }
         });
+        equipment.lists().forEach((slot, list) -> {
+            if (MarkerSlot.EQUIPMENT_SLOTS.contains(slot)) {
+                marker.setEquipmentList(MarkerSlot.indexOf(row, slot), list);
+            }
+        });
+        marker.setEquipmentTable(row, table.or(equipment::table));
         marker.setChanged();
     }
 }

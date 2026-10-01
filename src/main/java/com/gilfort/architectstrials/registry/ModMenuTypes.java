@@ -3,6 +3,7 @@ package com.gilfort.architectstrials.registry;
 import java.util.function.Supplier;
 
 import com.gilfort.architectstrials.ArchitectsTrials;
+import com.gilfort.architectstrials.menu.EquipmentListMenu;
 import com.gilfort.architectstrials.menu.SpawnMarkerMenu;
 import com.gilfort.architectstrials.menu.TrialSpawnerMarkerMenu;
 
@@ -27,6 +28,10 @@ public final class ModMenuTypes {
     /** Menu of the trial spawner marker. */
     public static final Supplier<MenuType<TrialSpawnerMarkerMenu>> TRIAL_SPAWNER_MARKER = MENU_TYPES.register(
             "trial_spawner_marker", () -> new MenuType<>(TrialSpawnerMarkerMenu::new, FeatureFlags.VANILLA_SET));
+
+    /** Menu of the weighted list of one equipment slot of a mob marker. */
+    public static final Supplier<MenuType<EquipmentListMenu>> EQUIPMENT_LIST = MENU_TYPES.register(
+            "equipment_list", () -> new MenuType<>(EquipmentListMenu::new, FeatureFlags.VANILLA_SET));
 
     private ModMenuTypes() {
     }
