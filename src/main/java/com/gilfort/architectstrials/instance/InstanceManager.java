@@ -228,7 +228,6 @@ public final class InstanceManager {
             ServerPlayer online = server.getPlayerList().getPlayer(player);
             if (online != null) {
                 InstanceTimerBars.hideFrom(ref.id(), online);
-                ScrollEffectApplication.onLeave(online, instance);
             }
         });
     }

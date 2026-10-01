@@ -17,11 +17,14 @@ import com.gilfort.architectstrials.scroll.ScrollTarget;
 import com.gilfort.architectstrials.scroll.ScrollUpgradeRecipe;
 import com.gilfort.architectstrials.slot.SlotManager;
 import com.gilfort.architectstrials.theme.ChallengeThemes;
-import com.gilfort.architectstrials.travel.EntryPoint;
+import com.gilfort.architectstrials.registry.ModAttachments;
+import com.gilfort.architectstrials.travel.ChallengeTravel;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.gametest.framework.GameTestHelper;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.NbtOps;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
@@ -111,13 +114,16 @@ public final class ScrollUpgradeGameTests {
     }
 
     /**
-     * Player effects are applied on entry and infinite ones removed on leave; mob effects reach existing mobs on
-     * the first entry and mobs spawned afterwards.
+     * Player effects are applied on entry without particles, on top of the player's own effects: an own effect
+     * behind a finite scroll effect is parked behind it (extended by the scroll duration), one replaced by an
+     * infinite scroll effect is given back unchanged on leaving. Mob effects reach existing mobs on the first
+     * entry and mobs spawned afterwards.
      */
     private static void effectsApplied(GameTestHelper helper) {
         ServerLevel nether = TestPlayers.challengeLevel(helper);
         ScrollEffects effects = new ScrollEffects(List.of(
                 new ScrollEffect(ScrollEffect.Target.PLAYER, MobEffects.REGENERATION, -1, 0),
+                new ScrollEffect(ScrollEffect.Target.PLAYER, MobEffects.FIRE_RESISTANCE, 200, 0),
                 new ScrollEffect(ScrollEffect.Target.MOBS, MobEffects.SPEED, 1200, 1)));
         InstanceCreation result = InstanceManager.create(nether, ChallengeThemes.get(Level.NETHER.identifier()).orElseThrow(), 2,
                 nether.getRandom(), InstanceManager.defaultTimeLimitTicks(), ScrollOptions.DEFAULT, effects);
@@ -129,18 +135,31 @@ public final class ScrollUpgradeGameTests {
         Zombie before = spawnZombie(nether, mobPos);
 
         ServerPlayer player = TestPlayers.atStart(helper, GameType.SURVIVAL);
+        player.addEffect(new MobEffectInstance(MobEffects.REGENERATION, 1200, 1));
+        player.addEffect(new MobEffectInstance(MobEffects.FIRE_RESISTANCE, 600));
         helper.assertTrue(InstanceManager.join(player, nether, instance), "Player could not join");
+
         MobEffectInstance regeneration = player.getEffect(MobEffects.REGENERATION);
-        helper.assertTrue(regeneration != null && regeneration.isInfiniteDuration(), "Player effect not applied on entry");
+        helper.assertTrue(regeneration != null && regeneration.isInfiniteDuration() && regeneration.getAmplifier() == 0,
+                "Infinite scroll effect is not on top of the player's own effect");
         helper.assertFalse(regeneration.isVisible(), "Player effect shows particles");
+        MobEffectInstance fireResistance = player.getEffect(MobEffects.FIRE_RESISTANCE);
+        helper.assertTrue(fireResistance != null && fireResistance.getDuration() == 200, "Finite scroll effect is not on top");
+        int parked = MobEffectInstance.CODEC.encodeStart(NbtOps.INSTANCE, fireResistance).getOrThrow() instanceof CompoundTag tag
+                ? tag.getCompoundOrEmpty("hidden_effect").getIntOr("duration", 0) : 0;
+        helper.assertTrue(parked == 800, "Own effect is not parked behind the scroll effect with 600 + 200 ticks: " + parked);
+
         MobEffectInstance speed = before.getEffect(MobEffects.SPEED);
         helper.assertTrue(speed != null && speed.getAmplifier() == 1, "Mob effect not applied to existing mob on first entry");
         helper.assertTrue(speed.isVisible(), "Mob effect hides its particles");
         Zombie after = spawnZombie(nether, mobPos);
         helper.assertTrue(after.hasEffect(MobEffects.SPEED), "Mob effect not applied to a mob spawned after the first entry");
 
-        InstanceManager.leave(nether.getServer(), new EntryPoint.InstanceRef(nether.dimension(), instance.id()), player.getUUID());
-        helper.assertFalse(player.hasEffect(MobEffects.REGENERATION), "Infinite player effect not removed on leave");
+        helper.assertTrue(ChallengeTravel.returnToEntryPoint(player), "Player could not return");
+        MobEffectInstance restored = player.getEffect(MobEffects.REGENERATION);
+        helper.assertTrue(restored != null && !restored.isInfiniteDuration() && restored.getAmplifier() == 1
+                && restored.getDuration() == 1200, "Own effect was not given back unchanged: " + restored);
+        helper.assertTrue(player.getData(ModAttachments.PARKED_EFFECTS).isEmpty(), "Parked effects were not cleared");
 
         before.discard();
         after.discard();

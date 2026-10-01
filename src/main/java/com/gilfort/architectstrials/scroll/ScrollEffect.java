@@ -15,6 +15,7 @@ import net.minecraft.util.StringRepresentable;
 import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffectUtil;
+import org.jspecify.annotations.Nullable;
 
 /**
  * One effect upgrade of a challenge scroll: a vanilla (or modded) {@link MobEffect} applied to the players or the
@@ -51,8 +52,19 @@ public record ScrollEffect(Target target, Holder<MobEffect> effect, int duration
      * @return a new effect instance
      */
     public MobEffectInstance instance() {
+        return this.instance(null);
+    }
+
+    /**
+     * Creates the effect instance to apply with an effect parked behind it: the parked effect takes over once
+     * this one has run out (vanilla hidden effect).
+     *
+     * @param hidden the effect to resume afterwards, or {@code null}
+     * @return a new effect instance
+     */
+    public MobEffectInstance instance(@Nullable MobEffectInstance hidden) {
         boolean particles = this.target == Target.MOBS;
-        return new MobEffectInstance(this.effect, this.duration, this.amplifier, false, particles, true);
+        return new MobEffectInstance(this.effect, this.duration, this.amplifier, false, particles, true, hidden);
     }
 
     /**

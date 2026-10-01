@@ -168,8 +168,10 @@ all its data (theme, tier, time limit, options, earlier upgrades) plus the recip
 - `options` (optional): `max_players`, `portal_open_seconds`, `allow_reentry` — overwrite the scroll's values.
 - `effects` (optional): any mob effect, also from other mods. Player effects show no particles (only the icon);
   mob effects keep them. `duration` in ticks (`-1` = infinite),
-  `amplifier` 0 = level I. `player` effects are applied to every player on each entry (infinite ones are removed
-  when they leave the instance); `mobs` effects are applied to all mobs on the first entry and to every mob that
+  `amplifier` 0 = level I. `player` effects are applied to every player on each entry, on top of an
+  effect of the same type the player already has (e.g. a potion): behind a finite scroll effect the player's
+  own effect is parked and resumes once the scroll effect runs out; an infinite scroll effect is removed when
+  the player leaves, and the player's own effect comes back with the time it had on entry; `mobs` effects are applied to all mobs on the first entry and to every mob that
   spawns afterwards.
 - Applying an effect the scroll already has replaces it if the new one is stronger or longer; otherwise (and if
   a recipe would change nothing) the smithing table shows no result. There is no upgrade cap — control it via
