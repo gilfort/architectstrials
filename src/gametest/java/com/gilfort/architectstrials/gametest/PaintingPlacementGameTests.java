@@ -1,15 +1,20 @@
 package com.gilfort.architectstrials.gametest;
 
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 import com.gilfort.architectstrials.ArchitectsTrials;
 import com.gilfort.architectstrials.editor.EditorCapture;
+import com.gilfort.architectstrials.structure.PaintingPlacement;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.core.Holder;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.resources.ResourceKey;
@@ -30,7 +35,7 @@ import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.registries.RegisterEvent;
 
 /**
- * GameTest for the painting placement fix: paintings with even width or height keep their position when a
+ * GameTests for {@link PaintingPlacement}: paintings with even width or height keep their position when a
  * captured structure is placed, also rotated and mirrored.
  */
 @EventBusSubscriber(modid = ArchitectsTrials.MOD_ID)
@@ -52,6 +57,9 @@ public final class PaintingPlacementGameTests {
         event.register(Registries.TEST_FUNCTION, helper -> helper.register(
                 ResourceKey.create(Registries.TEST_FUNCTION, ArchitectsTrials.id("painting_placement_keeps_position")),
                 (Consumer<GameTestHelper>) PaintingPlacementGameTests::keepsPosition));
+        event.register(Registries.TEST_FUNCTION, helper -> helper.register(
+                ResourceKey.create(Registries.TEST_FUNCTION, ArchitectsTrials.id("painting_placement_all_sizes")),
+                (Consumer<GameTestHelper>) PaintingPlacementGameTests::allSizesAndFacings));
     }
 
     private static void keepsPosition(GameTestHelper helper) {
@@ -98,6 +106,49 @@ public final class PaintingPlacementGameTests {
         helper.succeed();
     }
 
+    /**
+     * Every painting size in every facing keeps its exact position when captured and placed again unrotated.
+     */
+    private static void allSizesAndFacings(GameTestHelper helper) {
+        ServerLevel level = helper.getLevel();
+        Map<String, Holder<PaintingVariant>> bySize = new LinkedHashMap<>();
+        level.registryAccess().lookupOrThrow(Registries.PAINTING_VARIANT).listElements()
+                .forEach(variant -> bySize.putIfAbsent(variant.value().width() + "x" + variant.value().height(), variant));
+        List<String> failures = new ArrayList<>();
+        BlockPos center = new BlockPos(6, 6, 6);
+        for (Direction facing : Direction.Plane.HORIZONTAL) {
+            for (Map.Entry<String, Holder<PaintingVariant>> size : bySize.entrySet()) {
+                for (int x = 0; x <= 12; x++) {
+                    for (int y = 1; y <= 12; y++) {
+                        for (int z = 0; z <= 12; z++) {
+                            helper.setBlock(x, y, z, Blocks.AIR);
+                        }
+                    }
+                }
+                BlockPos wall = center.relative(facing.getOpposite());
+                for (int a = -5; a <= 5; a++) {
+                    for (int y = -5; y <= 5; y++) {
+                        helper.setBlock(wall.relative(facing.getClockWise(), a).above(y), Blocks.STONE);
+                    }
+                }
+                Painting painting = new Painting(level, helper.absolutePos(center), facing, size.getValue());
+                level.addFreshEntity(painting);
+                AABB before = painting.getBoundingBox();
+                BoundingBox area = BoundingBox.fromCorners(helper.absolutePos(new BlockPos(0, 1, 0)), helper.absolutePos(new BlockPos(12, 12, 12)));
+                EditorCapture.Captured captured = EditorCapture.capture(level, area).orElseThrow();
+                painting.discard();
+                place(level, captured.template(), captured.origin(), Rotation.NONE, Mirror.NONE);
+                List<Painting> placed = paintings(level, area);
+                if (placed.size() != 1 || !same(placed.getFirst().getBoundingBox(), before)) {
+                    failures.add(size.getKey() + " " + facing + ": " + before + " -> " + placed.stream().map(Painting::getBoundingBox).toList());
+                }
+                placed.forEach(Painting::discard);
+            }
+        }
+        helper.assertTrue(failures.isEmpty(), "Paintings moved: " + failures);
+        helper.succeed();
+    }
+
     private static void assertAttached(GameTestHelper helper, ServerLevel level, StructureTemplate template, BlockPos origin,
             Rotation rotation, Mirror mirror) {
         StructurePlaceSettings settings = place(level, template, origin, rotation, mirror);
@@ -113,7 +164,7 @@ public final class PaintingPlacementGameTests {
 
     private static StructurePlaceSettings place(ServerLevel level, StructureTemplate template, BlockPos origin, Rotation rotation, Mirror mirror) {
         StructurePlaceSettings settings = new StructurePlaceSettings().setRotation(rotation).setMirror(mirror);
-        template.placeInWorld(level, origin, origin, settings, level.getRandom(), Block.UPDATE_CLIENTS);
+        PaintingPlacement.place(level, template, origin, settings, level.getRandom(), Block.UPDATE_CLIENTS);
         return settings;
     }
 

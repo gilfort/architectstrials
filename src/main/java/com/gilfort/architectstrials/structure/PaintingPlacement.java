@@ -1,29 +1,107 @@
 package com.gilfort.architectstrials.structure;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import com.gilfort.architectstrials.ArchitectsTrials;
+
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.core.registries.Registries;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.ListTag;
+import net.minecraft.nbt.Tag;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.util.ProblemReporter;
+import net.minecraft.util.RandomSource;
+import net.minecraft.world.entity.EntitySpawnReason;
+import net.minecraft.world.entity.EntitySpawnRequest;
+import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.decoration.painting.Painting;
 import net.minecraft.world.entity.decoration.painting.PaintingVariant;
+import net.minecraft.world.level.levelgen.structure.templatesystem.StructurePlaceSettings;
+import net.minecraft.world.level.levelgen.structure.templatesystem.StructureTemplate;
+import net.minecraft.world.level.storage.TagValueInput;
 import net.minecraft.world.phys.Vec3;
 
 /**
- * Fixes the position of paintings placed from structure templates.
+ * Places structure templates without moving paintings.
  * <p>
  * Vanilla places template entities by moving them to their stored center. A painting derives its anchor block
- * from that center, and for even widths or heights the center lies exactly on a block boundary, so the painting
- * ends up one block off (and may fall off the wall). The correct anchor is recomputed from the center, the
- * facing and the variant size — the inverse of {@code Painting#calculateBoundingBox}. Works for rotated and
- * mirrored placements, since the center is transformed correctly by the template.
+ * from that center, and for an even width or height the center lies exactly on a block boundary, so the painting
+ * ends up one block off (and may fall off the wall). Vanilla's own structures never contain painting entities,
+ * and the placement settings offer no option for it. Therefore all mod placements go through {@link #place}:
+ * paintings are taken out of the template, the rest is placed by vanilla, and the paintings are added afterwards
+ * at the anchor that matches their transformed center (rotation and mirroring included).
  */
 public final class PaintingPlacement {
 
+    private static final String PAINTING_ID = "minecraft:painting";
     private static final double WALL_SHIFT = 0.46875;
 
     private PaintingPlacement() {
     }
 
     /**
-     * Moves a painting to the anchor block that matches the given center.
+     * Places a template like {@link StructureTemplate#placeInWorld}, with correctly anchored paintings.
+     *
+     * @param level    the level
+     * @param template the template
+     * @param origin   the placement origin
+     * @param settings the placement settings
+     * @param random   the random source
+     * @param flags    the block update flags
+     */
+    public static void place(ServerLevel level, StructureTemplate template, BlockPos origin, StructurePlaceSettings settings,
+            RandomSource random, int flags) {
+        CompoundTag data = template.save(new CompoundTag());
+        ListTag others = new ListTag();
+        List<CompoundTag> paintings = new ArrayList<>();
+        for (Tag entry : data.getListOrEmpty(StructureTemplate.ENTITIES_TAG)) {
+            if (entry instanceof CompoundTag info) {
+                boolean painting = PAINTING_ID.equals(info.getCompoundOrEmpty(StructureTemplate.ENTITY_TAG_NBT).getStringOr("id", ""));
+                if (painting) {
+                    paintings.add(info);
+                } else {
+                    others.add(info);
+                }
+            }
+        }
+        if (paintings.isEmpty()) {
+            template.placeInWorld(level, origin, origin, settings, random, flags);
+            return;
+        }
+        data.put(StructureTemplate.ENTITIES_TAG, others);
+        StructureTemplate withoutPaintings = new StructureTemplate();
+        withoutPaintings.load(level.holderLookup(Registries.BLOCK), data);
+        withoutPaintings.placeInWorld(level, origin, origin, settings, random, flags);
+        if (!settings.isIgnoreEntities()) {
+            paintings.forEach(info -> addPainting(level, info, origin, settings));
+        }
+    }
+
+    private static void addPainting(ServerLevel level, CompoundTag info, BlockPos origin, StructurePlaceSettings settings) {
+        ListTag pos = info.getListOrEmpty(StructureTemplate.ENTITY_TAG_POS);
+        Vec3 center = StructureTemplate.transformedVec3d(settings, new Vec3(pos.getDoubleOr(0, 0.0), pos.getDoubleOr(1, 0.0), pos.getDoubleOr(2, 0.0)))
+                .add(Vec3.atLowerCornerOf(origin));
+        CompoundTag nbt = info.getCompoundOrEmpty(StructureTemplate.ENTITY_TAG_NBT).copy();
+        nbt.remove("UUID");
+        try (ProblemReporter.ScopedCollector reporter = new ProblemReporter.ScopedCollector(() -> "painting at " + center, ArchitectsTrials.LOGGER)) {
+            EntityType.create(TagValueInput.create(reporter, level.registryAccess(), nbt), level,
+                    new EntitySpawnRequest(EntitySpawnReason.STRUCTURE, false)).ifPresent(entity -> {
+                        if (entity instanceof Painting painting) {
+                            painting.rotate(settings.getRotation());
+                            painting.mirror(settings.getMirror());
+                            anchorAt(painting, center);
+                            level.addFreshEntity(painting);
+                        }
+                    });
+        }
+    }
+
+    /**
+     * Moves a painting to the anchor block that matches the given center: the inverse of
+     * {@code Painting#calculateBoundingBox}.
      *
      * @param painting the painting, already rotated/mirrored
      * @param center   the painting's intended center position
@@ -42,4 +120,5 @@ public final class PaintingPlacement {
     private static double offset(int size) {
         return size % 2 == 0 ? 0.5 : 0.0;
     }
+
 }

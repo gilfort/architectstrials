@@ -7,6 +7,7 @@ import java.util.Optional;
 import com.gilfort.architectstrials.block.MobMarkerBlockEntity;
 import com.gilfort.architectstrials.config.ArchitectsTrialsConfig;
 import com.gilfort.architectstrials.registry.ModBlocks;
+import com.gilfort.architectstrials.structure.PaintingPlacement;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.SectionPos;
@@ -147,7 +148,7 @@ public final class EditorCapture {
     public static void place(ServerLevel level, StructureTemplate template) {
         Vec3i size = template.getSize();
         BlockPos origin = new BlockPos(-size.getX() / 2, ArchitectsTrialsConfig.STRUCTURE_PLACEMENT_Y.getAsInt(), -size.getZ() / 2);
-        template.placeInWorld(level, origin, origin, new StructurePlaceSettings(), level.getRandom(), Block.UPDATE_CLIENTS);
+        PaintingPlacement.place(level, template, origin, new StructurePlaceSettings(), level.getRandom(), Block.UPDATE_CLIENTS);
     }
 
     /**
