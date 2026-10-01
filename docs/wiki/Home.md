@@ -18,7 +18,7 @@ No Java code is required.
 | Theme | A dimension that provides the atmosphere (sky, fog, light, biome) | [Themes & Dimensions](Themes-and-Dimensions) |
 | Structure | A build saved from the editor, belonging to a theme and a tier | [Building Challenges](Building-Challenges) |
 | Marker | Editor block that becomes spawn points, exits, mobs or spawners | [Markers](Markers) |
-| Loot | Vanilla containers with loot tables, fixed items, completion bonus | [Loot](Loot) |
+| Loot | Vanilla containers with loot tables, fixed items, Loot Tool setups, completion bonus | [Loot](Loot) |
 | Scroll | The item that opens a portal to a theme and tier | [Scrolls](Scrolls) |
 | Instance | One placed copy of a structure that a group plays through | [Instances & Lifecycle](Instances-and-Lifecycle) |
 

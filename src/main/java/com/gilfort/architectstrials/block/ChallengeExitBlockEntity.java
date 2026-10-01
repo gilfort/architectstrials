@@ -2,6 +2,8 @@ package com.gilfort.architectstrials.block;
 
 import java.util.Optional;
 
+import com.gilfort.architectstrials.loot.LootSetup;
+import com.gilfort.architectstrials.loot.LootSetupHolder;
 import com.gilfort.architectstrials.registry.ModBlockEntityTypes;
 
 import net.minecraft.core.BlockPos;
@@ -16,9 +18,12 @@ import net.minecraft.world.level.storage.loot.LootTable;
  * Block entity of the {@link ChallengeExitBlock}. Holds the optional completion bonus override taken over from
  * the exit marker, and lets the client render the animated portal surface of an {@link ExitGroup}.
  */
-public class ChallengeExitBlockEntity extends BlockEntity implements LootTableReference {
+public class ChallengeExitBlockEntity extends BlockEntity implements LootTableReference, LootSetupHolder {
+
+    private static final String SETUP_TAG = "loot_setup";
 
     private Optional<ResourceKey<LootTable>> lootTable = Optional.empty();
+    private LootSetup lootSetup = LootSetup.EMPTY;
 
     /**
      * Creates the block entity.
@@ -42,14 +47,29 @@ public class ChallengeExitBlockEntity extends BlockEntity implements LootTableRe
     }
 
     @Override
+    public LootSetup lootSetup(boolean ominous) {
+        return this.lootSetup;
+    }
+
+    @Override
+    public void setLootSetup(boolean ominous, LootSetup setup) {
+        this.lootSetup = setup;
+        this.setChanged();
+    }
+
+    @Override
     protected void loadAdditional(ValueInput input) {
         super.loadAdditional(input);
         this.lootTable = LootTableReference.read(input);
+        this.lootSetup = input.read(SETUP_TAG, LootSetup.CODEC).orElse(LootSetup.EMPTY);
     }
 
     @Override
     protected void saveAdditional(ValueOutput output) {
         super.saveAdditional(output);
         LootTableReference.write(output, this.lootTable);
+        if (!this.lootSetup.isEmpty()) {
+            output.store(SETUP_TAG, LootSetup.CODEC, this.lootSetup);
+        }
     }
 }

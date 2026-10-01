@@ -123,18 +123,22 @@ public final class EditorDimension {
     }
 
     /**
-     * Places the 3×3 start platform at the center if its center block is missing.
+     * Places the 3×3 start platform at the center if its center block is empty. Only air is replaced, so blocks
+     * built at the platform's place are never overwritten.
      *
      * @param level the editor level
      */
     public static void ensurePlatform(ServerLevel level) {
         BlockPos center = new BlockPos(0, platformY(), 0);
-        if (level.getBlockState(center).is(ModBlocks.EDITOR_PLATFORM.get())) {
+        if (!level.getBlockState(center).isAir()) {
             return;
         }
         for (int x = -PLATFORM_RADIUS; x <= PLATFORM_RADIUS; x++) {
             for (int z = -PLATFORM_RADIUS; z <= PLATFORM_RADIUS; z++) {
-                level.setBlock(center.offset(x, 0, z), ModBlocks.EDITOR_PLATFORM.get().defaultBlockState(), Block.UPDATE_ALL);
+                BlockPos pos = center.offset(x, 0, z);
+                if (level.getBlockState(pos).isAir()) {
+                    level.setBlock(pos, ModBlocks.EDITOR_PLATFORM.get().defaultBlockState(), Block.UPDATE_ALL);
+                }
             }
         }
     }

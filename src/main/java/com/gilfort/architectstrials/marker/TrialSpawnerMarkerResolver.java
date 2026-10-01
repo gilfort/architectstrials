@@ -4,6 +4,7 @@ import java.util.Optional;
 
 import com.gilfort.architectstrials.ArchitectsTrials;
 import com.gilfort.architectstrials.block.TrialSpawnerMarkerBlockEntity;
+import com.gilfort.architectstrials.loot.LootSetups;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Holder;
@@ -77,6 +78,8 @@ public final class TrialSpawnerMarkerResolver {
         if (!marker.ominousAllowed()) {
             spawner.getPersistentData().putBoolean(NO_OMINOUS_KEY, true);
         }
+        LootSetups.write(spawner, LootSetups.SETUP_KEY, marker.lootSetup(false));
+        LootSetups.write(spawner, LootSetups.OMINOUS_SETUP_KEY, marker.lootSetup(true));
         spawner.setChanged();
         level.sendBlockUpdated(pos, spawnerState, spawnerState, Block.UPDATE_ALL);
     }
@@ -91,6 +94,21 @@ public final class TrialSpawnerMarkerResolver {
     public static boolean isOminousBlocked(ServerLevel level, BlockPos pos) {
         return level.getBlockEntity(pos) instanceof TrialSpawnerBlockEntity spawner
                 && spawner.getPersistentData().getBooleanOr(NO_OMINOUS_KEY, false);
+    }
+
+    /**
+     * Returns the loot table a configuration ejects: {@link LootSetups#PLACEHOLDER} if a loot setup applies (the
+     * spawner then ejects the setup, see {@link LootSetups#ejectTrialReward}), otherwise the reward loot table.
+     * Ominous: ominous setup → ominous loot table → normal reward.
+     */
+    private static Optional<ResourceKey<LootTable>> rewardFor(TrialSpawnerMarkerBlockEntity marker, boolean ominous) {
+        if (ominous && !marker.lootSetup(true).isEmpty()) {
+            return Optional.of(LootSetups.PLACEHOLDER);
+        }
+        if (ominous && marker.ominousLootTable().isPresent()) {
+            return marker.ominousLootTable();
+        }
+        return marker.lootSetup(false).isEmpty() ? marker.lootTableReference() : Optional.of(LootSetups.PLACEHOLDER);
     }
 
     /**
@@ -114,7 +132,7 @@ public final class TrialSpawnerMarkerResolver {
             }
         }
         WeightedList.Builder<ResourceKey<LootTable>> loot = WeightedList.builder();
-        (ominous ? marker.ominousLootTable().or(marker::lootTableReference) : marker.lootTableReference()).ifPresent(loot::add);
+        rewardFor(marker, ominous).ifPresent(loot::add);
         TrialSpawnerConfig defaults = TrialSpawnerConfig.DEFAULT;
         return new TrialSpawnerConfig(defaults.spawnRange(), marker.totalMobs(ominousRows), marker.simultaneousMobs(ominous),
                 defaults.totalMobsAddedPerPlayer(), defaults.simultaneousMobsAddedPerPlayer(), defaults.ticksBetweenSpawn(),

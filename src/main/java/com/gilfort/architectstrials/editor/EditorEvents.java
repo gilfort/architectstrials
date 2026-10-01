@@ -1,6 +1,7 @@
 package com.gilfort.architectstrials.editor;
 
 import com.gilfort.architectstrials.ArchitectsTrials;
+import com.gilfort.architectstrials.loot.LootToolItem;
 
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
@@ -38,7 +39,8 @@ public final class EditorEvents {
     /**
      * Keeps pool-loot containers in the editor from being opened: opening would roll the loot table into the
      * container and remove the reference, turning pool loot into guaranteed loot on the next save. The player is
-     * told the loot table in chat instead. Placing blocks against the container while sneaking stays possible.
+     * told the loot table in chat instead. Placing blocks against the container while sneaking stays possible, and
+     * the loot tool keeps working so loot setups can be edited again.
      *
      * @param event the right-click event
      */
@@ -48,7 +50,8 @@ public final class EditorEvents {
             return;
         }
         Player player = event.getEntity();
-        if (player.isSecondaryUseActive() && !event.getItemStack().isEmpty()) {
+        if (event.getItemStack().getItem() instanceof LootToolItem
+                || (player.isSecondaryUseActive() && !event.getItemStack().isEmpty())) {
             return;
         }
         if (level.getBlockEntity(event.getPos()) instanceof RandomizableContainer container && container.getLootTable() != null) {

@@ -8,6 +8,9 @@ import java.util.Optional;
 import com.gilfort.architectstrials.ArchitectsTrials;
 import com.gilfort.architectstrials.block.MobMarkerBlockEntity;
 import com.gilfort.architectstrials.block.TrialSpawnerMarkerBlockEntity;
+import com.gilfort.architectstrials.loot.LootEntry;
+import com.gilfort.architectstrials.loot.LootGroup;
+import com.gilfort.architectstrials.loot.LootSetup;
 import com.gilfort.architectstrials.marker.MarkerEquipment;
 import com.gilfort.architectstrials.marker.SpawnMarkerResolvers;
 import com.gilfort.architectstrials.menu.MarkerSlot;
@@ -75,8 +78,23 @@ public final class WorldImport {
      * @return the result
      */
     public static Result importInto(ServerLevel source, BoundingBox box, ServerLevel editor) {
+        return importInto(source, box, editor, 0, 0);
+    }
+
+    /**
+     * Copies a box into a level centered on a horizontal position (the editor uses its center; tests use separate
+     * places so they can run in parallel) and converts its spawners to markers.
+     *
+     * @param source  the level to copy from
+     * @param box     the box to copy
+     * @param editor  the target level
+     * @param centerX the x coordinate to center on
+     * @param centerZ the z coordinate to center on
+     * @return the result
+     */
+    public static Result importInto(ServerLevel source, BoundingBox box, ServerLevel editor, int centerX, int centerZ) {
         int blocks = EditorCapture.countBlocks(source, box);
-        BoundingBox placed = EditorCapture.place(editor, EditorCapture.copy(source, box));
+        BoundingBox placed = EditorCapture.place(editor, EditorCapture.copy(source, box), centerX, centerZ);
         List<Identifier> missing = new ArrayList<>();
         int spawners = 0;
         for (BlockEntity blockEntity : blockEntities(editor, placed)) {
@@ -129,7 +147,8 @@ public final class WorldImport {
      * Replaces a trial spawner by a Trial Spawner Marker. The normal config fills the normal page, a differing
      * ominous config the ominous page (ominous stays blocked until the builder allows it): per page up to three
      * spawn potentials (highest weights first) as rows with egg counts distributed by weight so they sum up to the
-     * config's total mobs, simultaneous mobs and the highest-weighted reward loot table.
+     * config's total mobs, simultaneous mobs and the reward: one loot table as reward loot table, several weighted
+     * ones as a loot setup with matching chances.
      */
     private static void convertTrialSpawner(ServerLevel level, TrialSpawnerBlockEntity trialSpawner, List<Identifier> missing) {
         TrialSpawnerConfig normal = trialSpawner.getTrialSpawner().normalConfig();
@@ -160,13 +179,34 @@ public final class WorldImport {
                     potential.value().getEquipment().map(EquipmentTable::lootTable), count, missing);
         }
         marker.setSimultaneousMobs(ominous, Math.round(config.simultaneousMobs()));
-        Optional<ResourceKey<LootTable>> reward = config.lootTablesToEject().unwrap().stream()
-                .max(Comparator.comparingInt(Weighted::weight)).map(Weighted::value);
-        if (ominous) {
-            marker.setOminousLootTable(reward);
+        List<Weighted<ResourceKey<LootTable>>> rewards = config.lootTablesToEject().unwrap();
+        if (rewards.size() > LootGroup.MAX_ENTRIES || rewards.size() <= 1) {
+            Optional<ResourceKey<LootTable>> reward = rewards.stream().max(Comparator.comparingInt(Weighted::weight)).map(Weighted::value);
+            if (ominous) {
+                marker.setOminousLootTable(reward);
+            } else {
+                marker.setLootTableReference(reward);
+            }
         } else {
-            marker.setLootTableReference(reward);
+            marker.setLootSetup(ominous, weightedSetup(rewards));
         }
+    }
+
+    /**
+     * Converts vanilla weighted rewards (one of them is ejected) into a loot setup with one group whose chances
+     * follow the weights and sum up to exactly 100 %.
+     */
+    private static LootSetup weightedSetup(List<Weighted<ResourceKey<LootTable>>> rewards) {
+        int weightSum = rewards.stream().mapToInt(Weighted::weight).sum();
+        LootGroup group = LootGroup.EMPTY;
+        int assigned = 0;
+        for (int i = 0; i < rewards.size(); i++) {
+            int chance = i == rewards.size() - 1 ? LootGroup.TOTAL - assigned
+                    : Math.round((float) LootGroup.TOTAL * rewards.get(i).weight() / Math.max(1, weightSum));
+            assigned += chance;
+            group = group.with(LootEntry.ofTable(i, rewards.get(i).value(), chance), true);
+        }
+        return LootSetup.EMPTY.withPage(0, group);
     }
 
     private static MobMarkerBlockEntity replace(ServerLevel level, BlockPos pos, Block markerBlock) {

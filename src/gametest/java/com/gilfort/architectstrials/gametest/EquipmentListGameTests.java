@@ -219,7 +219,7 @@ public final class EquipmentListGameTests {
 
         ServerLevel target = level.getServer().getLevel(Level.END);
         BoundingBox box = BoundingBox.fromCorners(helper.absolutePos(new BlockPos(4, 2, 4)), helper.absolutePos(new BlockPos(4, 2, 4)));
-        WorldImport.Result result = WorldImport.importInto(level, box, target);
+        WorldImport.Result result = WorldImport.importInto(level, box, target, 2000, 0);
         BoundingBox placed = result.placed();
         try {
             helper.assertTrue(target.getBlockEntity(new BlockPos(placed.minX(), placed.minY(), placed.minZ())) instanceof SpawnMarkerBlockEntity marker

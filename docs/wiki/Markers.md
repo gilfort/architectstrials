@@ -34,7 +34,8 @@ only way to complete a run.
 - **Wider exits:** up to three Exit Markers side by side (same facing, in a line across it) form one combined
   portal of n × (n+1) blocks. A signal at any base locks the whole portal.
 - **Bonus override:** look at the marker and run `/at marker loot_table <id>` to give this exit its own
-  completion bonus (see [Loot](Loot#completion-bonus)).
+  completion bonus (see [Loot](Loot#completion-bonus)). The [Loot Tool](Loot#loot-tool-composed-rewards)
+  composes a bonus from several loot tables and items instead; it takes precedence over the loot table.
 - Every structure needs at least one Exit Marker.
 
 ## Mob markers
@@ -93,6 +94,8 @@ Rewards (look at the marker):
 
 - `/at marker loot_table <id>` — ejected after a cleared wave. Without one there is no reward.
 - `/at marker ominous_loot_table <id>` — reward of the ominous variant; without one the normal reward is used.
+- With the [Loot Tool](Loot#loot-tool-composed-rewards) you can compose both rewards from several loot tables
+  and items with own chances; a setup takes precedence over the loot table.
 
 Vanilla per-player scaling stays active (+2 total and +1 at once per additional player), as do spawn delay,
 range and cooldown.

@@ -2,6 +2,8 @@ package com.gilfort.architectstrials.block;
 
 import java.util.Optional;
 
+import com.gilfort.architectstrials.loot.LootSetup;
+import com.gilfort.architectstrials.loot.LootSetupHolder;
 import com.gilfort.architectstrials.marker.MarkerContext;
 import com.gilfort.architectstrials.registry.ModBlocks;
 
@@ -62,6 +64,7 @@ public class ExitMarkerBlock extends HorizontalDirectionalBlock implements Entit
         BlockState marker = context.level().getBlockState(pos);
         Optional<ResourceKey<LootTable>> bonus = context.level().getBlockEntity(pos) instanceof LootTableReference reference
                 ? reference.lootTableReference() : Optional.empty();
+        LootSetup setup = context.level().getBlockEntity(pos) instanceof LootSetupHolder holder ? holder.lootSetup(false) : LootSetup.EMPTY;
         Direction facing = marker.getBlock() instanceof ExitMarkerBlock ? marker.getValue(FACING) : Direction.NORTH;
         BlockState exit = ModBlocks.CHALLENGE_EXIT.get().defaultBlockState()
                 .setValue(ChallengeExitBlock.FACING, facing)
@@ -69,6 +72,7 @@ public class ExitMarkerBlock extends HorizontalDirectionalBlock implements Entit
         context.level().setBlock(pos, exit, Block.UPDATE_ALL);
         if (context.level().getBlockEntity(pos) instanceof ChallengeExitBlockEntity exitEntity) {
             exitEntity.setLootTableReference(bonus);
+            exitEntity.setLootSetup(false, setup);
         }
         context.addExit(pos.immutable());
     }

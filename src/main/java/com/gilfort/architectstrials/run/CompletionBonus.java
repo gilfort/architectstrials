@@ -1,8 +1,11 @@
 package com.gilfort.architectstrials.run;
 
+import java.util.List;
 import java.util.Optional;
 
 import com.gilfort.architectstrials.ArchitectsTrials;
+import com.gilfort.architectstrials.loot.LootSetup;
+import com.gilfort.architectstrials.loot.LootSetups;
 import com.gilfort.architectstrials.instance.ChallengeInstance;
 
 import net.minecraft.core.registries.Registries;
@@ -41,6 +44,17 @@ public final class CompletionBonus {
     }
 
     /**
+     * Rolls a loot setup set on the used exit as completion bonus and delivers it like
+     * {@link #grant(ServerPlayer, ChallengeInstance, Optional)}.
+     *
+     * @param player the player
+     * @param setup  the loot setup
+     */
+    public static void grant(ServerPlayer player, LootSetup setup) {
+        deliver(player, LootSetups.roll(player.level(), setup, player.position(), player));
+    }
+
+    /**
      * Rolls the bonus for a player who completed a run and delivers it to their inventory; overflow is dropped
      * at their feet. Must be called after the player has been returned.
      *
@@ -63,10 +77,14 @@ public final class CompletionBonus {
                 .withParameter(LootContextParams.THIS_ENTITY, player)
                 .withLuck(player.getLuck())
                 .create(LootContextParamSets.CHEST);
-        for (ItemStack stack : table.getRandomItems(params)) {
+        deliver(player, table.getRandomItems(params));
+    }
+
+    private static void deliver(ServerPlayer player, List<ItemStack> items) {
+        for (ItemStack stack : items) {
             player.getInventory().add(stack);
             if (!stack.isEmpty()) {
-                player.spawnAtLocation(level, stack);
+                player.spawnAtLocation(player.level(), stack);
             }
         }
     }

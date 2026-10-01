@@ -5,6 +5,8 @@ import java.util.Optional;
 import com.gilfort.architectstrials.block.LootTableReference;
 import com.gilfort.architectstrials.block.MobMarkerBlockEntity;
 import com.gilfort.architectstrials.block.TrialSpawnerMarkerBlockEntity;
+import com.gilfort.architectstrials.loot.LootSetup;
+import com.gilfort.architectstrials.loot.LootSetups;
 import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.context.CommandContext;
@@ -151,6 +153,17 @@ final class MarkerCommand {
                     .map(value -> Component.translatable("commands.architectstrials.marker.info.loot_table", name, value.identifier().toString()))
                     .orElseGet(() -> Component.translatable("commands.architectstrials.marker.info.none", name)), false);
         }
+        BlockEntity lootSource = target.get();
+        if (LootSetups.supports(lootSource)) {
+            for (boolean ominous : new boolean[] {false, true}) {
+                LootSetup setup = LootSetups.get(lootSource, ominous);
+                if (!setup.isEmpty()) {
+                    long groups = setup.groups().stream().filter(group -> !group.isEmpty()).count();
+                    sourceMessage(context.getSource(), ominous ? "commands.architectstrials.marker.info.ominous_loot_setup"
+                            : "commands.architectstrials.marker.info.loot_setup", groups, setup.consolation().entries().size());
+                }
+            }
+        }
         if (target.get() instanceof MobMarkerBlockEntity mobMarker) {
             for (int row = 0; row < mobMarker.rows(); row++) {
                 int number = row + 1;
@@ -180,5 +193,9 @@ final class MarkerCommand {
         BlockEntity blockEntity = player.level().getBlockEntity(blockHit.getBlockPos());
         return blockEntity instanceof LootTableReference || blockEntity instanceof RandomizableContainer
                 || blockEntity instanceof MobMarkerBlockEntity ? Optional.of(blockEntity) : Optional.empty();
+    }
+
+    private static void sourceMessage(CommandSourceStack source, String key, Object... args) {
+        source.sendSuccess(() -> Component.translatable(key, args), false);
     }
 }

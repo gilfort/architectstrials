@@ -16,6 +16,7 @@ import com.gilfort.architectstrials.registry.ModCriteriaTriggers;
 import com.gilfort.architectstrials.registry.ModDataComponents;
 import com.gilfort.architectstrials.registry.ModEntityTypes;
 import com.gilfort.architectstrials.registry.ModItems;
+import com.gilfort.architectstrials.registry.ModLootEntryTypes;
 import com.gilfort.architectstrials.registry.ModMenuTypes;
 import com.gilfort.architectstrials.registry.ModRecipeSerializers;
 import com.gilfort.architectstrials.registry.ModTicketTypes;
@@ -61,6 +62,7 @@ public final class ArchitectsTrials {
         ModMenuTypes.register(modEventBus);
         ModRecipeSerializers.register(modEventBus);
         ModTicketTypes.register(modEventBus);
+        ModLootEntryTypes.register(modEventBus);
 
         modContainer.registerConfig(ModConfig.Type.SERVER, ArchitectsTrialsConfig.SPEC);
 

@@ -4,6 +4,7 @@ import java.util.function.Supplier;
 
 import com.gilfort.architectstrials.ArchitectsTrials;
 import com.gilfort.architectstrials.editor.Selection;
+import com.gilfort.architectstrials.loot.LootSetup;
 import com.gilfort.architectstrials.scroll.ScrollEffects;
 import com.gilfort.architectstrials.scroll.ScrollOptions;
 import com.gilfort.architectstrials.scroll.ScrollTarget;
@@ -46,6 +47,10 @@ public final class ModDataComponents {
     /** The area selected with the selection tool ({@code architectstrials:selection}). */
     public static final Supplier<DataComponentType<Selection>> SELECTION = DATA_COMPONENTS.registerComponentType(
             "selection", builder -> builder.persistent(Selection.CODEC).networkSynchronized(Selection.STREAM_CODEC));
+
+    /** Loot setup stored in the loot tool for pasting ({@code architectstrials:loot_clipboard}). */
+    public static final Supplier<DataComponentType<LootSetup>> LOOT_CLIPBOARD = DATA_COMPONENTS.registerComponentType(
+            "loot_clipboard", builder -> builder.persistent(LootSetup.CODEC).networkSynchronized(LootSetup.STREAM_CODEC));
 
     private ModDataComponents() {
     }

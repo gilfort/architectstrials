@@ -6,6 +6,8 @@ import java.util.Optional;
 import com.gilfort.architectstrials.ArchitectsTrials;
 import com.gilfort.architectstrials.block.ExitGroup;
 import com.gilfort.architectstrials.block.LootTableReference;
+import com.gilfort.architectstrials.loot.LootSetup;
+import com.gilfort.architectstrials.loot.LootSetupHolder;
 import com.gilfort.architectstrials.instance.ChallengeInstance;
 import com.gilfort.architectstrials.instance.InstanceManager;
 import com.gilfort.architectstrials.registry.ModAttachments;
@@ -76,7 +78,7 @@ public final class RunCompletion {
             for (BlockPos exit : instance.get().exits()) {
                 Optional<ExitGroup> group = ExitGroup.find(level, exit);
                 if (group.isPresent() && !group.get().locked() && player.getBoundingBox().intersects(group.get().portalArea())) {
-                    complete(player, instance.get(), bonusOverride(level, group.get()));
+                    complete(player, instance.get(), bonusOverride(level, group.get()), bonusSetup(level, group.get()));
                     break;
                 }
             }
@@ -100,19 +102,53 @@ public final class RunCompletion {
     }
 
     /**
-     * Completes a run: counts it, triggers the advancement criterion, returns the player to their entry point,
-     * grants the completion bonus and fires {@link RunCompletedEvent}.
+     * Returns the bonus loot setup set on any base of an exit group.
+     *
+     * @param level the level
+     * @param group the exit group
+     * @return the first non-empty setup found, or {@link LootSetup#EMPTY}
+     */
+    static LootSetup bonusSetup(ServerLevel level, ExitGroup group) {
+        for (BlockPos base : group.members()) {
+            if (level.getBlockEntity(base) instanceof LootSetupHolder holder && !holder.lootSetup(false).isEmpty()) {
+                return holder.lootSetup(false);
+            }
+        }
+        return LootSetup.EMPTY;
+    }
+
+    /**
+     * Completes a run like {@link #complete(ServerPlayer, ChallengeInstance, Optional, LootSetup)} without a loot
+     * setup on the exit.
      *
      * @param player        the player
      * @param instance      the completed instance
      * @param bonusOverride the bonus loot table set on the used exit, if any
      */
     public static void complete(ServerPlayer player, ChallengeInstance instance, Optional<ResourceKey<LootTable>> bonusOverride) {
+        complete(player, instance, bonusOverride, LootSetup.EMPTY);
+    }
+
+    /**
+     * Completes a run: counts it, triggers the advancement criterion, returns the player to their entry point,
+     * grants the completion bonus and fires {@link RunCompletedEvent}.
+     *
+     * @param player        the player
+     * @param instance      the completed instance
+     * @param bonusOverride the bonus loot table set on the used exit, if any
+     * @param bonusSetup    the bonus loot setup set on the used exit (takes precedence if not empty)
+     */
+    public static void complete(ServerPlayer player, ChallengeInstance instance, Optional<ResourceKey<LootTable>> bonusOverride,
+            LootSetup bonusSetup) {
         RunStatistics statistics = player.getData(ModAttachments.RUN_STATISTICS);
         statistics.increment(instance.theme(), instance.tier());
         InstanceManager.markCompleted(player.level(), instance.id(), player.getUUID());
         ChallengeTravel.returnToEntryPoint(player);
-        CompletionBonus.grant(player, instance, bonusOverride);
+        if (bonusSetup.isEmpty()) {
+            CompletionBonus.grant(player, instance, bonusOverride);
+        } else {
+            CompletionBonus.grant(player, bonusSetup);
+        }
         ModCriteriaTriggers.RUN_COMPLETED.get().trigger(player, instance.theme(), instance.tier(), statistics);
         Component theme = ChallengeThemes.get(instance.theme()).map(ChallengeTheme::displayName)
                 .orElse(Component.literal(instance.theme().toString()));
