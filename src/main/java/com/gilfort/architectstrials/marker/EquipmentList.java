@@ -5,6 +5,7 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 
+import com.gilfort.architectstrials.util.LenientCodecs;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 
@@ -30,7 +31,7 @@ public record EquipmentList(List<Entry> entries) {
     public static final EquipmentList EMPTY = new EquipmentList(List.of());
 
     /** Persistent codec. */
-    public static final Codec<EquipmentList> CODEC = Entry.CODEC.listOf().xmap(EquipmentList::new, EquipmentList::entries);
+    public static final Codec<EquipmentList> CODEC = LenientCodecs.list(Entry.CODEC, "random equipment").xmap(EquipmentList::new, EquipmentList::entries);
 
     /** Creates the list, keeping only valid entries. */
     public EquipmentList {

@@ -125,6 +125,10 @@
   "commands.architectstrials.structure.list.header": "Stored structures (%s):",
   "commands.architectstrials.structure.list.entry": " - %s \"%s\" tier %s, weight %s, rotation %s",
   "commands.architectstrials.structure.set.success": "Updated %s.",
+  "commands.architectstrials.structure.validate.structure": "%s: %s problem(s)",
+  "commands.architectstrials.structure.validate.problem": "  - %s (%s×)",
+  "commands.architectstrials.structure.validate.more": "  … and %s more",
+  "commands.architectstrials.structure.validate.summary": "Checked %s structure(s), %s with problems.",
   "commands.architectstrials.structure.delete.warning": "This permanently deletes %s. Repeat the command with 'confirm' within 30 seconds.",
   "commands.architectstrials.structure.delete.no_request": "No matching delete request – run the delete command without 'confirm' first.",
   "commands.architectstrials.structure.delete.success": "Deleted %s.",
@@ -234,6 +238,7 @@
   "message.architectstrials.save.spawn_marker_blocked": "Warning: the Player Spawn Marker at %s %s %s (relative) has no 2 free blocks above it.",
   "message.architectstrials.save.mob_marker_empty": "Warning: the %s at %s %s %s (relative) has no spawn egg and will be removed without spawning anything.",
   "message.architectstrials.returned_on_login": "Your challenge is over – you have been returned.",
+  "message.architectstrials.returned_missing_dimension": "The challenge you were in no longer exists – you have been returned.",
   "message.architectstrials.ward.saved": "The Dimension Ward saved you from death (%s) and brought you back.",
 
   "message.architectstrials.challenge_dimension.bed_disabled": "You cannot sleep or set your spawn point in a challenge dimension"

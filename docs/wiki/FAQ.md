@@ -45,3 +45,19 @@ height (`structurePlacementY`). Select a smaller part, or lower `structurePlacem
 
 ### Where are my saved structures?
 In `<world>/datapacks/architectstrials_structures/`. Copy that folder into your modpack to ship them.
+
+### What happens to my challenges when I remove or rename a mod?
+
+Nothing is lost silently, and nothing breaks as a whole:
+
+- **Blocks** of the removed mod become air in placed structures (vanilla behaviour).
+- **Items** in containers and marker slots disappear one by one; the rest stays.
+- **Random equipment, fixed equipment, loot setups, scroll effects and parked player effects** keep all valid
+  entries; only the entries of the removed mod are skipped (with a warning in the log). A scroll with an effect of
+  a removed mod stays a scroll, just without that effect.
+- **Loot tables** that no longer exist roll nothing.
+- Players who logged out inside a **theme dimension that no longer exists** are returned to their entry point
+  when they log in.
+
+Run `/at structure validate` after a mod update to see exactly which structures refer to missing content.
+

@@ -33,6 +33,7 @@ modpack to be safe).
 | `/at editor save <theme> <tier> <id> [overwrite]` | Saves the editor content as a pool structure |
 | `/at editor load <theme> <tier> <id>` | Loads a stored structure into the empty editor |
 | `/at structure list [theme] [tier]` | Lists stored structures |
+| `/at structure validate [theme] [tier]` | Checks stored structures for missing blocks, items, entity types, loot tables and mob effects (e.g. after removing a mod); lists only structures with problems |
 | `/at structure set <theme> <tier> <id> weight <n>` | Sets the draw weight |
 | `/at structure set <theme> <tier> <id> rotation <true\|false>` | Allows random rotation and mirroring |
 | `/at structure set <theme> <tier> <id> name <text>` | Sets the display name |

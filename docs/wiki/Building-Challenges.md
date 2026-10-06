@@ -38,6 +38,8 @@ Example: `/at editor save mypack:crypt 2 spider_den`
 - **Warnings only:** a Player Spawn Marker without two free blocks above it, a mob marker without a spawn egg.
 - The files go into the managed datapack `<world>/datapacks/architectstrials_structures/`, which is enabled and
   reloaded automatically — the structure is in the pool immediately.
+- **After mod updates:** `/at structure validate` lists structures that refer to blocks, items, mobs, loot tables
+  or effects that no longer exist.
 - `overwrite` replaces an existing id; weight, rotation and name are kept.
 
 To ship your structures with a modpack, copy that one folder into the modpack's datapacks.

@@ -1,0 +1,6 @@
+{
+  "theme": "architectstrials:gametest_validation",
+  "tier": 2,
+  "structure": "architectstrials:gametest/missing_content",
+  "name": "Content of removed mods (validation test)"
+}

@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.function.UnaryOperator;
 
+import com.gilfort.architectstrials.util.LenientCodecs;
 import com.mojang.serialization.Codec;
 
 import net.minecraft.util.RandomSource;
@@ -28,7 +29,7 @@ public record LootGroup(List<LootEntry> entries) {
     public static final LootGroup EMPTY = new LootGroup(List.of());
 
     /** Persistent codec. */
-    public static final Codec<LootGroup> CODEC = LootEntry.CODEC.listOf().xmap(LootGroup::new, LootGroup::entries);
+    public static final Codec<LootGroup> CODEC = LenientCodecs.list(LootEntry.CODEC, "loot setup").xmap(LootGroup::new, LootGroup::entries);
 
     /** Keeps only non-empty entries, ordered by position. */
     public LootGroup {

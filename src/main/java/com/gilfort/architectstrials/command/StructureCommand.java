@@ -12,6 +12,7 @@ import com.gilfort.architectstrials.editor.EditorDimension;
 import com.gilfort.architectstrials.editor.StructureLibrary;
 import com.gilfort.architectstrials.structure.ChallengeStructure;
 import com.gilfort.architectstrials.structure.ChallengeStructures;
+import com.gilfort.architectstrials.structure.StructureValidation;
 import com.gilfort.architectstrials.theme.ChallengeThemes;
 import com.mojang.brigadier.arguments.BoolArgumentType;
 import com.mojang.brigadier.arguments.IntegerArgumentType;
@@ -38,6 +39,8 @@ import net.minecraft.world.level.levelgen.structure.templatesystem.StructureTemp
  * <li>{@code /architectstrials editor save <theme> <tier> <id> [overwrite]} — saves everything in the editor</li>
  * <li>{@code /architectstrials editor load <theme> <tier> <id>} — loads a structure into the empty editor</li>
  * <li>{@code /architectstrials structure list [theme] [tier]}</li>
+ * <li>{@code /architectstrials structure validate [theme] [tier]} — reports missing blocks, items, entity types,
+ * loot tables and mob effects (e.g. after a mod was removed)</li>
  * <li>{@code /architectstrials structure set <theme> <tier> <id> weight <n> | rotation <bool> | name <text>}</li>
  * <li>{@code /architectstrials structure delete <theme> <tier> <id>} (+ {@code confirm} within 30 seconds)</li>
  * </ul>
@@ -47,6 +50,9 @@ import net.minecraft.world.level.levelgen.structure.templatesystem.StructureTemp
 final class StructureCommand {
 
     private static final int CONFIRM_TICKS = 30 * 20;
+
+    /** Maximum number of problems listed per structure by {@code validate}. */
+    private static final int VALIDATE_LINES = 10;
     private static final Map<String, PendingDelete> PENDING_DELETES = new HashMap<>();
 
     private static final DynamicCommandExceptionType INVALID_ID = new DynamicCommandExceptionType(
@@ -92,6 +98,13 @@ final class StructureCommand {
                                 .executes(context -> list(context, IdentifierArgument.getId(context, "theme"), 0))
                                 .then(Commands.argument("tier", IntegerArgumentType.integer(1))
                                         .executes(context -> list(context, IdentifierArgument.getId(context, "theme"),
+                                                IntegerArgumentType.getInteger(context, "tier"))))))
+                .then(Commands.literal("validate")
+                        .executes(context -> validate(context, null, 0))
+                        .then(Commands.argument("theme", IdentifierArgument.id()).suggests(ThemeCommand.THEME_SUGGESTIONS)
+                                .executes(context -> validate(context, IdentifierArgument.getId(context, "theme"), 0))
+                                .then(Commands.argument("tier", IntegerArgumentType.integer(1))
+                                        .executes(context -> validate(context, IdentifierArgument.getId(context, "theme"),
                                                 IntegerArgumentType.getInteger(context, "tier"))))))
                 .then(Commands.literal("set").then(entryArguments(true, id -> id
                         .then(Commands.literal("weight").then(Commands.argument("weight", IntegerArgumentType.integer(1))
@@ -205,6 +218,38 @@ final class StructureCommand {
                     e.getKey().toString(), s.name().orElse("-"), s.tier(), s.weight(), String.valueOf(s.rotation())), false);
         }
         return entries.size();
+    }
+
+    /**
+     * Checks the templates of all matching structures for missing blocks, items, entity types, loot tables and mob
+     * effects (e.g. after a mod was removed). Only structures with problems are listed.
+     */
+    private static int validate(CommandContext<CommandSourceStack> context, Identifier theme, int tier) {
+        CommandSourceStack source = context.getSource();
+        var entries = ChallengeStructures.all().entrySet().stream()
+                .filter(e -> theme == null || e.getValue().theme().equals(theme))
+                .filter(e -> tier == 0 || e.getValue().tier() == tier)
+                .sorted(Map.Entry.comparingByKey())
+                .toList();
+        int broken = 0;
+        for (var e : entries) {
+            Map<String, Integer> problems = StructureValidation.validate(source.getServer(), e.getValue());
+            if (problems.isEmpty()) {
+                continue;
+            }
+            broken++;
+            source.sendSuccess(() -> Component.translatable("commands.architectstrials.structure.validate.structure",
+                    e.getKey().toString(), problems.size()), false);
+            problems.entrySet().stream().limit(VALIDATE_LINES).forEach(problem -> source.sendSuccess(() -> Component.translatable(
+                    "commands.architectstrials.structure.validate.problem", problem.getKey(), problem.getValue()), false));
+            if (problems.size() > VALIDATE_LINES) {
+                source.sendSuccess(() -> Component.translatable("commands.architectstrials.structure.validate.more",
+                        problems.size() - VALIDATE_LINES), false);
+            }
+        }
+        int brokenCount = broken;
+        source.sendSuccess(() -> Component.translatable("commands.architectstrials.structure.validate.summary", entries.size(), brokenCount), false);
+        return brokenCount;
     }
 
     private static int set(CommandContext<CommandSourceStack> context, UnaryOperator<ChallengeStructure> change) throws CommandSyntaxException {

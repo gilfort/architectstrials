@@ -3,6 +3,7 @@ package com.gilfort.architectstrials.scroll;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.gilfort.architectstrials.util.LenientCodecs;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 
@@ -28,8 +29,8 @@ public record ParkedEffects(List<Holder<MobEffect>> applied, List<MobEffectInsta
 
     /** Persistent codec. */
     public static final MapCodec<ParkedEffects> MAP_CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
-            MobEffect.CODEC.listOf().optionalFieldOf("applied", List.of()).forGetter(ParkedEffects::applied),
-            MobEffectInstance.CODEC.listOf().optionalFieldOf("parked", List.of()).forGetter(ParkedEffects::parked)
+            LenientCodecs.list(MobEffect.CODEC, "parked effect").optionalFieldOf("applied", List.of()).forGetter(ParkedEffects::applied),
+            LenientCodecs.list(MobEffectInstance.CODEC, "parked effect").optionalFieldOf("parked", List.of()).forGetter(ParkedEffects::parked)
     ).apply(instance, ParkedEffects::new));
 
     /** Creates the bookkeeping, defensively copying the lists. */

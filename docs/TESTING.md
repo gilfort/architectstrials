@@ -84,3 +84,22 @@ no double completion), `bonus_exit_override`, all scroll portal and scroll optio
       still open portal) → its exits get portal blocks and work.
 - [ ] Spark / profiler: no `RunCompletion` tick handler anymore; with players inside a challenge the mod's own tick
       time is near zero.
+
+## US-27 (#52): Robust data for removed mods + structure validation
+
+GameTests: `missing_ids_are_skipped` (equipment lists, fixed equipment, loot setups, scroll effects, scroll item,
+parked effects), `structure_validate_reports_missing_content`.
+
+Best tested with a small content mod (e.g. any mod adding items, blocks and a mob) that you remove afterwards:
+
+- [ ] Build a structure using a block, an item in a chest, an item in a marker slot, a random-equipment entry,
+      a loot setup entry and a spawn egg of the mod; give a scroll an effect upgrade of the mod (if it has effects).
+- [ ] Remove the mod, start the world (accept the vanilla "missing registry entries" warning).
+- [ ] `/at structure validate` lists the structure with the missing block, items, entity type (and effect) — and
+      lists nothing for clean structures; summary line counts are right.
+- [ ] Open the structure in the editor (`/at editor load`): markers keep their other settings and entries;
+      random equipment / loot setup lose only the removed entries.
+- [ ] The scroll still exists in the inventory, without the removed effect.
+- [ ] Log out inside a running challenge, remove the theme's dimension (datapack) and log in again: you are
+      returned to your entry point with a message.
+- [ ] The log contains one "Skipped invalid … entry (missing mod?)" warning per skipped entry, no stack traces.

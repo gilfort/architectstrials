@@ -23,13 +23,29 @@ public final class ChallengeTravelEvents {
     /**
      * Returns players who log in inside a challenge dimension unless they still participate in a running
      * instance (offline participants keep their instance alive until its time limit). Builders logging in
-     * inside the editor stay there.
+     * inside the editor stay there. Players who logged out in a dimension that no longer exists are returned to
+     * their stored entry point.
      *
      * @param event the login event
      */
     @SubscribeEvent
     static void onPlayerLoggedIn(PlayerEvent.PlayerLoggedInEvent event) {
-        if (!(event.getEntity() instanceof ServerPlayer player) || !ChallengeThemes.isChallengeDimension(player.level().dimension())) {
+        if (!(event.getEntity() instanceof ServerPlayer player)) {
+            return;
+        }
+        if (!ChallengeTravel.isModDimension(player.level().dimension())) {
+            boolean themeRemoved = player.getExistingData(ModAttachments.ENTRY_POINT).flatMap(EntryPoint::instance)
+                    .map(ref -> player.level().getServer().getLevel(ref.dimension()) == null)
+                    .orElse(false);
+            if (themeRemoved) {
+                // Logged out inside a theme dimension that no longer exists (theme or mod removed): vanilla put them
+                // into the overworld, but their entry point is still stored.
+                ChallengeTravel.returnToEntryPoint(player);
+                player.sendSystemMessage(Component.translatable("message.architectstrials.returned_missing_dimension"));
+            }
+            return;
+        }
+        if (!ChallengeThemes.isChallengeDimension(player.level().dimension())) {
             return;
         }
         if (!InstanceManager.isParticipant(player)) {
