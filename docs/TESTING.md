@@ -103,3 +103,79 @@ Best tested with a small content mod (e.g. any mod adding items, blocks and a mo
 - [ ] Log out inside a running challenge, remove the theme's dimension (datapack) and log in again: you are
       returned to your entry point with a message.
 - [ ] The log contains one "Skipped invalid … entry (missing mod?)" warning per skipped entry, no stack traces.
+
+## US-31 (#60): Per-challenge game mode (Survival for mining rooms)
+
+GameTests: `game_mode_entry_and_restore`, `game_mode_survival_protection`, `game_mode_metadata_default`.
+
+- [ ] `/at structure set <theme> <tier> <id> game_mode survival`, open a scroll: you arrive in Survival. Another
+      structure without the setting: Adventure. `/at structure list` shows the game mode.
+- [ ] In the Survival room: mine stone, ores, a chest (contents drop), a spawner → drops as in vanilla; place blocks.
+- [ ] The block below a spawn point, the exit bases and the portal space cannot be broken or replaced; a creeper /
+      TNT explosion next to them leaves them intact.
+- [ ] Leave via exit, death (Dimension Ward), `/at exit`, time limit and log out/in: your original game mode
+      (e.g. Creative) is back; mined items are kept.
+- [ ] A second player joining later also gets Survival.
+
+## US-30 (#59): Required mobs seal exits
+
+GameTests: `required_mobs_seal_exit` (glow duration, sealed exit, partial / full progress, completion),
+`required_mobs_marker_options` (only the Direct Spawn Marker supports it).
+
+- [ ] Direct Spawn Marker GUI: "Required: off/on" button top right; Spawner Marker GUI has no such button.
+      Exit Marker: right-click with an empty hand opens a small GUI with "Needs all required mobs defeated".
+- [ ] Settings survive `editor save` / `editor load`.
+- [ ] In a challenge: required mobs glow (also through walls); the sealed exit has the locked look and no portal;
+      walking in shows "Defeat all marked enemies (0/2)" (once per second).
+- [ ] Kill the first: still sealed (1/2). Kill the last: exit opens with sound + message, walking in completes.
+- [ ] Other ways out of the world count: `/kill @e[type=zombie]`, a required zombie drowning into a drowned, a
+      mob pushed into the void. An exit without the setting is never sealed.
+- [ ] Milk on a required mob (dispenser) removes the glow; it is not re-applied; the mob still counts.
+- [ ] Two instances of the same structure in parallel: killing the mobs in one does not open the other.
+- [ ] Server restart with required mobs left: progress is kept, the exit stays sealed until the rest are killed.
+- [ ] Combination with redstone: an exit that is powered **and** sealed opens only when both are cleared.
+
+## US-36 (#65): Challenge-defined player effects and attributes (+ new rule for permanent scroll effects)
+
+GameTests: `challenge_effects_entry_and_leave`, `challenge_effects_behind_scroll`, `scroll_effects_applied`
+(permanent scroll effects now last the remaining instance time).
+
+- [ ] Add `player_effects` / `player_attributes` to a structure JSON (`/reload`), enter: effects shown with the
+      remaining challenge time (not ∞), attribute active (e.g. slower walking).
+- [ ] Drink milk inside: effects are gone and stay gone; leaving and re-entering (with re-entry scroll) gives them
+      again.
+- [ ] Drink a night vision potion before entering a night vision challenge: inside the challenge effect is shown;
+      after leaving the potion is back with its old remaining time.
+- [ ] Scroll with a permanent effect upgrade: shows the remaining instance time instead of ∞; removed on leaving.
+- [ ] Scroll with a short speed effect + challenge speed II: first the scroll's speed, after it runs out speed II.
+- [ ] Leave by exit, death, time limit, `/at exit`, log out / in after the instance ended: nothing of it remains.
+- [ ] A modded effect / attribute works; a typo in an id only logs a warning.
+
+## US-33 (#62): Craft tier 1 scrolls and raise the tier
+
+GameTests: `scroll_tier_recipes` (blank → tier 1, tier 1 → 2 keeping components, wrong base / theme, cap, default
+tier 1).
+
+- [ ] In a dev run (test datapack): smithing table with paper + Blank Challenge Scroll + netherrack → Nether tier 1
+      scroll; again with that scroll → tier 2; up to tier 3.
+- [ ] Upgraded scrolls (options / effects) keep their upgrades when the tier is raised.
+- [ ] The recipe book (smithing tab) and JEI / EMI (if installed) show each step with the right input and result
+      scroll (tooltip shows theme and tier).
+- [ ] A recipe for a tier without challenges shows no result; adding a structure of that tier + `/reload` makes it
+      work.
+
+## US-26 (#49): Vault Marker
+
+GameTests: `vault_marker_resolves` (ominous vault, custom key with count, reward from the loot setup, once per
+player), `vault_marker_default_key_and_hint`, `vault_marker_world_import`.
+
+- [ ] Vault Marker in the creative tab; place it (faces you), right-click: Normal/Ominous button, key slot.
+- [ ] Loot tool on the marker: compose a reward; `/at marker loot_table <id>` as alternative. Both survive
+      `editor save` / `editor load`.
+- [ ] In a challenge: the vault looks normal / ominous, shows the floating preview cycling through possible rewards.
+- [ ] Click with an empty hand or a wrong item: action bar "Opens with: N× <key>" + vanilla fail sound.
+- [ ] Custom key (e.g. 2× renamed item): opens with exactly that (name / components must match), consumes 2.
+- [ ] Two players: each can unlock once; a second try of the same player fails. A new instance has a fresh vault.
+- [ ] Empty key slot: Trial Key (normal) / Ominous Trial Key (ominous) works.
+- [ ] Import a real trial chamber (`/at editor import`): vaults become Vault Markers (message counts them) with
+      variant, key and loot table; the resulting challenge works like the original.

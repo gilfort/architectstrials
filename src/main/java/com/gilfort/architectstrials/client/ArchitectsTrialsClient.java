@@ -59,6 +59,8 @@ public final class ArchitectsTrialsClient {
     @SubscribeEvent
     static void onRegisterMenuScreens(RegisterMenuScreensEvent event) {
         event.register(ModMenuTypes.SPAWN_MARKER.get(), SpawnMarkerScreen::new);
+        event.register(ModMenuTypes.EXIT_MARKER.get(), ExitMarkerScreen::new);
+        event.register(ModMenuTypes.VAULT_MARKER.get(), VaultMarkerScreen::new);
         event.register(ModMenuTypes.TRIAL_SPAWNER_MARKER.get(), TrialSpawnerMarkerScreen::new);
         event.register(ModMenuTypes.EQUIPMENT_LIST.get(), EquipmentListScreen::new);
         event.register(ModMenuTypes.LOOT_SETUP.get(), LootSetupScreen::new);

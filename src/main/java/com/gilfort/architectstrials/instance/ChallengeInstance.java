@@ -6,6 +6,7 @@ import java.util.UUID;
 
 import com.gilfort.architectstrials.scroll.ScrollEffects;
 import com.gilfort.architectstrials.scroll.ScrollOptions;
+import com.mojang.datafixers.util.Pair;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 
@@ -36,6 +37,7 @@ import net.minecraft.world.level.block.Rotation;
  * @param options        the multiplayer options of the scroll that opened the instance
  * @param effects        the effect upgrades of the scroll that opened the instance
  * @param roster         the players of the instance
+ * @param requiredMobs   the required mobs that seal the exits requiring them (US-30)
  */
 public record ChallengeInstance(
         UUID id,
@@ -53,7 +55,8 @@ public record ChallengeInstance(
         long portalDeadline,
         ScrollOptions options,
         ScrollEffects effects,
-        InstanceRoster roster
+        InstanceRoster roster,
+        RequiredMobs requiredMobs
 ) {
 
     /** Codec used to persist instances. */
@@ -73,8 +76,39 @@ public record ChallengeInstance(
             Codec.LONG.optionalFieldOf("portal_deadline", -1L).forGetter(ChallengeInstance::portalDeadline),
             ScrollOptions.CODEC.optionalFieldOf("options", ScrollOptions.DEFAULT).forGetter(ChallengeInstance::options),
             ScrollEffects.CODEC.optionalFieldOf("effects", ScrollEffects.NONE).forGetter(ChallengeInstance::effects),
-            InstanceRoster.CODEC.optionalFieldOf("roster", InstanceRoster.EMPTY).forGetter(ChallengeInstance::roster)
-    ).apply(instance, ChallengeInstance::new));
+            Codec.mapPair(InstanceRoster.CODEC.optionalFieldOf("roster", InstanceRoster.EMPTY),
+                    RequiredMobs.CODEC.optionalFieldOf("required_mobs", RequiredMobs.NONE))
+                    .forGetter(i -> Pair.of(i.roster(), i.requiredMobs()))
+    ).apply(instance, (id, theme, tier, structure, slot, origin, rotation, mirror, spawnPoints, exits, timeLimit, deadline,
+            portalDeadline, options, effects, tail) -> new ChallengeInstance(id, theme, tier, structure, slot, origin, rotation, mirror,
+            spawnPoints, exits, timeLimit, deadline, portalDeadline, options, effects, tail.getFirst(), tail.getSecond())));
+
+    /**
+     * Creates an instance without required mobs.
+     *
+     * @param id             the unique instance id
+     * @param theme          the theme id
+     * @param tier           the tier
+     * @param structure      the metadata id of the placed structure
+     * @param slot           the slot index
+     * @param origin         the placement origin
+     * @param rotation       the applied rotation
+     * @param mirror         the applied mirroring
+     * @param spawnPoints    the player entry points
+     * @param exits          the exit base positions
+     * @param timeLimit      the total time limit in ticks
+     * @param deadline       the clock value at which the time limit expires
+     * @param portalDeadline the clock value until which the portal is open, or {@code -1}
+     * @param options        the scroll options
+     * @param effects        the scroll effects
+     * @param roster         the players
+     */
+    public ChallengeInstance(UUID id, Identifier theme, int tier, Identifier structure, int slot, BlockPos origin, Rotation rotation,
+            Mirror mirror, List<SpawnPoint> spawnPoints, List<BlockPos> exits, long timeLimit, long deadline, long portalDeadline,
+            ScrollOptions options, ScrollEffects effects, InstanceRoster roster) {
+        this(id, theme, tier, structure, slot, origin, rotation, mirror, spawnPoints, exits, timeLimit, deadline, portalDeadline,
+                options, effects, roster, RequiredMobs.NONE);
+    }
 
     /** Creates an instance, defensively copying the marker-derived lists. */
     public ChallengeInstance {
@@ -105,7 +139,7 @@ public record ChallengeInstance(
      */
     public ChallengeInstance withSpawnPoints(List<SpawnPoint> points) {
         return new ChallengeInstance(this.id, this.theme, this.tier, this.structure, this.slot, this.origin, this.rotation,
-                this.mirror, points, this.exits, this.timeLimit, this.deadline, this.portalDeadline, this.options, this.effects, this.roster);
+                this.mirror, points, this.exits, this.timeLimit, this.deadline, this.portalDeadline, this.options, this.effects, this.roster, this.requiredMobs);
     }
 
     /**
@@ -116,7 +150,7 @@ public record ChallengeInstance(
      */
     public ChallengeInstance withExits(List<BlockPos> exitPositions) {
         return new ChallengeInstance(this.id, this.theme, this.tier, this.structure, this.slot, this.origin, this.rotation,
-                this.mirror, this.spawnPoints, exitPositions, this.timeLimit, this.deadline, this.portalDeadline, this.options, this.effects, this.roster);
+                this.mirror, this.spawnPoints, exitPositions, this.timeLimit, this.deadline, this.portalDeadline, this.options, this.effects, this.roster, this.requiredMobs);
     }
 
     /**
@@ -127,7 +161,7 @@ public record ChallengeInstance(
      */
     public ChallengeInstance withDeadline(long newDeadline) {
         return new ChallengeInstance(this.id, this.theme, this.tier, this.structure, this.slot, this.origin, this.rotation,
-                this.mirror, this.spawnPoints, this.exits, this.timeLimit, newDeadline, this.portalDeadline, this.options, this.effects, this.roster);
+                this.mirror, this.spawnPoints, this.exits, this.timeLimit, newDeadline, this.portalDeadline, this.options, this.effects, this.roster, this.requiredMobs);
     }
 
     /**
@@ -138,7 +172,7 @@ public record ChallengeInstance(
      */
     public ChallengeInstance withPortalDeadline(long newPortalDeadline) {
         return new ChallengeInstance(this.id, this.theme, this.tier, this.structure, this.slot, this.origin, this.rotation,
-                this.mirror, this.spawnPoints, this.exits, this.timeLimit, this.deadline, newPortalDeadline, this.options, this.effects, this.roster);
+                this.mirror, this.spawnPoints, this.exits, this.timeLimit, this.deadline, newPortalDeadline, this.options, this.effects, this.roster, this.requiredMobs);
     }
 
     /**
@@ -149,7 +183,19 @@ public record ChallengeInstance(
      */
     public ChallengeInstance withRoster(InstanceRoster newRoster) {
         return new ChallengeInstance(this.id, this.theme, this.tier, this.structure, this.slot, this.origin, this.rotation,
-                this.mirror, this.spawnPoints, this.exits, this.timeLimit, this.deadline, this.portalDeadline, this.options, this.effects, newRoster);
+                this.mirror, this.spawnPoints, this.exits, this.timeLimit, this.deadline, this.portalDeadline, this.options, this.effects, newRoster, this.requiredMobs);
+    }
+
+    /**
+     * Returns a copy of this instance with the given required mobs.
+     *
+     * @param mobs the required mobs
+     * @return the updated instance
+     */
+    public ChallengeInstance withRequiredMobs(RequiredMobs mobs) {
+        return new ChallengeInstance(this.id, this.theme, this.tier, this.structure, this.slot, this.origin, this.rotation,
+                this.mirror, this.spawnPoints, this.exits, this.timeLimit, this.deadline, this.portalDeadline, this.options, this.effects,
+                this.roster, mobs);
     }
 
     /**

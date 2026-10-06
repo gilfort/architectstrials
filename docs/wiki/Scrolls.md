@@ -28,6 +28,32 @@ The component `architectstrials:challenge` binds the scroll to a theme and tier:
 
 For testing: `/at scroll give <theme> <tier> [targets]`.
 
+## Crafting scrolls and raising the tier
+
+Players can progress without commands: a recipe of type `architectstrials:scroll_tier` (smithing table) defines one
+step of a theme. Write one short JSON per step into `data/<ns>/recipe/`:
+
+```json
+{
+  "type": "architectstrials:scroll_tier",
+  "theme": "mypack:crypt",
+  "tier": 1,
+  "template": "minecraft:paper",
+  "addition": "minecraft:bone"
+}
+```
+
+- `tier: 1` turns the **Blank Challenge Scroll** into a tier 1 scroll of the theme.
+- `tier: 2` (and higher) takes a scroll of the theme with tier 1 (one below) and raises it; options, effects, time
+  limit and name are kept.
+- No result if the theme has no challenge of that tier yet, so recipes for future tiers can be added in advance.
+- `template` and `addition` are normal ingredients (items or `#tags`); each step can use different ones.
+- The recipe book and recipe viewers show every step like any other smithing recipe.
+- A scroll whose `architectstrials:challenge` component has no `tier` counts as tier 1.
+
+Example pack with three steps: `crypt_tier_1.json` (paper + bone), `crypt_tier_2.json` (paper + bone block),
+`crypt_tier_3.json` (paper + wither skeleton skull).
+
 ## Time limit
 
 `architectstrials:time_limit` sets the challenge's time limit in **minutes**; without it the server config's
@@ -103,16 +129,17 @@ the scroll's values.
 |---|---|
 | `target` | `player` — every player entering; `mobs` — every mob of the instance |
 | `effect` | Effect id, e.g. `minecraft:luck` |
-| `duration` | Ticks (20 = 1 second); `-1` = infinite |
+| `duration` | Ticks (20 = 1 second); `-1` = permanent (players: the remaining time of the instance; mobs: infinite) |
 | `amplifier` | `0` = level I (default), `1` = level II, … |
 
-- **Player effects** are applied on every entry and show **no particles** (only the icon). They always sit on top
-  of an effect of the same type the player already has (e.g. a potion):
-  - behind a **finite** scroll effect the player's own effect is parked and resumes in the challenge once the
-    scroll effect runs out (a 3-minute potion + a 5-minute scroll effect = 5 minutes scroll effect, then the
-    3 minutes of the potion);
-  - an **infinite** scroll effect is removed when the player leaves the challenge, and the player's own effect
-    comes back with the time it had on entry.
+- **Player effects** are applied once on every entry and show **no particles** (only the icon). A permanent
+  effect lasts the remaining time of the instance; nothing is re-applied, so milk removes it for the rest of that
+  stay. They always sit on top of an effect of the same type the player already has (e.g. a potion), which is
+  parked behind them: behind a finite scroll effect it resumes once the scroll effect runs out (a 3-minute potion +
+  a 5-minute scroll effect = 5 minutes scroll effect, then the 3 minutes of the potion). A
+  [challenge effect](Building-Challenges#challenge-effects-and-attributes) of the same type waits between the two.
+- **Leaving** removes all player effects of the scroll and gives the player's own effects back with the time they
+  had on entry.
 - **Mob effects** are applied to all mobs on the first entry and to every mob that spawns or loads afterwards;
   they keep their particles as a hint to the players.
 - Applying an effect the scroll already has replaces it if the new one is **stronger or longer**; otherwise (and

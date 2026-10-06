@@ -21,9 +21,10 @@ import net.minecraft.world.phys.AABB;
  * @param anchor the base with the lowest coordinate along the line; renders the portal
  * @param facing the shared facing of all bases
  * @param width  the number of bases in the group ({@code 1..MAX_WIDTH})
- * @param locked whether any base of the group is powered
+ * @param locked whether the group is closed: any base powered or sealed
+ * @param sealed whether any base is sealed until the instance's required mobs are defeated (US-30)
  */
-public record ExitGroup(BlockPos anchor, Direction facing, int width, boolean locked) {
+public record ExitGroup(BlockPos anchor, Direction facing, int width, boolean locked, boolean sealed) {
 
     /** Maximum number of bases combined into one portal. */
     public static final int MAX_WIDTH = 3;
@@ -55,11 +56,14 @@ public record ExitGroup(BlockPos anchor, Direction facing, int width, boolean lo
         int groupStart = index / MAX_WIDTH * MAX_WIDTH;
         int width = Math.min(MAX_WIDTH, lineLength - groupStart);
         BlockPos anchor = lineStart.relative(along, groupStart);
-        boolean locked = false;
+        boolean powered = false;
+        boolean sealed = false;
         for (int i = 0; i < width; i++) {
-            locked |= level.getBlockState(anchor.relative(along, i)).getValue(ChallengeExitBlock.POWERED);
+            BlockState base = level.getBlockState(anchor.relative(along, i));
+            powered |= base.getValue(ChallengeExitBlock.POWERED);
+            sealed |= base.getValue(ChallengeExitBlock.SEALED);
         }
-        return Optional.of(new ExitGroup(anchor, facing, width, locked));
+        return Optional.of(new ExitGroup(anchor, facing, width, powered || sealed, sealed));
     }
 
     /**

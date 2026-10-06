@@ -11,6 +11,7 @@ and cannot be broken in survival.
 | Direct Spawn Marker | Mobs spawned right away (then air) |
 | Spawner Marker | A vanilla monster spawner |
 | Trial Spawner Marker | A vanilla trial spawner |
+| Vault Marker | A vanilla vault (reward behind a key, once per player) |
 
 When a structure is rotated or mirrored, markers move with it; mobs and spawners are not rotated otherwise.
 
@@ -37,6 +38,9 @@ only way to complete a run.
   portal blocks when the structure is placed. Players walking into them complete the run — the server only
   reacts on contact and checks nothing while nobody uses the exit. Blocks you build into that space stay and
   block the portal there.
+- **Needs required mobs:** right-click the Exit Marker (empty hand) and switch on **Needs all required mobs
+  defeated**. The exit is then sealed — locked look, no portal — until every [required mob](#direct-spawn-marker)
+  of the instance is defeated, and opens with a sound and message. Exits without the setting work as before.
 - **Bonus override:** look at the marker and run `/at marker loot_table <id>` to give this exit its own
   completion bonus (see [Loot](Loot#completion-bonus)). The [Loot Tool](Loot#loot-tool-composed-rewards)
   composes a bonus from several loot tables and items instead; it takes precedence over the loot table.
@@ -80,6 +84,13 @@ Further rules:
 Turns into air and spawns its mobs right away when the structure is placed. They never despawn. Several mobs of
 one marker are spread over free spots within 1.5 blocks — build a floor around the marker, or they may fall.
 
+**Required mobs:** the **Required** button in the marker's GUI (top right) makes all its mobs *required*, e.g. a
+boss. Required mobs glow for the whole challenge time (milk removes the glow for good — they are still required).
+Exits set to need them stay **sealed** until every required mob of the instance is gone; walking into a sealed exit
+shows "Defeat all marked enemies (2/5)". Any final removal counts — killed by players, by other mobs or the void,
+`/kill`, or a conversion (a zombie turning into a drowned). Only the Direct Spawn Marker has this option: spawners
+never stop spawning.
+
 ### Spawner Marker
 
 Becomes a vanilla monster spawner for the configured mob. The egg count is the number of mobs **per spawn
@@ -122,6 +133,22 @@ ominous variant with 3 wither skeletons and nether fortress loot:
 3. Switch to the ominous page — row 1: 3 wither skeleton spawn eggs. Toggle "Ominous: allowed".
 4. Look at the marker: `/at marker loot_table minecraft:chests/simple_dungeon` and
    `/at marker ominous_loot_table minecraft:chests/nether_bridge`.
+
+## Vault Marker
+
+Becomes a vanilla **vault**: players unlock it with a key and get a reward — every player once per instance (each
+new instance places a fresh vault). Right-click the marker to set it up:
+
+- **Normal / Ominous** (top right) — the vault's look and its default key and reward.
+- **Key slot** — any item, including count and components (name, enchantments, …); that many are consumed. Empty
+  = the vanilla key of the variant (Trial Key / Ominous Trial Key).
+- **Reward** — compose it with the [Loot Tool](Loot#loot-tool-composed-rewards) (rolled per player on unlock; the
+  floating preview shows possible rewards). Without a setup: the loot table set with `/at marker loot_table <id>`,
+  otherwise the vanilla trial chamber reward of the variant.
+
+Players clicking a vault in a challenge with the wrong item or an empty hand see what opens it, e.g. "Opens with:
+2× Crypt Key". [Importing](Building-Challenges#importing-areas-of-the-world) a trial chamber converts its vaults into Vault
+Markers with variant, key and loot table.
 
 ## Inspecting markers
 

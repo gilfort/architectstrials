@@ -1,0 +1,8 @@
+{
+  "type": "minecraft:function",
+  "environment": "minecraft:default",
+  "function": "architectstrials:game_mode_metadata_default",
+  "max_ticks": 40,
+  "structure": "minecraft:empty",
+  "padding": 8
+}

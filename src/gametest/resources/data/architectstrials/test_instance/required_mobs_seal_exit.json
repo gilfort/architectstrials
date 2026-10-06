@@ -1,0 +1,8 @@
+{
+  "type": "minecraft:function",
+  "environment": "minecraft:default",
+  "function": "architectstrials:required_mobs_seal_exit",
+  "max_ticks": 100,
+  "structure": "minecraft:empty",
+  "padding": 8
+}

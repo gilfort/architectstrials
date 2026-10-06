@@ -144,6 +144,8 @@ watered down: whoever hits it gets no emeralds on top.
 - **Trial Spawner Markers:** the GUI has a Normal/Ominous switch. A setup takes precedence over
   `/at marker loot_table`; for the ominous reward the order is ominous setup → ominous loot table → normal reward.
   The items are ejected like vanilla rewards.
+- **Vault Markers:** a setup is the vault's reward, rolled for every player who unlocks it (see
+  [Vault Marker](Markers#vault-marker)).
 - **Exit Markers:** a setup is the completion bonus of that exit and takes precedence over all loot tables
   (see [Completion bonus](#completion-bonus)).
 

@@ -2,7 +2,10 @@ package com.gilfort.architectstrials.marker;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
+import java.util.UUID;
 
 import com.gilfort.architectstrials.instance.ChallengeInstance;
 import com.gilfort.architectstrials.instance.SpawnPoint;
@@ -22,6 +25,7 @@ public final class MarkerContext {
     private final RandomSource random;
     private final List<SpawnPoint> spawnPoints = new ArrayList<>();
     private final List<BlockPos> exits = new ArrayList<>();
+    private final Set<UUID> requiredMobs = new LinkedHashSet<>();
 
     /**
      * Creates a context.
@@ -67,6 +71,20 @@ public final class MarkerContext {
      */
     public void addExit(BlockPos pos) {
         this.exits.add(pos);
+    }
+
+    /**
+     * Records a required mob (US-30).
+     *
+     * @param mob the UUID of the spawned mob
+     */
+    public void addRequiredMob(UUID mob) {
+        this.requiredMobs.add(mob);
+    }
+
+    /** @return the UUIDs of the recorded required mobs */
+    public Set<UUID> requiredMobs() {
+        return Collections.unmodifiableSet(this.requiredMobs);
     }
 
     /** @return the recorded exit base positions */

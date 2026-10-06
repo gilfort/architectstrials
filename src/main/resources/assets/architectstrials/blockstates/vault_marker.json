@@ -1,0 +1,16 @@
+{
+  "variants": {
+    "facing=north": {
+      "model": "architectstrials:block/vault_marker"
+    },
+    "facing=east": {
+      "model": "architectstrials:block/vault_marker"
+    },
+    "facing=south": {
+      "model": "architectstrials:block/vault_marker"
+    },
+    "facing=west": {
+      "model": "architectstrials:block/vault_marker"
+    }
+  }
+}

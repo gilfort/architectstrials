@@ -2,6 +2,7 @@ package com.gilfort.architectstrials.command;
 
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.UnaryOperator;
@@ -31,6 +32,7 @@ import net.minecraft.commands.arguments.IdentifierArgument;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.levelgen.structure.templatesystem.StructureTemplate;
 
 /**
@@ -41,7 +43,8 @@ import net.minecraft.world.level.levelgen.structure.templatesystem.StructureTemp
  * <li>{@code /architectstrials structure list [theme] [tier]}</li>
  * <li>{@code /architectstrials structure validate [theme] [tier]} — reports missing blocks, items, entity types,
  * loot tables and mob effects (e.g. after a mod was removed)</li>
- * <li>{@code /architectstrials structure set <theme> <tier> <id> weight <n> | rotation <bool> | name <text>}</li>
+ * <li>{@code /architectstrials structure set <theme> <tier> <id> weight <n> | rotation <bool> | game_mode <adventure|survival>
+ * | name <text>}</li>
  * <li>{@code /architectstrials structure delete <theme> <tier> <id>} (+ {@code confirm} within 30 seconds)</li>
  * </ul>
  * Saving, editing and deleting work on the managed datapack {@link StructureLibrary} and reload datapacks
@@ -111,6 +114,9 @@ final class StructureCommand {
                                 .executes(context -> set(context, s -> copy(s, s.name(), IntegerArgumentType.getInteger(context, "weight"), s.rotation())))))
                         .then(Commands.literal("rotation").then(Commands.argument("rotation", BoolArgumentType.bool())
                                 .executes(context -> set(context, s -> copy(s, s.name(), s.weight(), BoolArgumentType.getBool(context, "rotation"))))))
+                        .then(Commands.literal("game_mode")
+                                .then(Commands.literal("adventure").executes(context -> set(context, s -> withGameMode(s, GameType.ADVENTURE))))
+                                .then(Commands.literal("survival").executes(context -> set(context, s -> withGameMode(s, GameType.SURVIVAL)))))
                         .then(Commands.literal("name").then(Commands.argument("name", StringArgumentType.greedyString())
                                 .executes(context -> set(context, s -> copy(s, Optional.of(StringArgumentType.getString(context, "name")), s.weight(), s.rotation()))))))))
                 .then(Commands.literal("delete").then(entryArguments(true, id -> id
@@ -169,7 +175,10 @@ final class StructureCommand {
             }
             ChallengeStructure metadata = new ChallengeStructure(entry.theme(), entry.tier(), entry.structureId(),
                     existing.flatMap(ChallengeStructure::name), Optional.of(source.getTextName()), Optional.of(System.currentTimeMillis()),
-                    existing.map(ChallengeStructure::weight).orElse(1), existing.map(ChallengeStructure::rotation).orElse(false));
+                    existing.map(ChallengeStructure::weight).orElse(1), existing.map(ChallengeStructure::rotation).orElse(false),
+                    existing.map(ChallengeStructure::gameMode).orElse(GameType.ADVENTURE),
+                    existing.map(ChallengeStructure::playerEffects).orElse(List.of()),
+                    existing.map(ChallengeStructure::playerAttributes).orElse(List.of()));
             StructureLibrary.write(source.getServer(), entry, captured.get().template(), metadata);
         } catch (IOException e) {
             ArchitectsTrials.LOGGER.error("Could not save structure {}", entry, e);
@@ -215,7 +224,7 @@ final class StructureCommand {
         for (var e : entries) {
             ChallengeStructure s = e.getValue();
             source.sendSuccess(() -> Component.translatable("commands.architectstrials.structure.list.entry",
-                    e.getKey().toString(), s.name().orElse("-"), s.tier(), s.weight(), String.valueOf(s.rotation())), false);
+                    e.getKey().toString(), s.name().orElse("-"), s.tier(), s.weight(), String.valueOf(s.rotation()), s.gameMode().getName()), false);
         }
         return entries.size();
     }
@@ -300,7 +309,11 @@ final class StructureCommand {
     }
 
     private static ChallengeStructure copy(ChallengeStructure s, Optional<String> name, int weight, boolean rotation) {
-        return new ChallengeStructure(s.theme(), s.tier(), s.structure(), name, s.author(), s.created(), weight, rotation);
+        return s.with(name, weight, rotation, s.gameMode());
+    }
+
+    private static ChallengeStructure withGameMode(ChallengeStructure s, GameType gameMode) {
+        return s.with(s.name(), s.weight(), s.rotation(), gameMode);
     }
 
     private static void reloadThen(CommandSourceStack source, Component message) {

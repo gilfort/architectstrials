@@ -7,6 +7,7 @@ import com.gilfort.architectstrials.block.ExitMarkerBlock;
 import com.gilfort.architectstrials.block.PlayerSpawnMarkerBlock;
 import com.gilfort.architectstrials.block.SpawnMarkerBlock;
 import com.gilfort.architectstrials.block.TrialSpawnerMarkerBlock;
+import com.gilfort.architectstrials.block.VaultMarkerBlock;
 import com.gilfort.architectstrials.editor.EditorPlatformBlock;
 
 import net.minecraft.world.level.block.SoundType;
@@ -47,10 +48,14 @@ public final class ModBlocks {
     public static final DeferredBlock<TrialSpawnerMarkerBlock> TRIAL_SPAWNER_MARKER = BLOCKS.registerBlock(
             "trial_spawner_marker", TrialSpawnerMarkerBlock::new, properties -> markerProperties(properties).mapColor(MapColor.COLOR_CYAN));
 
+    /** Editor marker that becomes a vanilla vault (US-26). */
+    public static final DeferredBlock<VaultMarkerBlock> VAULT_MARKER = BLOCKS.registerBlock(
+            "vault_marker", VaultMarkerBlock::new, properties -> markerProperties(properties).mapColor(MapColor.GOLD));
+
     /** The functional challenge exit (redstone signal locks it). Only created by the exit marker resolver. */
     public static final DeferredBlock<ChallengeExitBlock> CHALLENGE_EXIT = BLOCKS.registerBlock(
             "challenge_exit", ChallengeExitBlock::new, properties -> markerProperties(properties)
-                    .mapColor(MapColor.COLOR_PURPLE).sound(SoundType.STONE).lightLevel(state -> state.getValue(ChallengeExitBlock.POWERED) ? 0 : 10));
+                    .mapColor(MapColor.COLOR_PURPLE).sound(SoundType.STONE).lightLevel(state -> state.getValue(ChallengeExitBlock.POWERED) || state.getValue(ChallengeExitBlock.SEALED) ? 0 : 10));
 
     /**
      * Invisible, unbreakable block filling the portal space of challenge exits; walking into it completes the run

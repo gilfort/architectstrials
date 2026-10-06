@@ -5,6 +5,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 import com.gilfort.architectstrials.ArchitectsTrials;
+import com.gilfort.architectstrials.block.ChallengeExitBlock;
 import com.gilfort.architectstrials.block.ChallengeExitPortalBlock;
 import com.gilfort.architectstrials.config.ArchitectsTrialsConfig;
 import com.gilfort.architectstrials.portal.ChallengePortal;
@@ -26,7 +27,10 @@ import net.minecraft.resources.Identifier;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.sounds.SoundEvents;
+import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.RandomSource;
+import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.block.Mirror;
 import net.minecraft.world.level.block.Rotation;
 import net.minecraft.world.level.levelgen.structure.templatesystem.StructurePlaceSettings;
@@ -194,6 +198,34 @@ public final class InstanceManager {
     }
 
     /**
+     * Counts a required mob of an instance as defeated (US-30). Once the last one is defeated, the exits that
+     * require them are unsealed and the participants are told.
+     *
+     * @param level      the theme level
+     * @param instanceId the instance id
+     * @param mob        the UUID of the defeated mob
+     */
+    public static void defeatRequiredMob(ServerLevel level, UUID instanceId, UUID mob) {
+        data(level).get(instanceId).filter(instance -> instance.requiredMobs().remaining().contains(mob)).ifPresent(instance -> {
+            ChallengeInstance updated = instance.withRequiredMobs(instance.requiredMobs().without(mob));
+            update(level, updated);
+            if (!updated.requiredMobs().allDefeated()) {
+                return;
+            }
+            updated.exits().forEach(exit -> {
+                ChallengeExitBlock.setSealed(level, exit, false);
+                level.playSound(null, exit, SoundEvents.BEACON_ACTIVATE, SoundSource.BLOCKS, 0.8F, 1.4F);
+            });
+            for (UUID participant : updated.participants()) {
+                ServerPlayer player = level.getServer().getPlayerList().getPlayer(participant);
+                if (player != null && player.level() == level) {
+                    player.sendOverlayMessage(Component.translatable("message.architectstrials.required.all_defeated"));
+                }
+            }
+        });
+    }
+
+    /**
      * Marks the entry portal of an instance as closed (e.g. a solo portal after its player went through).
      *
      * @param level the theme level
@@ -272,8 +304,8 @@ public final class InstanceManager {
 
     /**
      * Moves a player into a ready instance, onto a spawn point chosen independently at random for this player.
-     * The entry point is stored and bound to the instance, the player is switched to Adventure (see
-     * {@link ChallengeTravel#enter}) and becomes a participant and entrant. Admission rules (scroll options) are
+     * The entry point is stored and bound to the instance, the player is switched to the structure's game mode
+     * (Adventure by default, Survival for mining rooms) and becomes a participant and entrant. Admission rules (scroll options) are
      * checked by the portal, not here.
      *
      * @param player   the player
@@ -287,7 +319,8 @@ public final class InstanceManager {
         }
         List<SpawnPoint> points = instance.spawnPoints();
         SpawnPoint point = points.get(player.getRandom().nextInt(points.size()));
-        ChallengeTravel.enter(player, level, Vec3.atBottomCenterOf(point.pos()), point.facing().toYRot(), 0.0F, true);
+        GameType gameMode = ChallengeStructures.get(instance.structure()).map(ChallengeStructure::gameMode).orElse(GameType.ADVENTURE);
+        ChallengeTravel.enter(player, level, Vec3.atBottomCenterOf(point.pos()), point.facing().toYRot(), 0.0F, gameMode);
         ChallengeTravel.bindInstance(player, new EntryPoint.InstanceRef(level.dimension(), instance.id()));
         ChallengeInstance current = data(level).get(instance.id()).orElse(instance);
         update(level, current.withRoster(current.roster().entered(player.getUUID())));
