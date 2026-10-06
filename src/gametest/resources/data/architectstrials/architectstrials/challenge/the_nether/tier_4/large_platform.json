@@ -1,6 +1,6 @@
 {
-  "theme": "architectstrials:gametest_theme",
-  "tier": 2,
+  "theme": "minecraft:the_nether",
+  "tier": 4,
   "structure": "architectstrials:gametest/large_platform",
   "name": "Large platform (spread placement test)"
 }

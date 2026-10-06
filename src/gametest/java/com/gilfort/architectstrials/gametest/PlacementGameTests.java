@@ -17,7 +17,6 @@ import com.gilfort.architectstrials.theme.ChallengeThemes;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.gametest.framework.GameTestHelper;
-import net.minecraft.resources.Identifier;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.Level;
@@ -29,14 +28,13 @@ import net.neoforged.neoforge.registries.RegisterEvent;
 /**
  * GameTests for US-28 (structure placement spread over ticks, restart handling, slot lookup by position).
  * <p>
- * Uses {@code architectstrials:gametest_theme} tier 2, whose only structure is a 48×17×48 platform of about
- * 37,000 blocks — more than two ticks of placement budget.
+ * Uses {@code minecraft:the_nether} tier 4, whose only structure is a 48×17×48 platform of about 37,000 blocks —
+ * more than two ticks of placement budget.
  */
 @EventBusSubscriber(modid = ArchitectsTrials.MOD_ID)
 public final class PlacementGameTests {
 
-    private static final Identifier THEME = ArchitectsTrials.id("gametest_theme");
-    private static final int LARGE_TIER = 2;
+    private static final int LARGE_TIER = 4;
 
     private PlacementGameTests() {
     }
@@ -66,7 +64,7 @@ public final class PlacementGameTests {
      * points.
      */
     private static void spreadsOverTicks(GameTestHelper helper) {
-        ServerLevel level = themeLevel(helper);
+        ServerLevel level = TestPlayers.challengeLevel(helper);
         ChallengeInstance created = createSpread(level);
         long startTick = helper.getTick();
         helper.assertFalse(created.ready(), "Instance was ready in its creation tick");
@@ -91,7 +89,7 @@ public final class PlacementGameTests {
      * its slot is cleared.
      */
     private static void interruptedIsDiscarded(GameTestHelper helper) {
-        ServerLevel level = themeLevel(helper);
+        ServerLevel level = TestPlayers.challengeLevel(helper);
         ChallengeInstance created = createSpread(level);
         InstancePlacements.abandon(level.getServer(), created.id());
         helper.assertTrue(InstanceManager.data(level).get(created.id()).isPresent(), "Instance vanished with its placement");
@@ -131,7 +129,7 @@ public final class PlacementGameTests {
     }
 
     private static ChallengeInstance createSpread(ServerLevel level) {
-        ChallengeTheme theme = ChallengeThemes.get(THEME).orElseThrow();
+        ChallengeTheme theme = ChallengeThemes.get(Level.NETHER.identifier()).orElseThrow();
         InstancePlacements.setImmediate(false);
         InstanceCreation result;
         try {
@@ -143,13 +141,5 @@ public final class PlacementGameTests {
             return instance;
         }
         throw new IllegalStateException("Instance creation failed: " + ((InstanceCreation.Failure) result).reason().getString());
-    }
-
-    private static ServerLevel themeLevel(GameTestHelper helper) {
-        ServerLevel level = helper.getLevel().getServer().getLevel(ResourceKey.create(Registries.DIMENSION, THEME));
-        if (level == null) {
-            throw new IllegalStateException("Dimension " + THEME + " is not loaded");
-        }
-        return level;
     }
 }
