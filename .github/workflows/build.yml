@@ -59,13 +59,3 @@ jobs:
             run/logs/
             build/run/gameTestServer/logs/
           if-no-files-found: ignore
-
-      # TEMPORARY: prints feature signatures for the ore generation (US-37); removed again afterwards.
-      - name: Inspect feature classes
-        if: always()
-        run: |
-          mc=build/moddev/artifacts/minecraft-patched-26.3.0.34-beta.jar
-          for c in feature.Feature feature.OreFeature feature.ScatteredOreFeature placement.HeightmapPlacement feature.configurations.OreConfiguration; do
-            echo "=== $c"; javap -cp "$mc" "net.minecraft.world.level.levelgen.$c" | grep -v 'lambda\$\|^Compiled\|^}' | sed 's/net\.minecraft\.//g; s/java\.util\.//g' | head -40 || true
-          done
-          unzip -l $mc | awk '{print $4}' | grep -E "levelgen/feature/[A-Za-z]*Feature\.class$" | sed 's#.*/##' | tr '\n' ' ' | head -c 3000
