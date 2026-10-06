@@ -51,6 +51,26 @@ public final class SlotManager {
     }
 
     /**
+     * Computes the slot whose area contains a horizontal position, using the level's effective spacing.
+     *
+     * @param level the level
+     * @param x     the block X
+     * @param z     the block Z
+     * @return the slot index, or {@code -1} if the position lies between slot areas
+     */
+    public static int indexAt(ServerLevel level, int x, int z) {
+        int spacing = data(level).effectiveSpacing(ArchitectsTrialsConfig.SLOT_SPACING.getAsInt());
+        int index = SlotGrid.index(Math.floorDiv(x + spacing / 2, spacing), Math.floorDiv(z + spacing / 2, spacing));
+        if (index < 0) {
+            return -1;
+        }
+        Slot slot = SlotGrid.slot(index, spacing);
+        boolean inside = x >= slot.centerX() - Slot.HALF_EXTENT && x < slot.centerX() + Slot.HALF_EXTENT
+                && z >= slot.centerZ() - Slot.HALF_EXTENT && z < slot.centerZ() + Slot.HALF_EXTENT;
+        return inside ? index : -1;
+    }
+
+    /**
      * Allocates the free slot closest to the origin.
      *
      * @param level the level to allocate in

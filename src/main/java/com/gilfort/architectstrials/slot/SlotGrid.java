@@ -6,6 +6,9 @@ package com.gilfort.architectstrials.slot;
  */
 public final class SlotGrid {
 
+    /** Largest ring whose indices still fit into an {@code int}. */
+    private static final int MAX_RING = 23_000;
+
     private SlotGrid() {
     }
 
@@ -48,5 +51,34 @@ public final class SlotGrid {
             case 2 -> new int[] {-ring, ring - 1 - position};
             default -> new int[] {-ring + 1 + position, -ring};
         };
+    }
+
+    /**
+     * Computes the slot index of a grid cell; the inverse of {@link #cell(int)}.
+     *
+     * @param x the cell X
+     * @param z the cell Z
+     * @return the slot index, or {@code -1} if the cell is too far out to have an {@code int} index
+     */
+    public static int index(int x, int z) {
+        int ring = Math.max(Math.abs(x), Math.abs(z));
+        if (ring == 0) {
+            return 0;
+        }
+        if (ring > MAX_RING) {
+            return -1;
+        }
+        int base = (2 * ring - 1) * (2 * ring - 1);
+        int side = 2 * ring;
+        if (x == ring && z > -ring) {
+            return base + z + ring - 1;
+        }
+        if (z == ring && x < ring) {
+            return base + side + ring - 1 - x;
+        }
+        if (x == -ring && z < ring) {
+            return base + 2 * side + ring - 1 - z;
+        }
+        return base + 3 * side + x + ring - 1;
     }
 }

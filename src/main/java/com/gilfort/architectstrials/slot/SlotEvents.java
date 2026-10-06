@@ -1,6 +1,7 @@
 package com.gilfort.architectstrials.slot;
 
 import com.gilfort.architectstrials.ArchitectsTrials;
+import com.gilfort.architectstrials.instance.InstancePlacements;
 
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
@@ -28,13 +29,16 @@ public final class SlotEvents {
     }
 
     /**
-     * Advances slot clearing once per tick.
+     * Advances slot clearing once per tick. Clearing pauses while instance structures are being placed, so both
+     * never add up within one tick.
      *
      * @param event the server tick event
      */
     @SubscribeEvent
     static void onServerTick(ServerTickEvent.Post event) {
-        SlotManager.tick(event.getServer());
+        if (!InstancePlacements.busy()) {
+            SlotManager.tick(event.getServer());
+        }
     }
 
     /**

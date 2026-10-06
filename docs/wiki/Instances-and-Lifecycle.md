@@ -14,8 +14,22 @@ When an instance ends, its slot is **cleared** over several ticks — blocks, bl
 (including those in chunks that were no longer loaded), without drops — before it is reused. Clearing that was
 interrupted by a server stop resumes on the next start.
 
-`maxConcurrentInstances` limits the number of simultaneous instances per theme dimension (`0` = unlimited); at
-the limit, scrolls fail without being consumed.
+`maxConcurrentInstances` limits the number of simultaneous instances per theme dimension (default 4, `0` =
+unlimited); at the limit, scrolls fail without being consumed.
+
+## Placement
+
+Opening an instance never freezes the server: its structure is **placed over several ticks** with a fixed budget
+per tick (about 16,000 blocks), bottom to top, after its chunks have been loaded in the background. Markers are
+resolved last. Until then the entry portal stays in its forming state (rune particles) — nobody can enter a
+half-built instance. A 128 × 128 structure with 60 layers takes a few seconds; small rooms are ready within the
+portal's normal forming time. While a structure is being placed, slot clearing pauses, so both never add up.
+
+If the server stops during placement, the unfinished instance is discarded on the next start and its slot is
+cleared; its portal disappears.
+
+Structures whose template has no Player Spawn Marker are detected when they are drawn: they are skipped with a
+warning in the log and removed from the pool until the next `/reload`.
 
 ## Entering and leaving
 

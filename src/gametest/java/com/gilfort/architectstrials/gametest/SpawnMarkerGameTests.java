@@ -1,6 +1,7 @@
 package com.gilfort.architectstrials.gametest;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.function.Consumer;
 
@@ -142,11 +143,14 @@ public final class SpawnMarkerGameTests {
     }
 
     /**
-     * Structures whose template has no player spawn marker are removed from the pool on validation.
+     * Structures whose template has no player spawn marker are never drawn and are removed from the pool when
+     * drawn (templates are checked lazily, not on reload).
      */
     private static void structureValidation(GameTestHelper helper) {
         Identifier markerless = ArchitectsTrials.id("gametest_validation/tier_1/igloo");
-        ChallengeStructures.validate(helper.getLevel().getServer());
+        Optional<Identifier> drawn = ChallengeStructures.drawEnterable(helper.getLevel().getServer(), ArchitectsTrials.id("gametest_validation"), 1,
+                helper.getLevel().getRandom());
+        helper.assertTrue(drawn.isEmpty(), "A structure without spawn marker was drawn: " + drawn);
         helper.assertTrue(ChallengeStructures.get(markerless).isEmpty(), "Structure without spawn marker was not skipped");
         helper.assertTrue(ChallengeStructures.get(ArchitectsTrials.id("the_nether/tier_2/spawn_platform")).isPresent(),
                 "Structure with spawn markers was skipped");

@@ -67,8 +67,8 @@
   "architectstrials.instance.state.active": "active",
   "architectstrials.instance.state.idle": "idle",
   "architectstrials.instance.state.cleanup_due": "cleanup due",
-  "commands.architectstrials.instance.create.not_ready": "The structure has no player spawn marker, so nobody can enter this instance.",
-  "commands.architectstrials.instance.create.success": "Placed structure %s in slot #%s at %s %s %s (instance %s)",
+  "commands.architectstrials.instance.create.placing": "Placing the structure – you will join once it is ready.",
+  "commands.architectstrials.instance.create.success": "Created instance %6$s with structure %1$s in slot #%2$s at %3$s %4$s %5$s",
 
   "commands.architectstrials.scroll.give.success": "Gave %s a %s",
 
@@ -216,6 +216,7 @@
   "message.architectstrials.instance.pool_empty": "No structures are stored for %s tier %s.",
   "message.architectstrials.instance.template_missing": "The structure template %s could not be loaded.",
   "message.architectstrials.instance.too_large": "The structure %s is larger than %s×%2$s blocks.",
+  "message.architectstrials.instance.no_spawn": "The structure %s has no player spawn marker, so nobody could enter it.",
   "message.architectstrials.instance.no_slot": "The maximum number of concurrent challenges for this theme is reached. Try again later.",
   "message.architectstrials.run_completed": "Challenge completed: %s, Tier %s!",
   "message.architectstrials.editor.loot_container_locked": "Pool loot container (%s) – not opened in the editor so the loot table is kept. Remove it with /at marker loot_table clear",
