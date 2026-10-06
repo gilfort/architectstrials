@@ -36,7 +36,13 @@ All JSON formats of the mod at a glance. `<ns>` is your datapack namespace.
   "created": 1790000000000,
   "weight": 1,
   "rotation": false,
-  "game_mode": "adventure"
+  "game_mode": "adventure",
+  "ore_generation": {
+    "biome": "minecraft:plains",
+    "min_y": -64,
+    "max_y": 319,
+    "density": 1.0
+  }
 }
 ```
 
@@ -50,6 +56,7 @@ All JSON formats of the mod at a glance. `<ns>` is your datapack namespace.
 | `rotation` | no (false) | Random rotation and mirroring on placement |
 | `game_mode` | no (`adventure`) | Game mode players enter in: `adventure` or `survival` (mining rooms) |
 | `player_effects` | no | List of `{effect, amplifier (0), duration (-1 = whole stay)}` every player gets on entry |
+| `ore_generation` | no | Natural ores on instance creation: `biome` (required), `min_y` / `max_y` (simulated height of the lowest / highest layer; default: the biome's dimension), `density` (ore attempt factor; default: vanilla density). See [Mining rooms](Building-Challenges#natural-ores) |
 | `player_attributes` | no | List of `{attribute, amount, operation (add_value \| add_multiplied_base \| add_multiplied_total)}` while inside |
 
 ## Scroll components

@@ -117,8 +117,38 @@ JSON) to build mining rooms:
 - Leaving restores the player's own game mode, as always; the Dimension Ward keeps the inventory, including
   everything mined.
 
-Example: a cave carved out of stone with a few ore veins, a Player Spawn Marker on a ledge and an Exit Marker
-behind a redstone-locked door that opens once the players reach the bottom.
+### Natural ores
+
+Instead of placing ore veins by hand, let every instance get its own ores: add an `ore_generation` block to the
+structure's JSON (see [Datapack Reference](Datapack-Reference#structure-metadata)).
+
+```json
+"ore_generation": {
+  "biome": "minecraft:plains",
+  "min_y": -64,
+  "max_y": 319
+}
+```
+
+- The **ore features of the biome** are used (its underground ores step): coal, iron, copper, gold, diamonds, …
+  plus dirt, gravel, granite and similar blobs, and ores other mods add to that biome. Springs, geodes, fossils
+  and dripstone are not placed. A Nether biome such as `minecraft:nether_wastes` gives quartz, Nether gold and
+  ancient debris in netherrack.
+- **Height:** the structure's lowest layer counts as `min_y`, its highest as `max_y`, everything in between is
+  stretched linearly. So diamonds sit at the bottom and coal goes up to the top of the room, wherever the instance
+  is placed. Without `min_y` / `max_y` the range of the biome's dimension is used (Overworld −64..319, Nether
+  0..127, End 0..255).
+- **Only replaceable blocks change**, exactly as in world generation: Overworld ores replace stone (deepslate
+  variants in deepslate), Nether ores replace netherrack. Markers, chests, bricks, planks, glass … stay as built.
+- **Amount:** by default as many ores per block as in vanilla. `"density": 3` triples the attempts for a rich mine,
+  `0.5` halves them.
+- Every instance gets a different distribution; the saved structure is never changed. Ores are generated right
+  after the structure is built (a few chunks per tick) and before the markers are resolved.
+- An unknown biome only logs a warning; the challenge then has no ores.
+
+Example: a cave carved out of stone and deepslate (deepslate in the lower part), `game_mode: survival`, an
+`ore_generation` block with `minecraft:plains`, a Player Spawn Marker on a ledge and an Exit Marker behind a
+redstone-locked door that opens once the players reach the bottom.
 
 ## Challenge effects and attributes
 

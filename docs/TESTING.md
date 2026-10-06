@@ -204,3 +204,26 @@ GUI remove button), `exit_camouflage_carried_over` (exit gets the camouflage, ro
 - [ ] Breaking particles / sounds stay the exit's; grass-like blocks may be untinted (grey), check how it looks.
 - [ ] Survival player cannot change the camouflage of a placed exit (right-click with a block does nothing special).
 
+## US-37 (#66): Natural ore generation when an instance is created
+
+GameTests: `ore_generation_overworld` (Overworld ores in a stone room inside the Nether dimension, diamonds only
+low, stone brick pillar and markers intact, two instances differ), `ore_generation_nether` (quartz / Nether gold in
+netherrack), `ore_generation_disabled` (no setting, unknown biome), `ore_generation_settings` (JSON, default range
+and density).
+
+Test rooms in the dev datapack: `/at instance create minecraft:the_nether 8 join` (16 × 32 × 16 stone, plains,
+density 4), tier 9 (netherrack, nether wastes), tier 10 (unknown biome), tier 11 (no ore generation).
+
+- [ ] Tier 8: mine into the room (Spectator or `game_mode` survival via `/at structure set`) — coal / iron /
+      copper / granite / dirt / gravel visible, diamonds and redstone near the bottom, coal also at the top.
+- [ ] Tier 9: quartz and Nether gold in netherrack (ancient debris rare).
+- [ ] Open tier 8 twice: different ore positions. The saved structure (`/at editor load`) has no ores.
+- [ ] Tier 10: one warning "Ore generation uses unknown biome …" in the log, no ores, challenge works.
+- [ ] A real mining room: deepslate in the lower part gets deepslate ores; chests, markers, planks, glass are
+      untouched; spawners / chests from markers are on intact blocks.
+- [ ] `density` 0.2 vs 5 is clearly visible. Without `density` it looks roughly like a vanilla cave.
+- [ ] Modded ores (a mod adding ores to Overworld biomes via biome modifiers) appear in an Overworld ore room.
+- [ ] Lag check: a 128 × 128 × 64 stone room with ore generation, opened via scroll on a dedicated server — no
+      freeze (`/tick query`); the portal becomes active a little later than without ores.
+- [ ] Server restart directly after opening such a portal: the instance is discarded as with US-28.
+

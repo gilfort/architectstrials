@@ -19,7 +19,7 @@ import net.minecraft.world.level.biome.Biome;
  * "ore_generation": {
  *   "biome": "minecraft:plains",
  *   "min_y": -64,
- *   "max_y": 320,
+ *   "max_y": 319,
  *   "density": 0.5
  * }
  * }</pre>

@@ -3,7 +3,6 @@ package com.gilfort.architectstrials.instance;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Stream;
 
 import org.jspecify.annotations.Nullable;
 
@@ -116,13 +115,15 @@ final class OreGenerator {
             PlacedFeature feature = this.features.get(index);
             random.setFeatureSeed(decorationSeed, index, STEP);
             SimulatedContext context = new SimulatedContext(level, generator, feature, this.simulatedMin, this.simulatedHeight);
-            Stream<BlockPos> positions = Stream.of(origin);
+            List<BlockPos> positions = List.of(origin);
             for (PlacementModifier modifier : feature.placement()) {
                 if (!(modifier instanceof BiomeFilter)) {
-                    positions = positions.flatMap(pos -> modifier.getPositions(context, random, pos));
+                    List<BlockPos> next = new ArrayList<>();
+                    positions.forEach(pos -> modifier.modify(context, random, pos, next::add));
+                    positions = next;
                 }
             }
-            for (BlockPos simulated : positions.toList()) {
+            for (BlockPos simulated : positions) {
                 BlockPos pos = new BlockPos(simulated.getX(), this.realY(simulated.getY()), simulated.getZ());
                 if (!this.box.isInside(pos)) {
                     continue;
