@@ -1,5 +1,7 @@
 # Architect's Trials
 
+[![Build](https://github.com/gilfort/architectstrials/actions/workflows/build.yml/badge.svg)](https://github.com/gilfort/architectstrials/actions/workflows/build.yml)
+
 A NeoForge mod for Minecraft 26.3. Players open portals with scrolls into themed challenge dimensions, fight and
 loot inside hand-built structures and always return without losing their inventory. All content (themes,
 structures, tiers, scrolls) is defined by modpack creators via datapacks and an in-game editor — no Java code
