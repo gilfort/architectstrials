@@ -2,6 +2,7 @@ package com.gilfort.architectstrials.command;
 
 import java.util.Collection;
 
+import com.gilfort.architectstrials.config.ArchitectsTrialsConfig;
 import com.gilfort.architectstrials.structure.ChallengeStructures;
 import com.gilfort.architectstrials.theme.ChallengeTheme;
 import com.gilfort.architectstrials.theme.ChallengeThemes;
@@ -32,8 +33,6 @@ import net.minecraft.world.phys.Vec3;
  */
 final class ThemeCommand {
 
-    /** Y level players are teleported to; challenge dimensions are void worlds without terrain. */
-    private static final double TELEPORT_Y = 64.0;
 
     /** Error thrown when a theme id does not match any loaded theme. */
     static final DynamicCommandExceptionType UNKNOWN_THEME = new DynamicCommandExceptionType(
@@ -120,7 +119,7 @@ final class ThemeCommand {
             throw UNKNOWN_THEME.create(id);
         }
 
-        ChallengeTravel.enter(player, level, new Vec3(0.5, TELEPORT_Y, 0.5), player.getYRot(), player.getXRot(), false);
+        ChallengeTravel.enter(player, level, new Vec3(0.5, ArchitectsTrialsConfig.STRUCTURE_PLACEMENT_Y.getAsInt(), 0.5), player.getYRot(), player.getXRot(), false);
         source.sendSuccess(() -> Component.translatable("commands.architectstrials.theme.tp.success",
                 player.getDisplayName(), theme.displayName()), true);
         if (!player.isCreative() && !player.isSpectator()) {

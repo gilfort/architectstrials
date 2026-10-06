@@ -20,6 +20,7 @@ import net.minecraft.resources.Identifier;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.Level;
@@ -56,6 +57,7 @@ public final class ScrollPortalGameTests {
             register(helper, "scroll_opens_portal_and_owner_enters", ScrollPortalGameTests::opensPortalAndOwnerEnters);
             register(helper, "scroll_failures_keep_scroll", ScrollPortalGameTests::failuresKeepScroll);
             register(helper, "portal_expires_unused", ScrollPortalGameTests::expiresUnused);
+            register(helper, "portal_expired_scroll_drop_chance", ScrollPortalGameTests::expiredScrollDropChance);
         });
     }
 
@@ -151,6 +153,45 @@ public final class ScrollPortalGameTests {
         helper.assertTrue(portal.isRemoved(), "Unused portal did not collapse");
         helper.assertTrue(InstanceManager.data(challenge).get(portal.instanceId()).isEmpty(), "Instance of the expired portal was not cleaned up");
         TestPlayers.finish(helper, owner);
+    }
+
+    /**
+     * The scroll of an unused portal drops back according to {@code unusedPortalScrollDropChance}: never at 0.0,
+     * always at 1.0.
+     */
+    private static void expiredScrollDropChance(GameTestHelper helper) {
+        ServerPlayer owner = qualified(TestPlayers.atStart(helper, GameType.SURVIVAL), PLATFORM_TIER);
+        double previousChance = ArchitectsTrialsConfig.UNUSED_PORTAL_SCROLL_DROP_CHANCE.getAsDouble();
+        int previousTimeout = ArchitectsTrialsConfig.PORTAL_TIMEOUT_SECONDS.getAsInt();
+        ArchitectsTrialsConfig.PORTAL_TIMEOUT_SECONDS.set(1);
+        try {
+            ArchitectsTrialsConfig.UNUSED_PORTAL_SCROLL_DROP_CHANCE.set(0.0);
+            helper.assertTrue(droppedScrollsAfterExpiry(helper, owner) == 0, "Scroll dropped although the chance is 0");
+            ArchitectsTrialsConfig.UNUSED_PORTAL_SCROLL_DROP_CHANCE.set(1.0);
+            helper.assertTrue(droppedScrollsAfterExpiry(helper, owner) == 1, "Scroll did not drop although the chance is 1");
+        } finally {
+            ArchitectsTrialsConfig.UNUSED_PORTAL_SCROLL_DROP_CHANCE.set(previousChance);
+            ArchitectsTrialsConfig.PORTAL_TIMEOUT_SECONDS.set(previousTimeout);
+        }
+        TestPlayers.finish(helper, owner);
+    }
+
+    /**
+     * Opens a portal, lets it expire unused and returns the number of scroll item entities dropped around it.
+     * Removes the dropped items again afterwards.
+     */
+    private static int droppedScrollsAfterExpiry(GameTestHelper helper, ServerPlayer owner) {
+        clearPortalSpace(helper);
+        ChallengePortal portal = ScrollActivation.activate(owner, scroll(Level.NETHER.identifier(), PLATFORM_TIER),
+                helper.absolutePos(PORTAL), 0.0F).portal().orElseThrow();
+        for (int i = 0; i <= ChallengePortal.FORMING_TICKS + 25 && !portal.isRemoved(); i++) {
+            portal.tick();
+        }
+        helper.assertTrue(portal.isRemoved(), "Unused portal did not collapse");
+        List<ItemEntity> drops = helper.getLevel().getEntitiesOfClass(ItemEntity.class, new AABB(helper.absolutePos(PORTAL)).inflate(3),
+                item -> item.getItem().is(ModItems.CHALLENGE_SCROLL.get()));
+        drops.forEach(ItemEntity::discard);
+        return drops.size();
     }
 
     private static void assertFailureKeeps(GameTestHelper helper, ServerPlayer player, ItemStack scroll, BlockPos pos, String scenario) {

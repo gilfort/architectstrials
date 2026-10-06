@@ -23,8 +23,9 @@ public final class ArchitectsTrialsConfig {
 
     /** Maximum number of simultaneously occupied slots per theme dimension; {@code 0} means unlimited. */
     public static final ModConfigSpec.IntValue MAX_CONCURRENT_INSTANCES = BUILDER
-            .comment("Maximum number of simultaneous challenge instances per theme dimension. 0 = unlimited.")
-            .defineInRange("maxConcurrentInstances", 0, 0, Integer.MAX_VALUE);
+            .comment("Maximum number of simultaneous challenge instances per theme dimension. 0 = unlimited.",
+                    "Every running instance brings its own mobs and spawners; raise it if your server can handle more.")
+            .defineInRange("maxConcurrentInstances", 4, 0, Integer.MAX_VALUE);
 
     /** Y coordinate the bottom of every challenge structure is placed at. */
     public static final ModConfigSpec.IntValue STRUCTURE_PLACEMENT_Y = BUILDER
@@ -34,8 +35,13 @@ public final class ArchitectsTrialsConfig {
     /** Seconds an opened, ready portal waits for its player before it collapses. */
     public static final ModConfigSpec.IntValue PORTAL_TIMEOUT_SECONDS = BUILDER
             .comment("Seconds an opened, ready challenge portal waits for its player before it collapses.",
-                    "The instance is cleaned up and the scroll drops again with a 50% chance.")
+                    "The instance is cleaned up and the scroll may drop again (see unusedPortalScrollDropChance).")
             .defineInRange("portalTimeoutSeconds", 60, 1, 3600);
+
+    /** Chance that the scroll drops back when an opened portal collapses unused. */
+    public static final ModConfigSpec.DoubleValue UNUSED_PORTAL_SCROLL_DROP_CHANCE = BUILDER
+            .comment("Chance (0.0-1.0) that the scroll drops back when an opened portal collapses unused.")
+            .defineInRange("unusedPortalScrollDropChance", 0.5, 0.0, 1.0);
 
     /** Rank every player starts with in every theme; 0 blocks all scrolls until upgraded. */
     public static final ModConfigSpec.IntValue STARTING_RANK = BUILDER

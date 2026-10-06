@@ -12,7 +12,8 @@ player who used the scroll can enter, and the portal closes behind them.
 The scroll is consumed only if the portal opened — never when the tier's pool is empty, the instance limit is
 reached, space is missing, the player's rank is too low or the scroll is used inside an Architect's Trials
 dimension. If nobody enters within `portalTimeoutSeconds` (default 60), the portal collapses, the instance is
-cleaned up and the scroll drops again with a 50 % chance.
+cleaned up and the scroll drops again with the chance set in `unusedPortalScrollDropChance` (default 50 %, see
+[Configuration](Configuration)).
 
 ## Theme and tier
 
