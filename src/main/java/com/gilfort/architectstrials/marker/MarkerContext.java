@@ -13,6 +13,8 @@ import com.gilfort.architectstrials.instance.SpawnPoint;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.RandomSource;
+import net.minecraft.world.level.block.Mirror;
+import net.minecraft.world.level.block.Rotation;
 
 /**
  * Context handed to {@link MarkerResolver}s during the marker pass of an instance placement. Resolvers use it
@@ -26,6 +28,8 @@ public final class MarkerContext {
     private final List<SpawnPoint> spawnPoints = new ArrayList<>();
     private final List<BlockPos> exits = new ArrayList<>();
     private final Set<UUID> requiredMobs = new LinkedHashSet<>();
+    private Rotation rotation;
+    private Mirror mirror;
 
     /**
      * Creates a context.
@@ -38,6 +42,30 @@ public final class MarkerContext {
         this.level = level;
         this.instance = instance;
         this.random = random;
+        this.rotation = instance.rotation();
+        this.mirror = instance.mirror();
+    }
+
+    /**
+     * Sets the transformation of the structure whose markers are resolved next: the instance's own for the main
+     * structure, the sub structure's for sub structures (US-32).
+     *
+     * @param rotation the rotation
+     * @param mirror   the mirroring
+     */
+    public void useTransform(Rotation rotation, Mirror mirror) {
+        this.rotation = rotation;
+        this.mirror = mirror;
+    }
+
+    /** @return the rotation of the structure whose markers are being resolved */
+    public Rotation rotation() {
+        return this.rotation;
+    }
+
+    /** @return the mirroring of the structure whose markers are being resolved */
+    public Mirror mirror() {
+        return this.mirror;
     }
 
     /** @return the theme level the structure was placed in */

@@ -123,7 +123,7 @@ public class ExitMarkerBlock extends HorizontalDirectionalBlock implements Entit
 
     /**
      * Marker resolver: replaces the marker by a functional exit (locked if already powered), carries over its
-     * bonus loot table reference, loot setup, "requires required mobs" setting and camouflage (rotated with the
+     * bonus loot table reference, loot setup, "requires required mobs" setting and camouflage (turned with the
      * structure) and records it.
      *
      * @param context the placement context
@@ -136,7 +136,7 @@ public class ExitMarkerBlock extends HorizontalDirectionalBlock implements Entit
         LootSetup setup = context.level().getBlockEntity(pos) instanceof LootSetupHolder holder ? holder.lootSetup(false) : LootSetup.EMPTY;
         boolean requiresMobs = context.level().getBlockEntity(pos) instanceof ExitMarkerBlockEntity exitMarker && exitMarker.requiresMobs();
         Optional<BlockState> camouflage = context.level().getBlockEntity(pos) instanceof ExitMarkerBlockEntity camouflaged
-                ? ExitCamouflage.rotate(camouflaged.camouflage(), context.instance().rotation()) : Optional.empty();
+                ? ExitCamouflage.transform(camouflaged.camouflage(), context.rotation(), context.mirror()) : Optional.empty();
         Direction facing = marker.getBlock() instanceof ExitMarkerBlock ? marker.getValue(FACING) : Direction.NORTH;
         BlockState exit = ModBlocks.CHALLENGE_EXIT.get().defaultBlockState()
                 .setValue(ChallengeExitBlock.FACING, facing)

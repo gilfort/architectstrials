@@ -11,6 +11,8 @@ All JSON formats of the mod at a glance. `<ns>` is your datapack namespace.
 | `data/<ns>/architectstrials/challenge_dimensions.json` | Theme list | [Themes & Dimensions](Themes-and-Dimensions#2-the-theme-list) |
 | `data/<ns>/structure/challenges/<theme>/tier_<n>/<id>.nbt` | Structure template (written by the editor) | [Building Challenges](Building-Challenges) |
 | `data/<ns>/architectstrials/challenge/<theme>/tier_<n>/<id>.json` | Structure metadata (written by the editor) | [below](#structure-metadata) |
+| `data/<ns>/structure/sub/<id>.nbt` | Sub structure template (written by the editor) | [Building Challenges](Building-Challenges#sub-structures) |
+| `data/<ns>/architectstrials/sub/<id>.json` | Sub structure metadata | [below](#sub-structure-metadata) |
 | `data/<ns>/loot_table/architectstrials/completion/<theme>/tier_<n>.json` | Completion bonus by convention | [Loot](Loot#completion-bonus) |
 | `data/<ns>/recipe/<name>.json` with `architectstrials:scroll_upgrade` | Scroll upgrade | [Scrolls](Scrolls#upgrades-at-the-smithing-table) |
 | `data/<ns>/advancement/…` with `architectstrials:run_completed` | Progression | [Advancements & Events](Advancements-and-Events) |
@@ -58,6 +60,27 @@ All JSON formats of the mod at a glance. `<ns>` is your datapack namespace.
 | `player_effects` | no | List of `{effect, amplifier (0), duration (-1 = whole stay)}` every player gets on entry |
 | `ore_generation` | no | Natural ores on instance creation: `biome` (required), `min_y` / `max_y` (simulated height of the lowest / highest layer; default: the biome's dimension), `density` (ore attempt factor; default: vanilla density). See [Mining rooms](Building-Challenges#natural-ores) |
 | `player_attributes` | no | List of `{attribute, amount, operation (add_value \| add_multiplied_base \| add_multiplied_total)}` while inside |
+
+## Sub structure metadata
+
+```json
+{
+  "structure": "<ns>:sub/<id>",
+  "name": "Optional display name",
+  "author": "Optional",
+  "created": 1790000000000
+}
+```
+
+The sub structure's id is `<ns>:<id>` (file path below `architectstrials/sub/`). Setups live in the Sub Structure
+Markers' block entities (saved with the structure):
+
+```json
+{
+  "entries": [ { "structure": "mypack:alcove_gold", "percent": 20 }, { "structure": "mypack:alcove_trap", "percent": 30 } ],
+  "fallback": "mypack:alcove_empty"
+}
+```
 
 ## Scroll components
 

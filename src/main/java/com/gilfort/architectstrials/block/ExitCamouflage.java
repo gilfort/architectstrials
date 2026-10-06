@@ -7,6 +7,7 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.Mirror;
 import net.minecraft.world.level.block.RenderShape;
 import net.minecraft.world.level.block.Rotation;
 import net.minecraft.world.level.block.entity.BlockEntity;
@@ -76,15 +77,16 @@ public final class ExitCamouflage {
     }
 
     /**
-     * Rotates a camouflage with the structure it is placed in, so that e.g. logs keep their axis relative to the
-     * room.
+     * Turns a camouflage with the structure it is placed in, the same way the structure's own blocks are turned,
+     * so that e.g. logs keep their axis relative to the room.
      *
      * @param camouflage the camouflage
      * @param rotation   the structure rotation
-     * @return the rotated camouflage
+     * @param mirror     the structure mirroring
+     * @return the transformed camouflage
      */
-    public static Optional<BlockState> rotate(Optional<BlockState> camouflage, Rotation rotation) {
-        return camouflage.map(state -> state.rotate(rotation));
+    public static Optional<BlockState> transform(Optional<BlockState> camouflage, Rotation rotation, Mirror mirror) {
+        return camouflage.map(state -> state.mirror(mirror).rotate(rotation));
     }
 
     /**

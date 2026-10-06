@@ -32,13 +32,17 @@ modpack to be safe).
 | `/at editor import` (+ `confirm` above 100,000 blocks) | Copies the area selected with the Selection Tool into the empty editor; spawners become markers |
 | `/at editor save <theme> <tier> <id> [overwrite]` | Saves the editor content as a pool structure |
 | `/at editor load <theme> <tier> <id>` | Loads a stored structure into the empty editor |
+| `/at editor save sub <ns:id> [overwrite]` | Saves the editor content as a [sub structure](Building-Challenges#sub-structures) |
+| `/at editor load sub <ns:id>` | Loads a sub structure into the empty editor |
 | `/at structure list [theme] [tier]` | Lists stored structures |
+| `/at structure list sub` | Lists sub structures |
 | `/at structure validate [theme] [tier]` | Checks stored structures for missing blocks, items, entity types, loot tables and mob effects (e.g. after removing a mod); lists only structures with problems |
 | `/at structure set <theme> <tier> <id> weight <n>` | Sets the draw weight |
 | `/at structure set <theme> <tier> <id> rotation <true\|false>` | Allows random rotation and mirroring |
 | `/at structure set <theme> <tier> <id> game_mode <adventure\|survival>` | Game mode players enter in (Survival for mining rooms) |
 | `/at structure set <theme> <tier> <id> name <text>` | Sets the display name |
 | `/at structure delete <theme> <tier> <id>` + `confirm` | Deletes a stored structure (confirm within 30 s) |
+| `/at structure delete sub <ns:id>` + `confirm` | Deletes a sub structure (confirm within 30 s) |
 
 ## Markers & loot
 

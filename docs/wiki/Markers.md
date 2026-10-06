@@ -12,6 +12,7 @@ and cannot be broken in survival.
 | Spawner Marker | A vanilla monster spawner |
 | Trial Spawner Marker | A vanilla trial spawner |
 | Vault Marker | A vanilla vault (reward behind a key, once per player) |
+| Sub Structure Marker | A rolled [sub structure](#sub-structure-marker) (then air) |
 
 When a structure is rotated or mirrored, markers move with it; mobs and spawners are not rotated otherwise.
 
@@ -157,6 +158,37 @@ new instance places a fresh vault). Right-click the marker to set it up:
 Players clicking a vault in a challenge with the wrong item or an empty hand see what opens it, e.g. "Opens with:
 2× Crypt Key". [Importing](Building-Challenges#importing-areas-of-the-world) a trial chamber converts its vaults into Vault
 Markers with variant, key and loot table.
+
+## Sub Structure Marker
+
+Places a **sub structure** – a reusable piece saved with `/at editor save sub <ns>:<id>` – when the challenge is
+placed, so one room can look different in every run (see [Building Challenges](Building-Challenges#sub-structures)).
+Right-click the marker (empty hand or the Sub Structure Tool) to set it up:
+
+- **Sub structures** — up to 6 sub structure ids, each with a chance in percent (together at most 100 %).
+- **Fallback** — placed when none of them is rolled ("consolation prize"); empty = then nothing is placed.
+- **Offset area** (−X, +X, −Y, +Y, −Z, +Z, 0–64 blocks) — without offsets the sub structure starts exactly at the
+  marker; with offsets it starts at a random block of that area around the marker.
+- **Save** stores everything; unknown ids or more than 100 % are rejected with a message.
+
+Orientation: the marker faces the way you looked when placing it (top arrow). Facing **north** places the sub
+structure as it was built, east turns it 90° clockwise, south 180°, west 90° counter-clockwise. The marker is the
+sub structure's lowest north-west corner as built. When the parent structure is rotated or mirrored, marker facing
+and offset area turn with it, so the piece always sits the same way relative to the room.
+
+Rules when the challenge is placed:
+
+- The sub structure **replaces** the blocks it overlaps, including other markers (they are then gone).
+- It **fails** if it would overwrite a **Player Spawn Marker** or an **Exit Marker**, or reach beyond the slot area
+  (128 × 128 structure + 16 blocks margin per side). Then the marker rolls **once more**; a second failure places
+  nothing. Turn on `logFailedSubStructures` in the [server config](Configuration) to see failures in the log.
+- Markers inside the sub structure (spawns, exits, mobs, loot, vaults, …) work as usual — a sub structure can add
+  extra spawn points or exits. The challenge itself still needs its own Player Spawn Marker.
+- No nesting: Sub Structure Markers inside sub structures place nothing (saving such a sub structure is refused).
+- Sub structures are placed before [natural ores](Building-Challenges#natural-ores), so they get ores too.
+
+The **Sub Structure Tool** copies setups like the Loot Tool: shift + right-click a marker copies its setup, left
+click pastes an independent copy into another marker (the offsets of the target stay).
 
 ## Inspecting markers
 

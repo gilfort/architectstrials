@@ -174,6 +174,28 @@ the scroll. Add them to the structure's JSON (see [Datapack Reference](Datapack-
   player's own effects back with the duration they had on entry.
 - Modded effects and attributes work the same; unknown ids are skipped with a warning in the log.
 
+## Sub structures
+
+Sub structures are reusable pieces – a treasure alcove, a trap corridor, three variants of a boss arena – that
+[Sub Structure Markers](Markers#sub-structure-marker) place into challenge structures when an instance is
+created. They have no theme or tier and are never drawn as challenges on their own.
+
+1. Build the piece in the editor. Its lowest north-west corner (as built) is where the marker will place it.
+   Player Spawn and Exit Markers are optional; Sub Structure Markers are not allowed inside.
+2. Save it with `/at editor save sub <ns>:<id>` (`overwrite` to replace). Load it again with
+   `/at editor load sub <ns>:<id>`, list all with `/at structure list sub`, delete with
+   `/at structure delete sub <ns>:<id>` + `confirm`.
+3. In a challenge structure, place a Sub Structure Marker facing the way the piece should point, right-click it
+   and enter the sub structures with their chances, a fallback and optionally an offset area. Copy the setup to
+   other markers with the Sub Structure Tool.
+
+Example setup for a side room: `mypack:alcove_gold` 20 %, `mypack:alcove_trap` 30 %, fallback `mypack:alcove_empty`
+→ half of the runs get the empty alcove, one in five the gold one. With offsets `+X 6` the alcove can also start up
+to 6 blocks further east along the corridor.
+
+Files in the datapack: `data/<ns>/architectstrials/sub/<id>.json` (metadata) and
+`data/<ns>/structure/sub/<id>.nbt` (template), see [Datapack Reference](Datapack-Reference#sub-structure-metadata).
+
 ## Structure pools and tiers
 
 Each theme has one structure pool per tier. When a challenge instance is created, one structure is drawn

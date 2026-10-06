@@ -54,6 +54,7 @@ public final class MarkerResolvers {
      */
     public static int resolveAll(MarkerContext context, StructureTemplate template, BlockPos origin, StructurePlaceSettings settings) {
         int resolved = 0;
+        context.useTransform(settings.getRotation(), settings.getMirror());
         for (Map.Entry<Block, MarkerResolver> entry : RESOLVERS.entrySet()) {
             for (StructureTemplate.StructureBlockInfo info : template.filterBlocks(origin, settings, entry.getKey())) {
                 // A sub structure (US-32) may have replaced the marker meanwhile.

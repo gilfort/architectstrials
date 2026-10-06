@@ -227,3 +227,32 @@ density 4), tier 9 (netherrack, nether wastes), tier 10 (unknown biome), tier 11
       freeze (`/tick query`); the portal becomes active a little later than without ores.
 - [ ] Server restart directly after opening such a portal: the instance is discarded as with US-28.
 
+## US-32 (#61): Sub structures
+
+GameTests: `sub_structure_roll` (chances, fallback, nothing, > 100 % rejected, loading), `sub_structure_facing_and_offsets`
+(facing north / east, offset area turned with the parent, nested marker removed), `sub_structure_failures` (spawn /
+exit marker → fail + one retry, other markers and blocks overwritten, outside the allowed area, retry with
+fallback), `sub_structure_instance` (Nether tier 12: sub structure placed, its spawn registered),
+`sub_structure_tool_and_editor` (tool copies, editor rejects nested markers).
+
+Test data in the dev datapack: sub structures `architectstrials:row`, `single`, `nested`, `spawn_room`;
+`/at instance create minecraft:the_nether 12 join` places `spawn_room` in the corner of a platform.
+
+- [ ] Creative tab: Sub Structure Marker and Sub Structure Tool with tooltips. Placing the marker: top arrow points
+      the way you looked.
+- [ ] Build a small piece in the editor, `/at editor save sub mypack:test` → saved, `/at structure list sub` lists
+      it, `/at editor load sub mypack:test` loads it. With a Sub Structure Marker inside: saving is refused.
+- [ ] Marker GUI: enter `mypack:test` 100 %, Save → "saved"; a typo → "Unknown sub structure"; 60 % + 50 % → error.
+      Reopen: values are kept. `editor save` / `editor load` of the parent keeps them.
+- [ ] Open the challenge several times with facing north / east / south / west: the piece is turned accordingly.
+- [ ] Chances: 50 % + fallback → roughly half the runs show the fallback. Without fallback some runs show nothing.
+- [ ] Offsets (e.g. +X 6): the piece starts at different places along X; in a rotated parent (rotation on) it
+      stays aligned with the room.
+- [ ] A piece that would cover the main Player Spawn Marker or an Exit Marker is never placed (second roll may place
+      the fallback); with `logFailedSubStructures = true` the log shows why.
+- [ ] Markers inside the piece work: a spawn inside the piece is used as entry point, mobs spawn, chests have loot,
+      an exit inside the piece completes the run.
+- [ ] Tool: shift + right-click copies, left click on another marker pastes (its offsets stay); left click never
+      breaks the marker.
+- [ ] With ore generation (US-37): the piece gets ores like the rest of the room.
+
