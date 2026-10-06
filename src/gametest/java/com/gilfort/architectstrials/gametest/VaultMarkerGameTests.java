@@ -101,7 +101,7 @@ public final class VaultMarkerGameTests {
                 "Marker did not become an ominous vault facing east: " + state);
         VaultBlockEntity vault = (VaultBlockEntity) level.getBlockEntity(pos);
         VaultConfig config = vault.getConfig();
-        helper.assertTrue(ItemStack.isSameItemAndComponents(config.keyItem(), key) && config.keyItem().getCount() == 2, "Key not taken over: " + config.keyItem());
+        helper.assertTrue(ItemStack.isSameItemSameComponents(config.keyItem(), key) && config.keyItem().getCount() == 2, "Key not taken over: " + config.keyItem());
         helper.assertTrue(LootSetups.PLACEHOLDER.equals(config.lootTable()), "Vault does not roll the loot setup");
 
         List<ItemStack> rolled = level.getServer().reloadableRegistries().getLootTable(config.lootTable()).getRandomItems(

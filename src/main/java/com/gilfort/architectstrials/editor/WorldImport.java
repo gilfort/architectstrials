@@ -234,7 +234,7 @@ public final class WorldImport {
         if (level.getBlockEntity(pos) instanceof VaultMarkerBlockEntity marker) {
             marker.setOminous(ominous);
             ItemStack key = config.keyItem();
-            if (!ItemStack.isSameItemAndComponents(key, VaultMarkerBlock.defaultKey(ominous)) || key.getCount() != 1) {
+            if (!ItemStack.isSameItemSameComponents(key, VaultMarkerBlock.defaultKey(ominous)) || key.getCount() != 1) {
                 marker.setKey(key);
             }
             marker.setLootTableReference(Optional.of(config.lootTable()));

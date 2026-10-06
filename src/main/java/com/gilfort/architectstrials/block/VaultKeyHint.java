@@ -46,7 +46,7 @@ public final class VaultKeyHint {
      * @return {@code true} if the stack opens the vault
      */
     public static boolean opens(ItemStack key, ItemStack held) {
-        return ItemStack.isSameItemAndComponents(key, held) && held.getCount() >= key.getCount();
+        return ItemStack.isSameItemSameComponents(key, held) && held.getCount() >= key.getCount();
     }
 
     /**
