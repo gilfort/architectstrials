@@ -1,0 +1,6 @@
+{
+  "theme": "minecraft:the_nether",
+  "tier": 11,
+  "structure": "architectstrials:gametest/ore_room",
+  "name": "Stone room without ore generation (US-37 test)"
+}

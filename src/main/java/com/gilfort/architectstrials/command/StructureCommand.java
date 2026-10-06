@@ -178,7 +178,8 @@ final class StructureCommand {
                     existing.map(ChallengeStructure::weight).orElse(1), existing.map(ChallengeStructure::rotation).orElse(false),
                     existing.map(ChallengeStructure::gameMode).orElse(GameType.ADVENTURE),
                     existing.map(ChallengeStructure::playerEffects).orElse(List.of()),
-                    existing.map(ChallengeStructure::playerAttributes).orElse(List.of()));
+                    existing.map(ChallengeStructure::playerAttributes).orElse(List.of()),
+                    existing.flatMap(ChallengeStructure::oreGeneration));
             StructureLibrary.write(source.getServer(), entry, captured.get().template(), metadata);
         } catch (IOException e) {
             ArchitectsTrials.LOGGER.error("Could not save structure {}", entry, e);

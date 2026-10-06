@@ -131,7 +131,8 @@ public final class InstanceManager {
         data(level).put(instance);
         ArchitectsTrials.LOGGER.debug("Created instance {} of {} tier {} with structure {} in slot {}; placing",
                 instance.id(), theme.id(), tier, drawn.get(), instance.slot());
-        InstancePlacements.start(level, new PlacementTask(level, instance.id(), template.get(), origin, settings, random));
+        InstancePlacements.start(level, new PlacementTask(level, instance.id(), template.get(), origin, settings, random,
+                structure.oreGeneration()));
         return data(level).get(instance.id())
                 .<InstanceCreation>map(InstanceCreation.Success::new)
                 .orElseGet(() -> new InstanceCreation.Failure(Component.translatable("message.architectstrials.instance.no_spawn",

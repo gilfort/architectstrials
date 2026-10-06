@@ -1,0 +1,10 @@
+{
+  "theme": "minecraft:the_nether",
+  "tier": 9,
+  "structure": "architectstrials:gametest/nether_ore_room",
+  "name": "Nether ore room (US-37 test)",
+  "ore_generation": {
+    "biome": "minecraft:nether_wastes",
+    "density": 4
+  }
+}
