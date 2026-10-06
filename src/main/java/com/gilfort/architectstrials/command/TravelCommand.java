@@ -3,6 +3,7 @@ package com.gilfort.architectstrials.command;
 import java.util.Collection;
 import java.util.List;
 
+import com.gilfort.architectstrials.config.ArchitectsTrialsConfig;
 import com.gilfort.architectstrials.theme.ChallengeTheme;
 import com.gilfort.architectstrials.theme.ChallengeThemes;
 import com.gilfort.architectstrials.travel.ChallengeTravel;
@@ -29,8 +30,6 @@ import net.minecraft.world.phys.Vec3;
  */
 final class TravelCommand {
 
-    /** Y level used by the debug entry; challenge dimensions are void worlds without terrain. */
-    private static final double ENTER_Y = 64.0;
 
     private TravelCommand() {
     }
@@ -80,7 +79,7 @@ final class TravelCommand {
             return 0;
         }
 
-        ChallengeTravel.enter(player, level, new Vec3(0.5, ENTER_Y, 0.5), player.getYRot(), player.getXRot(), true);
+        ChallengeTravel.enter(player, level, new Vec3(0.5, ArchitectsTrialsConfig.STRUCTURE_PLACEMENT_Y.getAsInt(), 0.5), player.getYRot(), player.getXRot(), true);
         source.sendSuccess(() -> Component.translatable("commands.architectstrials.enter.success",
                 player.getDisplayName(), theme.displayName()), true);
         source.sendSuccess(() -> Component.translatable("commands.architectstrials.theme.tp.void_warning"), false);

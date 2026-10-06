@@ -7,13 +7,14 @@ import java.util.function.Consumer;
 import com.gilfort.architectstrials.ArchitectsTrials;
 import com.gilfort.architectstrials.scroll.ScrollOptions;
 import com.gilfort.architectstrials.block.ChallengeExitBlock;
+import com.gilfort.architectstrials.block.ChallengeExitPortalBlock;
 import com.gilfort.architectstrials.block.ExitGroup;
 import com.gilfort.architectstrials.instance.ChallengeInstance;
 import com.gilfort.architectstrials.instance.InstanceCreation;
 import com.gilfort.architectstrials.instance.InstanceManager;
 import com.gilfort.architectstrials.registry.ModAttachments;
+import com.gilfort.architectstrials.registry.ModBlocks;
 import com.gilfort.architectstrials.run.RunCompletedEvent;
-import com.gilfort.architectstrials.run.RunCompletion;
 import com.gilfort.architectstrials.slot.SlotManager;
 import com.gilfort.architectstrials.theme.ChallengeThemes;
 
@@ -72,7 +73,8 @@ public final class ExitGameTests {
 
     /**
      * The exit marker becomes an open exit; a powered exit cannot be used; walking through an open exit returns
-     * the player, counts the run and fires the event.
+     * the player, counts the run and fires the event. The portal space is filled with portal blocks that detect the
+     * player on contact.
      */
     private static void redstoneLockAndCompletion(GameTestHelper helper) {
         ServerLevel nether = TestPlayers.challengeLevel(helper);
@@ -87,6 +89,14 @@ public final class ExitGameTests {
                 "Exits were not recorded: " + instance.exits());
         helper.assertTrue(ChallengeExitBlock.isOpen(nether.getBlockState(exit)), "Exit marker did not become an open exit");
         helper.assertTrue(ExitGroup.find(nether, exit).orElseThrow().width() == 2, "Adjacent exits did not combine into one portal");
+        int portalBlocks = 0;
+        for (BlockPos pos : BlockPos.betweenClosed(exit.above(), exit.east().above(3))) {
+            if (nether.getBlockState(pos).is(ModBlocks.CHALLENGE_EXIT_PORTAL.get())) {
+                portalBlocks++;
+            }
+        }
+        helper.assertTrue(portalBlocks == 6, "Portal space of a 2-wide exit is not filled with 2x3 portal blocks: " + portalBlocks);
+        helper.assertFalse(nether.getBlockState(exit.above(4)).is(ModBlocks.CHALLENGE_EXIT_PORTAL.get()), "Portal blocks above the portal space");
 
         ServerPlayer player = TestPlayers.atStart(helper, GameType.SURVIVAL);
         InstanceManager.join(player, nether, instance);
@@ -96,13 +106,15 @@ public final class ExitGameTests {
         nether.setBlock(exit.west(), Blocks.REDSTONE_BLOCK.defaultBlockState(), Block.UPDATE_ALL);
         helper.assertFalse(ChallengeExitBlock.isOpen(nether.getBlockState(exit)), "Redstone signal did not lock the exit");
         TestPlayers.teleport(player, nether, inExit);
-        RunCompletion.checkExits(nether);
+        helper.assertFalse(ChallengeExitPortalBlock.onPlayerInside(nether, exit.above(), player), "A locked exit let the player out");
         helper.assertTrue(player.level() == nether, "A locked exit let the player out");
 
         int eventsBefore = COMPLETED_EVENTS.get();
         nether.setBlock(exit.west(), Blocks.AIR.defaultBlockState(), Block.UPDATE_ALL);
         helper.assertTrue(ChallengeExitBlock.isOpen(nether.getBlockState(exit)), "Removing the signal did not unlock the exit");
-        RunCompletion.checkExits(nether);
+        helper.assertFalse(ChallengeExitPortalBlock.onPlayerInside(nether, exit.above(4), player), "Touching above the portal space completed the run");
+        helper.assertTrue(ChallengeExitPortalBlock.onPlayerInside(nether, exit.east().above(2), player), "Open exit did not complete the run");
+        helper.assertFalse(ChallengeExitPortalBlock.onPlayerInside(nether, exit.above(), player), "Run was completed twice");
         helper.assertTrue(player.level().dimension() == Level.OVERWORLD, "Player was not returned through the open exit");
         helper.assertTrue(player.getData(ModAttachments.RUN_STATISTICS).completed(Level.NETHER.identifier(), PLATFORM_TIER) == 1,
                 "Completed run was not counted");

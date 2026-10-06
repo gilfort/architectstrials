@@ -1,6 +1,8 @@
 name: Build
 
-on: [push, pull_request]
+on:
+  push:
+  pull_request:
 
 jobs:
   build:
@@ -28,3 +30,25 @@ jobs:
 
       - name: Build with Gradle
         run: ./gradlew build
+
+      # Starts a headless GameTest server that runs every registered GameTest and exits.
+      # The server exits with a non-zero code (failing this step) if a required test fails.
+      - name: Run GameTests
+        run: ./gradlew runGameTestServer
+
+      - name: Upload mod jar
+        uses: actions/upload-artifact@v4
+        with:
+          name: architectstrials-${{ github.sha }}
+          path: build/libs/*.jar
+          if-no-files-found: error
+
+      - name: Upload GameTest logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: gametest-logs-${{ github.sha }}
+          path: |
+            run/logs/
+            build/run/gameTestServer/logs/
+          if-no-files-found: ignore

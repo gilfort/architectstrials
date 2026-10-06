@@ -80,11 +80,38 @@ public final class PaintingPlacement {
         }
     }
 
+    /**
+     * Checks whether a template entity is a painting.
+     *
+     * @param info the template entity
+     * @return {@code true} for paintings
+     */
+    public static boolean isPainting(StructureTemplate.StructureEntityInfo info) {
+        return PAINTING_ID.equals(info.nbt.getStringOr("id", ""));
+    }
+
+    /**
+     * Adds a painting of a template at the anchor that matches its transformed center, like {@link #place} does
+     * for the paintings of a whole template.
+     *
+     * @param level    the level
+     * @param info     the painting entity of the template
+     * @param origin   the placement origin
+     * @param settings the placement settings
+     */
+    public static void addPainting(ServerLevel level, StructureTemplate.StructureEntityInfo info, BlockPos origin, StructurePlaceSettings settings) {
+        addPainting(level, info.pos, info.nbt, origin, settings);
+    }
+
     private static void addPainting(ServerLevel level, CompoundTag info, BlockPos origin, StructurePlaceSettings settings) {
         ListTag pos = info.getListOrEmpty(StructureTemplate.ENTITY_TAG_POS);
-        Vec3 center = StructureTemplate.transformedVec3d(settings, new Vec3(pos.getDoubleOr(0, 0.0), pos.getDoubleOr(1, 0.0), pos.getDoubleOr(2, 0.0)))
-                .add(Vec3.atLowerCornerOf(origin));
-        CompoundTag nbt = info.getCompoundOrEmpty(StructureTemplate.ENTITY_TAG_NBT).copy();
+        addPainting(level, new Vec3(pos.getDoubleOr(0, 0.0), pos.getDoubleOr(1, 0.0), pos.getDoubleOr(2, 0.0)),
+                info.getCompoundOrEmpty(StructureTemplate.ENTITY_TAG_NBT), origin, settings);
+    }
+
+    private static void addPainting(ServerLevel level, Vec3 localPos, CompoundTag entityNbt, BlockPos origin, StructurePlaceSettings settings) {
+        Vec3 center = StructureTemplate.transformedVec3d(settings, localPos).add(Vec3.atLowerCornerOf(origin));
+        CompoundTag nbt = entityNbt.copy();
         nbt.remove("UUID");
         try (ProblemReporter.ScopedCollector reporter = new ProblemReporter.ScopedCollector(() -> "painting at " + center, ArchitectsTrials.LOGGER)) {
             EntityType.create(TagValueInput.create(reporter, level.registryAccess(), nbt), level,

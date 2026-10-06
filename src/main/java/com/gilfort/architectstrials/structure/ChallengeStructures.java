@@ -19,6 +19,7 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.RandomSource;
 import net.minecraft.util.random.WeightedRandom;
 import net.minecraft.world.level.levelgen.structure.templatesystem.StructurePlaceSettings;
+import net.minecraft.world.level.levelgen.structure.templatesystem.StructureTemplate;
 
 /**
  * Server-side structure pool: all stored challenge structures, grouped by theme and tier.
@@ -50,22 +51,32 @@ public final class ChallengeStructures {
     }
 
     /**
-     * Removes structures whose template contains no player spawn marker; such structures could never be
-     * entered. Structures whose template cannot be loaded are kept and fail on instance creation instead.
+     * Draws a structure like {@link #draw}, skipping structures that could never be entered: a template without
+     * a player spawn marker removes its structure from the pool (with a warning) and the draw is repeated.
+     * Templates are only loaded when drawn, never all at once on (re)load. Structures whose template cannot be
+     * loaded are returned and fail on instance creation instead.
      *
-     * @param server the running server
+     * @param server the server
+     * @param theme  the theme id
+     * @param tier   the tier
+     * @param random the random source
+     * @return the id of the drawn structure, or empty if no enterable structure is left in the pool
      */
-    public static void validate(MinecraftServer server) {
-        Map<Identifier, ChallengeStructure> valid = new HashMap<>(byId);
+    public static Optional<Identifier> drawEnterable(MinecraftServer server, Identifier theme, int tier, RandomSource random) {
         StructurePlaceSettings settings = new StructurePlaceSettings();
-        byId.forEach((id, structure) -> server.getStructureTemplateManager().get(structure.structure()).ifPresent(template -> {
-            if (template.filterBlocks(BlockPos.ZERO, settings, ModBlocks.PLAYER_SPAWN_MARKER.get()).isEmpty()) {
-                ArchitectsTrials.LOGGER.warn("Challenge structure {} has no player spawn marker and is skipped", id);
-                valid.remove(id);
+        while (true) {
+            Optional<Identifier> drawn = draw(theme, tier, random);
+            if (drawn.isEmpty()) {
+                return drawn;
             }
-        }));
-        if (valid.size() != byId.size()) {
-            set(valid);
+            Optional<StructureTemplate> template = server.getStructureTemplateManager().get(byId.get(drawn.get()).structure());
+            if (template.isEmpty() || !template.get().filterBlocks(BlockPos.ZERO, settings, ModBlocks.PLAYER_SPAWN_MARKER.get()).isEmpty()) {
+                return drawn;
+            }
+            ArchitectsTrials.LOGGER.warn("Challenge structure {} has no player spawn marker and is skipped", drawn.get());
+            Map<Identifier, ChallengeStructure> remaining = new HashMap<>(byId);
+            remaining.remove(drawn.get());
+            set(remaining);
         }
     }
 

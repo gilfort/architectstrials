@@ -5,16 +5,14 @@ import java.util.Optional;
 import java.util.UUID;
 
 import com.gilfort.architectstrials.ArchitectsTrials;
+import com.gilfort.architectstrials.block.ChallengeExitPortalBlock;
 import com.gilfort.architectstrials.config.ArchitectsTrialsConfig;
-import com.gilfort.architectstrials.marker.MarkerContext;
-import com.gilfort.architectstrials.marker.MarkerResolvers;
 import com.gilfort.architectstrials.portal.ChallengePortal;
 import com.gilfort.architectstrials.registry.ModAttachments;
 import com.gilfort.architectstrials.scroll.ScrollEffects;
 import com.gilfort.architectstrials.scroll.ScrollOptions;
 import com.gilfort.architectstrials.slot.Slot;
 import com.gilfort.architectstrials.slot.SlotManager;
-import com.gilfort.architectstrials.structure.PaintingPlacement;
 import com.gilfort.architectstrials.structure.ChallengeStructure;
 import com.gilfort.architectstrials.structure.ChallengeStructures;
 import com.gilfort.architectstrials.theme.ChallengeTheme;
@@ -29,7 +27,6 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.RandomSource;
-import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Mirror;
 import net.minecraft.world.level.block.Rotation;
 import net.minecraft.world.level.levelgen.structure.templatesystem.StructurePlaceSettings;
@@ -56,7 +53,9 @@ public final class InstanceManager {
     }
 
     /**
-     * Creates a new instance of a theme and tier.
+     * Creates a new instance of a theme and tier. The instance is registered right away; its structure is placed
+     * over the following ticks ({@link InstancePlacements}) and it becomes {@link ChallengeInstance#ready() ready}
+     * once placement and marker resolution are done.
      * <p>
      * Fails without side effects if the pool is empty, no slot is available, or the drawn structure's
      * template is missing or too large.
@@ -89,7 +88,7 @@ public final class InstanceManager {
      */
     public static InstanceCreation create(ServerLevel level, ChallengeTheme theme, int tier, RandomSource random,
             long timeLimitTicks, ScrollOptions options, ScrollEffects effects) {
-        Optional<Identifier> drawn = ChallengeStructures.draw(theme.id(), tier, random);
+        Optional<Identifier> drawn = ChallengeStructures.drawEnterable(level.getServer(), theme.id(), tier, random);
         if (drawn.isEmpty()) {
             return new InstanceCreation.Failure(Component.translatable("message.architectstrials.instance.pool_empty",
                     theme.displayName(), tier));
@@ -122,22 +121,17 @@ public final class InstanceManager {
         long now = ChallengeClock.now(level.getServer());
         long portalOpenTicks = portalOpenTicks(options, timeLimitTicks);
         long timeLimit = Math.max(timeLimitTicks, portalOpenTicks);
-        ChallengeInstance placed = new ChallengeInstance(UUID.randomUUID(), theme.id(), tier, drawn.get(),
+        ChallengeInstance instance = new ChallengeInstance(UUID.randomUUID(), theme.id(), tier, drawn.get(),
                 slot.get().index(), origin, rotation, mirror, List.of(), List.of(),
                 timeLimit, now + timeLimit, now + portalOpenTicks, options, effects, InstanceRoster.EMPTY);
-
-        PaintingPlacement.place(level, template.get(), origin, settings, random, Block.UPDATE_CLIENTS);
-        MarkerContext context = new MarkerContext(level, placed, random);
-        int markers = MarkerResolvers.resolveAll(context, template.get(), origin, settings);
-        ChallengeInstance instance = placed.withSpawnPoints(context.spawnPoints()).withExits(context.exits());
-        if (!instance.ready()) {
-            ArchitectsTrials.LOGGER.warn("Instance {} of structure {} has no player spawn markers and can never be entered",
-                    instance.id(), drawn.get());
-        }
         data(level).put(instance);
-        ArchitectsTrials.LOGGER.debug("Created instance {} of {} tier {} with structure {} in slot {} ({} markers)",
-                instance.id(), theme.id(), tier, drawn.get(), instance.slot(), markers);
-        return new InstanceCreation.Success(instance);
+        ArchitectsTrials.LOGGER.debug("Created instance {} of {} tier {} with structure {} in slot {}; placing",
+                instance.id(), theme.id(), tier, drawn.get(), instance.slot());
+        InstancePlacements.start(level, new PlacementTask(level, instance.id(), template.get(), origin, settings, random));
+        return data(level).get(instance.id())
+                .<InstanceCreation>map(InstanceCreation.Success::new)
+                .orElseGet(() -> new InstanceCreation.Failure(Component.translatable("message.architectstrials.instance.no_spawn",
+                        structure.structure().toString())));
     }
 
     /**
@@ -246,19 +240,16 @@ public final class InstanceManager {
     }
 
     /**
-     * Finds the instance whose slot contains a position.
+     * Finds the instance whose slot contains a position. The slot is computed from the position, so the cost does
+     * not depend on the number of instances.
      *
      * @param level the theme level
      * @param pos   the position
      * @return the instance, or empty if the position is in no instance's slot
      */
     public static Optional<ChallengeInstance> findAt(ServerLevel level, BlockPos pos) {
-        for (ChallengeInstance instance : data(level).all()) {
-            if (SlotManager.slot(level, instance.slot()).area(level.getMinY(), level.getMaxY()).isInside(pos)) {
-                return Optional.of(instance);
-            }
-        }
-        return Optional.empty();
+        int index = SlotManager.indexAt(level, pos.getX(), pos.getZ());
+        return index < 0 ? Optional.empty() : data(level).atSlot(index);
     }
 
     /**
@@ -300,8 +291,24 @@ public final class InstanceManager {
         ChallengeTravel.bindInstance(player, new EntryPoint.InstanceRef(level.dimension(), instance.id()));
         ChallengeInstance current = data(level).get(instance.id()).orElse(instance);
         update(level, current.withRoster(current.roster().entered(player.getUUID())));
+        ensureExitPortals(level, current);
         ScrollEffectApplication.onEntry(player, level, current);
         return true;
+    }
+
+    /**
+     * Fills the portal space of an instance's exits with portal blocks if they are missing, e.g. for instances
+     * placed before exits used portal blocks (US-38). Only air is replaced, so this is a no-op for current
+     * instances.
+     *
+     * @param level    the theme level
+     * @param instance the instance
+     */
+    public static void ensureExitPortals(ServerLevel level, ChallengeInstance instance) {
+        if (!instance.exits().isEmpty()
+                && !(level.getBlockState(instance.exits().getFirst().above()).getBlock() instanceof ChallengeExitPortalBlock)) {
+            ChallengeExitPortalBlock.fill(level, instance.exits());
+        }
     }
 
     /**

@@ -1,0 +1,8 @@
+{
+  "type": "minecraft:function",
+  "environment": "minecraft:default",
+  "function": "architectstrials:structure_validate_reports_missing_content",
+  "max_ticks": 40,
+  "structure": "minecraft:empty",
+  "padding": 8
+}

@@ -5,11 +5,10 @@ import com.gilfort.architectstrials.ArchitectsTrials;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.event.AddServerReloadListenersEvent;
-import net.neoforged.neoforge.event.OnDatapackSyncEvent;
-import net.neoforged.neoforge.event.server.ServerStartedEvent;
 
 /**
- * Registers the structure pool loader and validates the pool.
+ * Registers the structure pool loader. Templates are checked lazily when a structure is drawn
+ * ({@link ChallengeStructures#drawEnterable}), so a (re)load never loads all templates into memory.
  */
 @EventBusSubscriber(modid = ArchitectsTrials.MOD_ID)
 public final class ChallengeStructureEvents {
@@ -25,27 +24,5 @@ public final class ChallengeStructureEvents {
     @SubscribeEvent
     static void onAddReloadListeners(AddServerReloadListenersEvent event) {
         event.addListener(ChallengeStructureLoader.ID, new ChallengeStructureLoader());
-    }
-
-    /**
-     * Validates the pool once the server's structure templates are available.
-     *
-     * @param event the server started event
-     */
-    @SubscribeEvent
-    static void onServerStarted(ServerStartedEvent event) {
-        ChallengeStructures.validate(event.getServer());
-    }
-
-    /**
-     * Re-validates the pool after {@code /reload}. The event fires without a player only for reloads.
-     *
-     * @param event the datapack sync event
-     */
-    @SubscribeEvent
-    static void onDatapackSync(OnDatapackSyncEvent event) {
-        if (event.getPlayer() == null) {
-            ChallengeStructures.validate(event.getPlayerList().getServer());
-        }
     }
 }

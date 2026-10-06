@@ -35,6 +35,7 @@
   "block.architectstrials.trial_spawner_marker": "Trial Spawner Marker",
   "tooltip.architectstrials.trial_spawner_marker": "Editor marker: becomes a trial spawner when the challenge is placed. Right-click: up to three mob types per page (spawn egg + equipment; total mobs = sum of the eggs), mobs at once, and an optional ominous page (Bad/Trial Omen). Rewards: /at marker loot_table <id>, /at marker ominous_loot_table <id>",
   "block.architectstrials.challenge_exit": "Challenge Exit",
+  "block.architectstrials.challenge_exit_portal": "Challenge Exit Portal",
   "block.architectstrials.editor_platform": "Editor Platform",
   "dimension.architectstrials.editor": "Editor",
   "tooltip.architectstrials.player_spawn_marker": "Editor marker: players entering the challenge spawn here, looking where the arrow points. Replaced by air when the structure is placed.",
@@ -67,8 +68,8 @@
   "architectstrials.instance.state.active": "active",
   "architectstrials.instance.state.idle": "idle",
   "architectstrials.instance.state.cleanup_due": "cleanup due",
-  "commands.architectstrials.instance.create.not_ready": "The structure has no player spawn marker, so nobody can enter this instance.",
-  "commands.architectstrials.instance.create.success": "Placed structure %s in slot #%s at %s %s %s (instance %s)",
+  "commands.architectstrials.instance.create.placing": "Placing the structure – you will join once it is ready.",
+  "commands.architectstrials.instance.create.success": "Created instance %6$s with structure %1$s in slot #%2$s at %3$s %4$s %5$s",
 
   "commands.architectstrials.scroll.give.success": "Gave %s a %s",
 
@@ -124,6 +125,10 @@
   "commands.architectstrials.structure.list.header": "Stored structures (%s):",
   "commands.architectstrials.structure.list.entry": " - %s \"%s\" tier %s, weight %s, rotation %s",
   "commands.architectstrials.structure.set.success": "Updated %s.",
+  "commands.architectstrials.structure.validate.structure": "%s: %s problem(s)",
+  "commands.architectstrials.structure.validate.problem": "  - %s (%s×)",
+  "commands.architectstrials.structure.validate.more": "  … and %s more",
+  "commands.architectstrials.structure.validate.summary": "Checked %s structure(s), %s with problems.",
   "commands.architectstrials.structure.delete.warning": "This permanently deletes %s. Repeat the command with 'confirm' within 30 seconds.",
   "commands.architectstrials.structure.delete.no_request": "No matching delete request – run the delete command without 'confirm' first.",
   "commands.architectstrials.structure.delete.success": "Deleted %s.",
@@ -182,13 +187,15 @@
   "architectstrials.configuration.slotSpacing": "Slot Spacing",
   "architectstrials.configuration.slotSpacing.tooltip": "Distance in blocks between two challenge instances in the same theme dimension. Only applies to theme dimensions that currently have no instances.",
   "architectstrials.configuration.maxConcurrentInstances": "Max Concurrent Instances",
-  "architectstrials.configuration.maxConcurrentInstances.tooltip": "Maximum number of simultaneous challenge instances per theme dimension. 0 = unlimited.",
+  "architectstrials.configuration.maxConcurrentInstances.tooltip": "Maximum number of simultaneous challenge instances per theme dimension. 0 = unlimited. Every running instance brings its own mobs and spawners; raise it if your server can handle more.",
 
   "architectstrials.configuration.structurePlacementY": "Structure Placement Y",
   "architectstrials.configuration.structurePlacementY.tooltip": "Y coordinate the bottom of every challenge structure is placed at.",
 
   "architectstrials.configuration.portalTimeoutSeconds": "Portal Timeout (Seconds)",
-  "architectstrials.configuration.portalTimeoutSeconds.tooltip": "Seconds an opened, ready challenge portal waits for its player before it collapses. The instance is cleaned up and the scroll drops again with a 50% chance.",
+  "architectstrials.configuration.portalTimeoutSeconds.tooltip": "Seconds an opened, ready challenge portal waits for its player before it collapses. The instance is cleaned up and the scroll may drop again (see Unused Portal Scroll Drop Chance).",
+  "architectstrials.configuration.unusedPortalScrollDropChance": "Unused Portal Scroll Drop Chance",
+  "architectstrials.configuration.unusedPortalScrollDropChance.tooltip": "Chance (0.0-1.0) that the scroll drops back when an opened portal collapses unused.",
 
   "architectstrials.configuration.startingRank": "Starting Rank",
   "architectstrials.configuration.startingRank.tooltip": "Rank every player starts with in every theme. A scroll of tier N needs level N or higher. 0 blocks all scrolls until the player receives an upgrade.",
@@ -214,6 +221,7 @@
   "message.architectstrials.instance.pool_empty": "No structures are stored for %s tier %s.",
   "message.architectstrials.instance.template_missing": "The structure template %s could not be loaded.",
   "message.architectstrials.instance.too_large": "The structure %s is larger than %s×%2$s blocks.",
+  "message.architectstrials.instance.no_spawn": "The structure %s has no player spawn marker, so nobody could enter it.",
   "message.architectstrials.instance.no_slot": "The maximum number of concurrent challenges for this theme is reached. Try again later.",
   "message.architectstrials.run_completed": "Challenge completed: %s, Tier %s!",
   "message.architectstrials.editor.loot_container_locked": "Pool loot container (%s) – not opened in the editor so the loot table is kept. Remove it with /at marker loot_table clear",
@@ -230,6 +238,7 @@
   "message.architectstrials.save.spawn_marker_blocked": "Warning: the Player Spawn Marker at %s %s %s (relative) has no 2 free blocks above it.",
   "message.architectstrials.save.mob_marker_empty": "Warning: the %s at %s %s %s (relative) has no spawn egg and will be removed without spawning anything.",
   "message.architectstrials.returned_on_login": "Your challenge is over – you have been returned.",
+  "message.architectstrials.returned_missing_dimension": "The challenge you were in no longer exists – you have been returned.",
   "message.architectstrials.ward.saved": "The Dimension Ward saved you from death (%s) and brought you back.",
 
   "message.architectstrials.challenge_dimension.bed_disabled": "You cannot sleep or set your spawn point in a challenge dimension"

@@ -3,6 +3,7 @@ package com.gilfort.architectstrials.marker;
 import java.util.Map;
 import java.util.Optional;
 
+import com.gilfort.architectstrials.util.LenientCodecs;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 
@@ -34,8 +35,8 @@ public record MarkerEquipment(Map<EquipmentSlot, ItemStack> fixed, Map<Equipment
 
     /** Persistent codec. */
     public static final Codec<MarkerEquipment> CODEC = RecordCodecBuilder.create(instance -> instance.group(
-            Codec.unboundedMap(EquipmentSlot.CODEC, ItemStack.CODEC).optionalFieldOf("fixed", Map.of()).forGetter(MarkerEquipment::fixed),
-            Codec.unboundedMap(EquipmentSlot.CODEC, EquipmentList.CODEC).optionalFieldOf("lists", Map.of()).forGetter(MarkerEquipment::lists),
+            LenientCodecs.map(EquipmentSlot.CODEC, ItemStack.CODEC, "fixed equipment").optionalFieldOf("fixed", Map.of()).forGetter(MarkerEquipment::fixed),
+            LenientCodecs.map(EquipmentSlot.CODEC, EquipmentList.CODEC, "equipment list").optionalFieldOf("lists", Map.of()).forGetter(MarkerEquipment::lists),
             ResourceKey.codec(Registries.LOOT_TABLE).optionalFieldOf("table").forGetter(MarkerEquipment::table)
     ).apply(instance, MarkerEquipment::new));
 

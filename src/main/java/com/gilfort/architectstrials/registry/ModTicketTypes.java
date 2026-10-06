@@ -24,6 +24,13 @@ public final class ModTicketTypes {
     public static final Supplier<TicketType> AREA_CLEAR = TICKET_TYPES.register("area_clear",
             () -> new TicketType(0L, TicketType.FLAG_LOADING));
 
+    /**
+     * Keeps the chunks of a structure that is being placed over several ticks loaded (US-28). Not persisted and
+     * without timeout; removed explicitly when placement finishes or stops.
+     */
+    public static final Supplier<TicketType> INSTANCE_PLACEMENT = TICKET_TYPES.register("instance_placement",
+            () -> new TicketType(0L, TicketType.FLAG_LOADING));
+
     private ModTicketTypes() {
     }
 

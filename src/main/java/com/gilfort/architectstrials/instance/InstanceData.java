@@ -2,6 +2,7 @@ package com.gilfort.architectstrials.instance;
 
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -25,12 +26,18 @@ public final class InstanceData extends SavedData {
 
     private final Map<UUID, ChallengeInstance> instances = new LinkedHashMap<>();
 
+    /** Index of the instances by slot; derived from {@link #instances}, not persisted. */
+    private final Map<Integer, UUID> bySlot = new HashMap<>();
+
     /** Creates empty instance data. */
     public InstanceData() {
     }
 
     private InstanceData(List<ChallengeInstance> instances) {
-        instances.forEach(instance -> this.instances.put(instance.id(), instance));
+        instances.forEach(instance -> {
+            this.instances.put(instance.id(), instance);
+            this.bySlot.put(instance.slot(), instance.id());
+        });
     }
 
     /**
@@ -52,13 +59,27 @@ public final class InstanceData extends SavedData {
         return Optional.ofNullable(this.instances.get(id));
     }
 
+    /**
+     * Looks up the instance occupying a slot.
+     *
+     * @param slot the slot index
+     * @return the instance, or empty if no instance uses the slot
+     */
+    public Optional<ChallengeInstance> atSlot(int slot) {
+        UUID id = this.bySlot.get(slot);
+        return id == null ? Optional.empty() : this.get(id);
+    }
+
     void put(ChallengeInstance instance) {
         this.instances.put(instance.id(), instance);
+        this.bySlot.put(instance.slot(), instance.id());
         this.setDirty();
     }
 
     void remove(UUID id) {
-        if (this.instances.remove(id) != null) {
+        ChallengeInstance removed = this.instances.remove(id);
+        if (removed != null) {
+            this.bySlot.remove(removed.slot(), id);
             this.setDirty();
         }
     }

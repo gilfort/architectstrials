@@ -10,6 +10,7 @@ import com.gilfort.architectstrials.instance.ChallengeClock;
 import com.gilfort.architectstrials.instance.ChallengeInstance;
 import com.gilfort.architectstrials.instance.InstanceCreation;
 import com.gilfort.architectstrials.instance.InstanceManager;
+import com.gilfort.architectstrials.instance.InstancePlacements;
 import com.gilfort.architectstrials.scroll.ScrollOptions;
 import com.gilfort.architectstrials.theme.ChallengeTheme;
 import com.gilfort.architectstrials.theme.ChallengeThemes;
@@ -128,10 +129,18 @@ final class InstanceCommand {
                 instance.structure().toString(), instance.slot(),
                 instance.origin().getX(), instance.origin().getY(), instance.origin().getZ(),
                 instance.id().toString()), true);
-        if (!instance.ready()) {
-            source.sendFailure(Component.translatable("commands.architectstrials.instance.create.not_ready"));
-        } else if (join) {
-            InstanceManager.join(source.getPlayerOrException(), level, instance);
+        if (join) {
+            ServerPlayer player = source.getPlayerOrException();
+            if (!instance.ready()) {
+                source.sendSuccess(() -> Component.translatable("commands.architectstrials.instance.create.placing"), false);
+            }
+            UUID playerId = player.getUUID();
+            InstancePlacements.whenReady(level, instance.id(), ready -> {
+                ServerPlayer online = level.getServer().getPlayerList().getPlayer(playerId);
+                if (online != null) {
+                    InstanceManager.join(online, level, ready);
+                }
+            });
         }
         return 1;
     }

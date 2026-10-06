@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+import com.gilfort.architectstrials.util.LenientCodecs;
 import com.mojang.serialization.Codec;
 
 import net.minecraft.network.RegistryFriendlyByteBuf;
@@ -23,7 +24,7 @@ public record ScrollEffects(List<ScrollEffect> entries) {
     public static final ScrollEffects NONE = new ScrollEffects(List.of());
 
     /** Persistent codec (a plain list). */
-    public static final Codec<ScrollEffects> CODEC = ScrollEffect.CODEC.listOf().xmap(ScrollEffects::new, ScrollEffects::entries);
+    public static final Codec<ScrollEffects> CODEC = LenientCodecs.list(ScrollEffect.CODEC, "scroll effect").xmap(ScrollEffects::new, ScrollEffects::entries);
 
     /** Network codec. */
     public static final StreamCodec<RegistryFriendlyByteBuf, ScrollEffects> STREAM_CODEC =

@@ -3,6 +3,7 @@ package com.gilfort.architectstrials.portal;
 import java.util.Optional;
 import java.util.UUID;
 
+import com.gilfort.architectstrials.config.ArchitectsTrialsConfig;
 import com.gilfort.architectstrials.instance.ChallengeInstance;
 import com.gilfort.architectstrials.instance.InstanceManager;
 import com.gilfort.architectstrials.registry.ModEntityTypes;
@@ -23,6 +24,7 @@ import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.storage.ValueInput;
@@ -36,8 +38,8 @@ import net.minecraft.world.phys.Vec3;
  * Lifecycle: <em>forming</em> (particles, not enterable) → <em>active</em> once its instance is ready →
  * closed. Who may enter and how long the portal stays open is decided by the instance's {@link ScrollOptions}
  * (solo default: only the scroll user, closing after their first pass-through). If nobody ever enters before
- * the portal's time is up, it collapses, the instance is cleaned up and the scroll drops again with a 50 %
- * chance.
+ * the portal's time is up, it collapses, the instance is cleaned up and the scroll drops again with the
+ * configured chance.
  */
 public class ChallengePortal extends Entity {
 
@@ -46,7 +48,6 @@ public class ChallengePortal extends Entity {
 
     private static final EntityDataAccessor<Boolean> DATA_ACTIVE = SynchedEntityData.defineId(ChallengePortal.class, EntityDataSerializers.BOOLEAN);
     private static final int TICKS_PER_SECOND = 20;
-    private static final float SCROLL_DROP_CHANCE = 0.5F;
 
     private UUID owner = new UUID(0L, 0L);
     private UUID instanceId = new UUID(0L, 0L);
@@ -130,28 +131,43 @@ public class ChallengePortal extends Entity {
             }
             return;
         }
-        for (ServerPlayer player : level.getEntitiesOfClass(ServerPlayer.class, this.getBoundingBox(), ChallengePortal::canUsePortals)) {
-            ChallengeInstance current = InstanceManager.data(themeLevel).get(this.instanceId).orElse(instance.get());
-            ChallengeInstance.Admission admission = current.admission(player.getUUID(), this.owner);
-            if (admission != ChallengeInstance.Admission.ALLOWED) {
-                if (this.age % TICKS_PER_SECOND == 0) {
-                    player.sendOverlayMessage(Component.translatable(admission.messageKey()));
-                }
-                continue;
-            }
-            if (InstanceManager.join(player, themeLevel, current)) {
-                level.playSound(null, this.getX(), this.getY(), this.getZ(), SoundEvents.PORTAL_TRAVEL, SoundSource.BLOCKS, 0.4F, 1.6F);
-                if (this.closesAfterEntry(InstanceManager.data(themeLevel).get(this.instanceId).orElse(current))) {
-                    this.close(themeLevel);
-                    return;
-                }
-            }
-        }
-        ChallengeInstance current = InstanceManager.data(themeLevel).get(this.instanceId).orElse(instance.get());
+        ChallengeInstance current = instance.get();
         if (this.age - this.activeSince > InstanceManager.activePortalTicks(current.options(), current.timeLimit())) {
             if (current.roster().entrants().isEmpty()) {
                 this.expire(level, themeLevel);
             } else {
+                this.close(themeLevel);
+            }
+        }
+    }
+
+    /**
+     * Lets a player touching the active portal enter its instance, if the scroll options admit them. Vanilla calls
+     * this from the player's own tick for nearby entities, so the portal needs no entity query of its own.
+     *
+     * @param player the touching player
+     */
+    @Override
+    public void playerTouch(Player player) {
+        if (!(this.level() instanceof ServerLevel level) || !(player instanceof ServerPlayer serverPlayer) || !this.isActive()
+                || this.isRemoved() || !canUsePortals(serverPlayer) || !serverPlayer.getBoundingBox().intersects(this.getBoundingBox())) {
+            return;
+        }
+        ServerLevel themeLevel = level.getServer().getLevel(this.themeDimension);
+        Optional<ChallengeInstance> instance = themeLevel == null ? Optional.empty() : InstanceManager.data(themeLevel).get(this.instanceId);
+        if (instance.isEmpty()) {
+            return;
+        }
+        ChallengeInstance.Admission admission = instance.get().admission(serverPlayer.getUUID(), this.owner);
+        if (admission != ChallengeInstance.Admission.ALLOWED) {
+            if (this.age % TICKS_PER_SECOND == 0) {
+                serverPlayer.sendOverlayMessage(Component.translatable(admission.messageKey()));
+            }
+            return;
+        }
+        if (InstanceManager.join(serverPlayer, themeLevel, instance.get())) {
+            level.playSound(null, this.getX(), this.getY(), this.getZ(), SoundEvents.PORTAL_TRAVEL, SoundSource.BLOCKS, 0.4F, 1.6F);
+            if (this.closesAfterEntry(InstanceManager.data(themeLevel).get(this.instanceId).orElse(instance.get()))) {
                 this.close(themeLevel);
             }
         }
@@ -186,11 +202,12 @@ public class ChallengePortal extends Entity {
     }
 
     /**
-     * Closes an unused portal: cleans up the instance and drops the scroll again with a 50 % chance.
+     * Closes an unused portal: cleans up the instance and drops the scroll again with the configured
+     * {@link ArchitectsTrialsConfig#UNUSED_PORTAL_SCROLL_DROP_CHANCE}.
      */
     private void expire(ServerLevel level, ServerLevel themeLevel) {
         InstanceManager.close(themeLevel, this.instanceId);
-        if (!this.scroll.isEmpty() && this.random.nextFloat() < SCROLL_DROP_CHANCE) {
+        if (!this.scroll.isEmpty() && this.random.nextDouble() < ArchitectsTrialsConfig.UNUSED_PORTAL_SCROLL_DROP_CHANCE.getAsDouble()) {
             this.spawnAtLocation(level, this.scroll.copy());
         }
         ServerPlayer ownerPlayer = level.getServer().getPlayerList().getPlayer(this.owner);

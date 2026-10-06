@@ -1,0 +1,8 @@
+{
+  "type": "minecraft:function",
+  "environment": "minecraft:default",
+  "function": "architectstrials:portal_expired_scroll_drop_chance",
+  "max_ticks": 60,
+  "structure": "minecraft:empty",
+  "padding": 8
+}
