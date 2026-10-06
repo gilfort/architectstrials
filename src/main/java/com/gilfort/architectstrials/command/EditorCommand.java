@@ -145,7 +145,7 @@ final class EditorCommand {
         WorldImport.Result result = WorldImport.importInto(target.level(), target.box(), target.editor());
         EditorDimension.freeStuckPlayers(target.editor());
         source.sendSuccess(() -> Component.translatable("commands.architectstrials.editor.import.success", result.copiedBlocks(),
-                result.spawners()), true);
+                result.spawners(), result.vaults()), true);
         if (!result.missingEggs().isEmpty()) {
             source.sendSuccess(() -> Component.translatable("commands.architectstrials.editor.import.missing_eggs",
                     String.join(", ", result.missingEggs().stream().map(Identifier::toString).toList())), false);

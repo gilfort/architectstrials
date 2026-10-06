@@ -11,6 +11,7 @@ and cannot be broken in survival.
 | Direct Spawn Marker | Mobs spawned right away (then air) |
 | Spawner Marker | A vanilla monster spawner |
 | Trial Spawner Marker | A vanilla trial spawner |
+| Vault Marker | A vanilla vault (reward behind a key, once per player) |
 
 When a structure is rotated or mirrored, markers move with it; mobs and spawners are not rotated otherwise.
 
@@ -132,6 +133,22 @@ ominous variant with 3 wither skeletons and nether fortress loot:
 3. Switch to the ominous page — row 1: 3 wither skeleton spawn eggs. Toggle "Ominous: allowed".
 4. Look at the marker: `/at marker loot_table minecraft:chests/simple_dungeon` and
    `/at marker ominous_loot_table minecraft:chests/nether_bridge`.
+
+## Vault Marker
+
+Becomes a vanilla **vault**: players unlock it with a key and get a reward — every player once per instance (each
+new instance places a fresh vault). Right-click the marker to set it up:
+
+- **Normal / Ominous** (top right) — the vault's look and its default key and reward.
+- **Key slot** — any item, including count and components (name, enchantments, …); that many are consumed. Empty
+  = the vanilla key of the variant (Trial Key / Ominous Trial Key).
+- **Reward** — compose it with the [Loot Tool](Loot#loot-tool-composed-rewards) (rolled per player on unlock; the
+  floating preview shows possible rewards). Without a setup: the loot table set with `/at marker loot_table <id>`,
+  otherwise the vanilla trial chamber reward of the variant.
+
+Players clicking a vault in a challenge with the wrong item or an empty hand see what opens it, e.g. "Opens with:
+2× Crypt Key". [Importing](Building-Challenges#importing-areas-of-the-world) a trial chamber converts its vaults into Vault
+Markers with variant, key and loot table.
 
 ## Inspecting markers
 

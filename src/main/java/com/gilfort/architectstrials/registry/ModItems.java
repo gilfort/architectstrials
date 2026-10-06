@@ -41,6 +41,10 @@ public final class ModItems {
     public static final DeferredItem<MarkerBlockItem> TRIAL_SPAWNER_MARKER = ITEMS.registerItem("trial_spawner_marker",
             properties -> new MarkerBlockItem(ModBlocks.TRIAL_SPAWNER_MARKER.get(), properties.rarity(Rarity.EPIC).useBlockDescriptionPrefix()));
 
+    /** Item of the {@link ModBlocks#VAULT_MARKER}; creative/editor only, no recipe. */
+    public static final DeferredItem<MarkerBlockItem> VAULT_MARKER = ITEMS.registerItem("vault_marker",
+            properties -> new MarkerBlockItem(ModBlocks.VAULT_MARKER.get(), properties.rarity(Rarity.EPIC).useBlockDescriptionPrefix()));
+
     /** Selection tool for importing world areas into the editor; creative/editor only, no recipe. */
     public static final DeferredItem<SelectionToolItem> SELECTION_TOOL = ITEMS.registerItem("selection_tool",
             properties -> new SelectionToolItem(properties.stacksTo(1).rarity(Rarity.EPIC)));

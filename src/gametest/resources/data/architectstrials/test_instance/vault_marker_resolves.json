@@ -1,0 +1,8 @@
+{
+  "type": "minecraft:function",
+  "environment": "minecraft:default",
+  "function": "architectstrials:vault_marker_resolves",
+  "max_ticks": 40,
+  "structure": "minecraft:empty",
+  "padding": 8
+}

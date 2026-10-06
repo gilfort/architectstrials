@@ -36,18 +36,6 @@ jobs:
       - name: Run GameTests
         run: ./gradlew runGameTestServer
 
-      # TEMPORARY: prints vanilla vault signatures for the Vault Marker (US-26); removed again afterwards.
-      - name: Inspect vanilla vault classes
-        if: always()
-        run: |
-          jar=$(find build ~/.gradle -name "*.jar" -path "*neoform*" 2>/dev/null | xargs -I{} sh -c 'unzip -l "{}" 2>/dev/null | grep -q "vault/VaultBlockEntity.class" && echo "{}"' | head -1)
-          [ -z "$jar" ] && jar=$(find build ~/.gradle -name "*.jar" 2>/dev/null | xargs -I{} sh -c 'unzip -l "{}" 2>/dev/null | grep -q "vault/VaultBlockEntity.class" && echo "{}"' | head -1)
-          echo "JAR: $jar"
-          for c in VaultBlockEntity 'VaultBlockEntity$Server' 'VaultBlockEntity$Client' VaultConfig VaultServerData VaultSharedData VaultState; do
-            javap -p -cp "$jar" "net.minecraft.world.level.block.entity.vault.$c" | grep -v "lambda\$" || true
-          done
-          javap -p -cp "$jar" net.minecraft.world.level.block.VaultBlock | grep -v "lambda\$" || true
-
       - name: Summarize failed GameTests
         if: failure()
         run: |

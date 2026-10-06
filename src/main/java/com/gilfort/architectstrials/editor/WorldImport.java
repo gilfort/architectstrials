@@ -8,6 +8,8 @@ import java.util.Optional;
 import com.gilfort.architectstrials.ArchitectsTrials;
 import com.gilfort.architectstrials.block.MobMarkerBlockEntity;
 import com.gilfort.architectstrials.block.TrialSpawnerMarkerBlockEntity;
+import com.gilfort.architectstrials.block.VaultMarkerBlock;
+import com.gilfort.architectstrials.block.VaultMarkerBlockEntity;
 import com.gilfort.architectstrials.loot.LootEntry;
 import com.gilfort.architectstrials.loot.LootGroup;
 import com.gilfort.architectstrials.loot.LootSetup;
@@ -34,10 +36,14 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.SpawnEggItem;
 import net.minecraft.world.level.SpawnData;
 import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.VaultBlock;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.SpawnerBlockEntity;
 import net.minecraft.world.level.block.entity.TrialSpawnerBlockEntity;
 import net.minecraft.world.level.block.entity.trialspawner.TrialSpawnerConfig;
+import net.minecraft.world.level.block.entity.vault.VaultBlockEntity;
+import net.minecraft.world.level.block.entity.vault.VaultConfig;
+import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.levelgen.structure.BoundingBox;
 import net.minecraft.world.level.storage.TagValueOutput;
 import net.minecraft.world.level.storage.loot.LootTable;
@@ -65,8 +71,9 @@ public final class WorldImport {
      * @param copiedBlocks the number of non-air blocks copied
      * @param spawners     the number of spawners and trial spawners converted to markers
      * @param missingEggs  entity types without a spawn egg item (their marker rows stay empty)
+     * @param vaults       the number of vaults converted to Vault Markers
      */
-    public record Result(BoundingBox placed, int copiedBlocks, int spawners, List<Identifier> missingEggs) {
+    public record Result(BoundingBox placed, int copiedBlocks, int spawners, List<Identifier> missingEggs, int vaults) {
     }
 
     /**
@@ -97,6 +104,7 @@ public final class WorldImport {
         BoundingBox placed = EditorCapture.place(editor, EditorCapture.copy(source, box), centerX, centerZ);
         List<Identifier> missing = new ArrayList<>();
         int spawners = 0;
+        int vaults = 0;
         for (BlockEntity blockEntity : blockEntities(editor, placed)) {
             if (blockEntity instanceof SpawnerBlockEntity spawner) {
                 convertSpawner(editor, spawner, missing);
@@ -104,9 +112,12 @@ public final class WorldImport {
             } else if (blockEntity instanceof TrialSpawnerBlockEntity trialSpawner) {
                 convertTrialSpawner(editor, trialSpawner, missing);
                 spawners++;
+            } else if (blockEntity instanceof VaultBlockEntity vault) {
+                convertVault(editor, vault);
+                vaults++;
             }
         }
-        return new Result(placed, blocks, spawners, missing.stream().distinct().toList());
+        return new Result(placed, blocks, spawners, missing.stream().distinct().toList(), vaults);
     }
 
     private static List<BlockEntity> blockEntities(ServerLevel level, BoundingBox box) {
@@ -207,6 +218,27 @@ public final class WorldImport {
             group = group.with(LootEntry.ofTable(i, rewards.get(i).value(), chance), true);
         }
         return LootSetup.EMPTY.withPage(0, group);
+    }
+
+    /**
+     * Replaces a vanilla vault by a Vault Marker with its variant, facing, key (empty if it is the vanilla key of the
+     * variant) and loot table.
+     */
+    private static void convertVault(ServerLevel level, VaultBlockEntity vault) {
+        BlockPos pos = vault.getBlockPos();
+        BlockState state = level.getBlockState(pos);
+        boolean ominous = state.getValue(VaultBlock.OMINOUS);
+        VaultConfig config = vault.getConfig();
+        level.setBlock(pos, ModBlocks.VAULT_MARKER.get().defaultBlockState().setValue(VaultMarkerBlock.FACING, state.getValue(VaultBlock.FACING)),
+                Block.UPDATE_CLIENTS);
+        if (level.getBlockEntity(pos) instanceof VaultMarkerBlockEntity marker) {
+            marker.setOminous(ominous);
+            ItemStack key = config.keyItem();
+            if (!ItemStack.isSameItemAndComponents(key, VaultMarkerBlock.defaultKey(ominous)) || key.getCount() != 1) {
+                marker.setKey(key);
+            }
+            marker.setLootTableReference(Optional.of(config.lootTable()));
+        }
     }
 
     private static MobMarkerBlockEntity replace(ServerLevel level, BlockPos pos, Block markerBlock) {

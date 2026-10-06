@@ -163,3 +163,19 @@ tier 1).
       scroll (tooltip shows theme and tier).
 - [ ] A recipe for a tier without challenges shows no result; adding a structure of that tier + `/reload` makes it
       work.
+
+## US-26 (#49): Vault Marker
+
+GameTests: `vault_marker_resolves` (ominous vault, custom key with count, reward from the loot setup, once per
+player), `vault_marker_default_key_and_hint`, `vault_marker_world_import`.
+
+- [ ] Vault Marker in the creative tab; place it (faces you), right-click: Normal/Ominous button, key slot.
+- [ ] Loot tool on the marker: compose a reward; `/at marker loot_table <id>` as alternative. Both survive
+      `editor save` / `editor load`.
+- [ ] In a challenge: the vault looks normal / ominous, shows the floating preview cycling through possible rewards.
+- [ ] Click with an empty hand or a wrong item: action bar "Opens with: N× <key>" + vanilla fail sound.
+- [ ] Custom key (e.g. 2× renamed item): opens with exactly that (name / components must match), consumes 2.
+- [ ] Two players: each can unlock once; a second try of the same player fails. A new instance has a fresh vault.
+- [ ] Empty key slot: Trial Key (normal) / Ominous Trial Key (ominous) works.
+- [ ] Import a real trial chamber (`/at editor import`): vaults become Vault Markers (message counts them) with
+      variant, key and loot table; the resulting challenge works like the original.
