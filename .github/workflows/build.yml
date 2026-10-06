@@ -36,6 +36,13 @@ jobs:
       - name: Run GameTests
         run: ./gradlew runGameTestServer
 
+      - name: Summarize failed GameTests
+        if: failure()
+        run: |
+          for log in run/logs/latest.log build/run/gameTestServer/logs/latest.log; do
+            [ -f "$log" ] && grep -E "GAME TESTS COMPLETE|required tests? failed|^\[.*\] \[Server thread/ERROR\]" "$log" | tail -40 || true
+          done
+
       - name: Upload mod jar
         uses: actions/upload-artifact@v4
         with:
