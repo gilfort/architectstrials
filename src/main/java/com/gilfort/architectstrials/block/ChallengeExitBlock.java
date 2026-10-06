@@ -46,12 +46,13 @@ public class ChallengeExitBlock extends HorizontalDirectionalBlock implements En
     public ChallengeExitBlock(BlockBehaviour.Properties properties) {
         super(properties);
         this.registerDefaultState(this.stateDefinition.any().setValue(FACING, Direction.NORTH).setValue(POWERED, false)
-                .setValue(SEALED, false));
+                .setValue(SEALED, false)
+                .setValue(ExitCamouflage.CAMOUFLAGED, false));
     }
 
     @Override
     protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
-        builder.add(FACING, POWERED, SEALED);
+        builder.add(FACING, POWERED, SEALED, ExitCamouflage.CAMOUFLAGED);
     }
 
     /**

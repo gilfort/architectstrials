@@ -179,3 +179,28 @@ player), `vault_marker_default_key_and_hint`, `vault_marker_world_import`.
 - [ ] Empty key slot: Trial Key (normal) / Ominous Trial Key (ominous) works.
 - [ ] Import a real trial chamber (`/at editor import`): vaults become Vault Markers (message counts them) with
       variant, key and loot table; the resulting challenge works like the original.
+
+## US-34 (#63): Camouflage for exit blocks
+
+GameTests: `exit_camouflage_set_and_remove` (valid / invalid blocks, block state property, save / load, sync data,
+GUI remove button), `exit_camouflage_carried_over` (exit gets the camouflage, rotated with the structure).
+
+- [ ] Editor: right-click an Exit Marker with stone bricks → it looks like stone bricks with the green door on the
+      front and the arrow on top (pointing to the front); action bar "Exit camouflaged as …".
+- [ ] Right-click with a chest, glass, a slab, a torch → red message, nothing changes.
+- [ ] Right-click with an oak log looking from the side → log lies sideways as if placed; with stairs / a furnace
+      it faces as when placed (furnace is rejected — block entity).
+- [ ] Sneak + right-click with a block places it against the marker; camouflage unchanged.
+- [ ] Empty hand opens the GUI: block icon + "Camouflage: …", "Remove camouflage" removes it (button grey without
+      camouflage). Required-mobs toggle still works.
+- [ ] `editor save` / `editor load`: camouflage kept. Rejoin the world / move away and back: still camouflaged.
+- [ ] In a challenge: a locked (powered) or sealed exit looks exactly like the block; open exit: block + purple
+      glowing lines on all sides; portal above unchanged. Lighting and shading of the block look like the
+      surrounding blocks (no dark or too bright faces).
+- [ ] Wider exit (2–3 markers, different camouflages): each base shows its own block; one combined portal.
+- [ ] Rotated structure: a sideways log camouflage stays aligned with the room.
+- [ ] A camouflage from another mod works; remove that mod → the exit shows its normal look, the log mentions the
+      missing block.
+- [ ] Breaking particles / sounds stay the exit's; grass-like blocks may be untinted (grey), check how it looks.
+- [ ] Survival player cannot change the camouflage of a placed exit (right-click with a block does nothing special).
+

@@ -62,28 +62,3 @@ jobs:
 
 
 
-      # TEMPORARY: prints client render signatures for the exit camouflage (US-34); removed again afterwards.
-      - name: Inspect render classes
-        if: always()
-        run: |
-          src=$(find ~/.gradle -name "neoforge-*-sources.jar" | head -1)
-          mc=build/moddev/artifacts/minecraft-patched-26.3.0.34-beta.jar
-          mkdir -p /tmp/nfsrc && cd /tmp/nfsrc && unzip -q -o "$src" && cd - > /dev/null
-          echo "--- getModelData / requestModelDataUpdate"
-          grep -rn "ModelData getModelData\|void requestModelDataUpdate\|ModelData getModelData(" /tmp/nfsrc --include=*.java | sed 's#/tmp/nfsrc/##' | head -20
-          echo "--- ModifyBakingResult"
-          grep -rn -A3 "class ModifyBakingResult" /tmp/nfsrc --include=*.java | sed 's#/tmp/nfsrc/##' | head -8
-          grep -n "public .*(" /tmp/nfsrc/net/neoforged/neoforge/client/event/ModelEvent.java | head -30
-          echo "--- render_type / colors"
-          grep -rln "render_type\|RegisterColorHandlersEvent\|BlockTintSource" /tmp/nfsrc --include=*.java | sed 's#/tmp/nfsrc/##' | head -20
-          grep -n "public .*(" /tmp/nfsrc/net/neoforged/neoforge/client/event/RegisterColorHandlersEvent.java | head -20
-          echo "--- BlockStateModelPart extension"
-          ls /tmp/nfsrc/net/neoforged/neoforge/client/extensions/ | tr '\n' ' '
-          echo
-          grep -n "default\|interface" /tmp/nfsrc/net/neoforged/neoforge/client/extensions/BlockStateModelPartExtension.java 2>/dev/null | head
-          echo "--- javap"
-          unzip -l $mc | awk '{print $4}' | grep -E "client/renderer/block/dispatch/[A-Za-z]*\.class$|client/renderer/block/BlockAndTintGetter|/BlockColors.class|/BlockTintSource|client/renderer/chunk/ChunkSectionLayer.class" | tr '\n' ' '
-          echo
-          for c in client.renderer.block.dispatch.BlockStateModel client.renderer.block.dispatch.BlockStateModelPart client.renderer.block.BlockAndTintGetter; do
-            echo "=== $c"; javap -cp "$mc" "net.minecraft.$c" | grep -v 'lambda\$\|^Compiled\|^}' | sed 's/net\.minecraft\.//g; s/java\.util\.//g' || true
-          done

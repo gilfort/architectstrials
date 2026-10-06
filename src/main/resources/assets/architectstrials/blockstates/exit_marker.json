@@ -1,18 +1,33 @@
 {
   "variants": {
-    "facing=north": {
+    "camouflaged=false,facing=north": {
       "model": "architectstrials:block/exit_marker"
     },
-    "facing=east": {
+    "camouflaged=true,facing=north": {
+      "model": "architectstrials:block/exit_marker_overlay"
+    },
+    "camouflaged=false,facing=east": {
       "model": "architectstrials:block/exit_marker",
       "y": 90
     },
-    "facing=south": {
+    "camouflaged=true,facing=east": {
+      "model": "architectstrials:block/exit_marker_overlay",
+      "y": 90
+    },
+    "camouflaged=false,facing=south": {
       "model": "architectstrials:block/exit_marker",
       "y": 180
     },
-    "facing=west": {
+    "camouflaged=true,facing=south": {
+      "model": "architectstrials:block/exit_marker_overlay",
+      "y": 180
+    },
+    "camouflaged=false,facing=west": {
       "model": "architectstrials:block/exit_marker",
+      "y": 270
+    },
+    "camouflaged=true,facing=west": {
+      "model": "architectstrials:block/exit_marker_overlay",
       "y": 270
     }
   }

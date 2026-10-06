@@ -1,0 +1,26 @@
+{
+  "textures": {
+    "front": "architectstrials:block/exit_marker_front_overlay",
+    "top": "architectstrials:block/exit_marker_top_overlay",
+    "particle": "architectstrials:block/exit_marker_side"
+  },
+  "elements": [
+    {
+      "from": [-0.01, -0.01, -0.01],
+      "to": [16.01, 16.01, 16.01],
+      "shade": false,
+      "faces": {
+        "north": {
+          "uv": [0, 0, 16, 16],
+          "texture": "#front",
+          "cullface": "north"
+        },
+        "up": {
+          "uv": [0, 0, 16, 16],
+          "texture": "#top",
+          "cullface": "up"
+        }
+      }
+    }
+  ]
+}

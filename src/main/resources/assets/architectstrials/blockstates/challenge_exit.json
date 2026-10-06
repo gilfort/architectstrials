@@ -1,52 +1,100 @@
 {
   "variants": {
-    "facing=north,powered=false,sealed=false": {
+    "camouflaged=false,facing=north,powered=false,sealed=false": {
       "model": "architectstrials:block/challenge_exit"
     },
-    "facing=north,powered=false,sealed=true": {
+    "camouflaged=false,facing=north,powered=false,sealed=true": {
       "model": "architectstrials:block/challenge_exit_locked"
     },
-    "facing=north,powered=true,sealed=false": {
+    "camouflaged=false,facing=north,powered=true,sealed=false": {
       "model": "architectstrials:block/challenge_exit_locked"
     },
-    "facing=north,powered=true,sealed=true": {
+    "camouflaged=false,facing=north,powered=true,sealed=true": {
       "model": "architectstrials:block/challenge_exit_locked"
     },
-    "facing=east,powered=false,sealed=false": {
+    "camouflaged=false,facing=east,powered=false,sealed=false": {
       "model": "architectstrials:block/challenge_exit"
     },
-    "facing=east,powered=false,sealed=true": {
+    "camouflaged=false,facing=east,powered=false,sealed=true": {
       "model": "architectstrials:block/challenge_exit_locked"
     },
-    "facing=east,powered=true,sealed=false": {
+    "camouflaged=false,facing=east,powered=true,sealed=false": {
       "model": "architectstrials:block/challenge_exit_locked"
     },
-    "facing=east,powered=true,sealed=true": {
+    "camouflaged=false,facing=east,powered=true,sealed=true": {
       "model": "architectstrials:block/challenge_exit_locked"
     },
-    "facing=south,powered=false,sealed=false": {
+    "camouflaged=false,facing=south,powered=false,sealed=false": {
       "model": "architectstrials:block/challenge_exit"
     },
-    "facing=south,powered=false,sealed=true": {
+    "camouflaged=false,facing=south,powered=false,sealed=true": {
       "model": "architectstrials:block/challenge_exit_locked"
     },
-    "facing=south,powered=true,sealed=false": {
+    "camouflaged=false,facing=south,powered=true,sealed=false": {
       "model": "architectstrials:block/challenge_exit_locked"
     },
-    "facing=south,powered=true,sealed=true": {
+    "camouflaged=false,facing=south,powered=true,sealed=true": {
       "model": "architectstrials:block/challenge_exit_locked"
     },
-    "facing=west,powered=false,sealed=false": {
+    "camouflaged=false,facing=west,powered=false,sealed=false": {
       "model": "architectstrials:block/challenge_exit"
     },
-    "facing=west,powered=false,sealed=true": {
+    "camouflaged=false,facing=west,powered=false,sealed=true": {
       "model": "architectstrials:block/challenge_exit_locked"
     },
-    "facing=west,powered=true,sealed=false": {
+    "camouflaged=false,facing=west,powered=true,sealed=false": {
       "model": "architectstrials:block/challenge_exit_locked"
     },
-    "facing=west,powered=true,sealed=true": {
+    "camouflaged=false,facing=west,powered=true,sealed=true": {
       "model": "architectstrials:block/challenge_exit_locked"
+    },
+    "camouflaged=true,facing=north,powered=false,sealed=false": {
+      "model": "architectstrials:block/challenge_exit_overlay"
+    },
+    "camouflaged=true,facing=north,powered=false,sealed=true": {
+      "model": "architectstrials:block/empty"
+    },
+    "camouflaged=true,facing=north,powered=true,sealed=false": {
+      "model": "architectstrials:block/empty"
+    },
+    "camouflaged=true,facing=north,powered=true,sealed=true": {
+      "model": "architectstrials:block/empty"
+    },
+    "camouflaged=true,facing=east,powered=false,sealed=false": {
+      "model": "architectstrials:block/challenge_exit_overlay"
+    },
+    "camouflaged=true,facing=east,powered=false,sealed=true": {
+      "model": "architectstrials:block/empty"
+    },
+    "camouflaged=true,facing=east,powered=true,sealed=false": {
+      "model": "architectstrials:block/empty"
+    },
+    "camouflaged=true,facing=east,powered=true,sealed=true": {
+      "model": "architectstrials:block/empty"
+    },
+    "camouflaged=true,facing=south,powered=false,sealed=false": {
+      "model": "architectstrials:block/challenge_exit_overlay"
+    },
+    "camouflaged=true,facing=south,powered=false,sealed=true": {
+      "model": "architectstrials:block/empty"
+    },
+    "camouflaged=true,facing=south,powered=true,sealed=false": {
+      "model": "architectstrials:block/empty"
+    },
+    "camouflaged=true,facing=south,powered=true,sealed=true": {
+      "model": "architectstrials:block/empty"
+    },
+    "camouflaged=true,facing=west,powered=false,sealed=false": {
+      "model": "architectstrials:block/challenge_exit_overlay"
+    },
+    "camouflaged=true,facing=west,powered=false,sealed=true": {
+      "model": "architectstrials:block/empty"
+    },
+    "camouflaged=true,facing=west,powered=true,sealed=false": {
+      "model": "architectstrials:block/empty"
+    },
+    "camouflaged=true,facing=west,powered=true,sealed=true": {
+      "model": "architectstrials:block/empty"
     }
   }
 }

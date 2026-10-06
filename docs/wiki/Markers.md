@@ -41,6 +41,14 @@ only way to complete a run.
 - **Needs required mobs:** right-click the Exit Marker (empty hand) and switch on **Needs all required mobs
   defeated**. The exit is then sealed — locked look, no portal — until every [required mob](#direct-spawn-marker)
   of the instance is defeated, and opens with a sound and message. Exits without the setting work as before.
+- **Camouflage:** right-click the Exit Marker with a block (no sneaking) to give the exit that block's look, in the
+  state it would be placed in (log axis, orientation). Allowed are opaque full blocks without block entity, also
+  from other mods; anything else is rejected with a message. While locked or sealed the exit looks exactly like the
+  block; open, its glowing lines are drawn on top. In the editor the marker keeps its door and direction arrow on
+  top of the camouflage. The camouflage is only visual (hardness, sound, light and collision stay those of the
+  exit), turns with rotated structures and can't be changed by players. Remove it in the marker GUI (empty hand →
+  **Remove camouflage**). Sneak + right-click still places blocks against the marker. Each base of a wider exit
+  has its own camouflage.
 - **Bonus override:** look at the marker and run `/at marker loot_table <id>` to give this exit its own
   completion bonus (see [Loot](Loot#completion-bonus)). The [Loot Tool](Loot#loot-tool-composed-rewards)
   composes a bonus from several loot tables and items instead; it takes precedence over the loot table.

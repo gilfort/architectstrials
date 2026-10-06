@@ -1,11 +1,19 @@
 package com.gilfort.architectstrials.client;
 
+import java.util.List;
+import java.util.Map;
+
 import com.gilfort.architectstrials.ArchitectsTrials;
+import com.gilfort.architectstrials.block.ExitCamouflage;
 import com.gilfort.architectstrials.registry.ModBlockEntityTypes;
+import com.gilfort.architectstrials.registry.ModBlocks;
 import com.gilfort.architectstrials.registry.ModEntityTypes;
 import com.gilfort.architectstrials.registry.ModMenuTypes;
 
+import net.minecraft.client.renderer.block.dispatch.BlockStateModel;
 import net.minecraft.client.renderer.entity.NoopRenderer;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.state.BlockState;
 
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.IEventBus;
@@ -15,6 +23,7 @@ import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.fml.common.Mod;
 import net.neoforged.fml.event.lifecycle.FMLClientSetupEvent;
 import net.neoforged.neoforge.client.event.EntityRenderersEvent;
+import net.neoforged.neoforge.client.event.ModelEvent;
 import net.neoforged.neoforge.client.event.RegisterMenuScreensEvent;
 import net.neoforged.neoforge.client.gui.ConfigurationScreen;
 import net.neoforged.neoforge.client.gui.IConfigScreenFactory;
@@ -64,6 +73,26 @@ public final class ArchitectsTrialsClient {
         event.register(ModMenuTypes.TRIAL_SPAWNER_MARKER.get(), TrialSpawnerMarkerScreen::new);
         event.register(ModMenuTypes.EQUIPMENT_LIST.get(), EquipmentListScreen::new);
         event.register(ModMenuTypes.LOOT_SETUP.get(), LootSetupScreen::new);
+    }
+
+    /**
+     * Wraps the models of camouflaged exit states (US-34) so they draw the camouflage block from the block entity's
+     * model data below the state's overlay model.
+     *
+     * @param event the baking result event
+     */
+    @SubscribeEvent
+    static void onModifyBakingResult(ModelEvent.ModifyBakingResult event) {
+        Map<BlockState, BlockStateModel> models = event.getBakingResult().blockStateModels();
+        for (Block block : List.of(ModBlocks.EXIT_MARKER.get(), ModBlocks.CHALLENGE_EXIT.get())) {
+            for (BlockState state : block.getStateDefinition().getPossibleStates()) {
+                BlockStateModel overlay = models.get(state);
+                BlockStateModel plain = models.get(state.setValue(ExitCamouflage.CAMOUFLAGED, false));
+                if (state.getValue(ExitCamouflage.CAMOUFLAGED) && overlay != null && plain != null) {
+                    models.put(state, new CamouflageModel(overlay, plain, models));
+                }
+            }
+        }
     }
 
     /**
