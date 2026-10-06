@@ -103,16 +103,17 @@ the scroll's values.
 |---|---|
 | `target` | `player` — every player entering; `mobs` — every mob of the instance |
 | `effect` | Effect id, e.g. `minecraft:luck` |
-| `duration` | Ticks (20 = 1 second); `-1` = infinite |
+| `duration` | Ticks (20 = 1 second); `-1` = permanent (players: the remaining time of the instance; mobs: infinite) |
 | `amplifier` | `0` = level I (default), `1` = level II, … |
 
-- **Player effects** are applied on every entry and show **no particles** (only the icon). They always sit on top
-  of an effect of the same type the player already has (e.g. a potion):
-  - behind a **finite** scroll effect the player's own effect is parked and resumes in the challenge once the
-    scroll effect runs out (a 3-minute potion + a 5-minute scroll effect = 5 minutes scroll effect, then the
-    3 minutes of the potion);
-  - an **infinite** scroll effect is removed when the player leaves the challenge, and the player's own effect
-    comes back with the time it had on entry.
+- **Player effects** are applied once on every entry and show **no particles** (only the icon). A permanent
+  effect lasts the remaining time of the instance; nothing is re-applied, so milk removes it for the rest of that
+  stay. They always sit on top of an effect of the same type the player already has (e.g. a potion), which is
+  parked behind them: behind a finite scroll effect it resumes once the scroll effect runs out (a 3-minute potion +
+  a 5-minute scroll effect = 5 minutes scroll effect, then the 3 minutes of the potion). A
+  [challenge effect](Building-Challenges#challenge-effects-and-attributes) of the same type waits between the two.
+- **Leaving** removes all player effects of the scroll and gives the player's own effects back with the time they
+  had on entry.
 - **Mob effects** are applied to all mobs on the first entry and to every mob that spawns or loads afterwards;
   they keep their particles as a hint to the players.
 - Applying an effect the scroll already has replaces it if the new one is **stronger or longer**; otherwise (and

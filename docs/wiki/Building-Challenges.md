@@ -120,6 +120,30 @@ JSON) to build mining rooms:
 Example: a cave carved out of stone with a few ore veins, a Player Spawn Marker on a ledge and an Exit Marker
 behind a redstone-locked door that opens once the players reach the bottom.
 
+## Challenge effects and attributes
+
+A challenge can give every player its own rules — night vision in a dark cave, slowness in a swamp — independent of
+the scroll. Add them to the structure's JSON (see [Datapack Reference](Datapack-Reference#challenge-structure-metadata)):
+
+```json
+"player_effects": [
+  {"effect": "minecraft:night_vision"},
+  {"effect": "minecraft:slowness", "amplifier": 0, "duration": 1200}
+],
+"player_attributes": [
+  {"attribute": "minecraft:movement_speed", "amount": -0.02, "operation": "add_value"}
+]
+```
+
+- Applied once on every entry, also to late joiners and on re-entry. Without `duration` (or with `-1`) an effect
+  lasts the **remaining time of the instance**.
+- Nothing is re-applied: milk removes an effect for the rest of that stay.
+- The scroll wins: if the scroll gives the same effect, its effect is on top and the challenge effect takes over
+  once it runs out. The player's own effect (e.g. from a potion) waits behind both.
+- Leaving — by any way — removes all effects and attribute modifiers of the challenge and the scroll and gives the
+  player's own effects back with the duration they had on entry.
+- Modded effects and attributes work the same; unknown ids are skipped with a warning in the log.
+
 ## Structure pools and tiers
 
 Each theme has one structure pool per tier. When a challenge instance is created, one structure is drawn

@@ -1,0 +1,14 @@
+{
+  "theme": "minecraft:the_nether",
+  "tier": 7,
+  "structure": "architectstrials:gametest/spawn_platform",
+  "name": "Challenge effects platform (US-36 test)",
+  "player_effects": [
+    {"effect": "minecraft:night_vision"},
+    {"effect": "minecraft:speed", "amplifier": 1},
+    {"effect": "missingmod:strange_effect"}
+  ],
+  "player_attributes": [
+    {"attribute": "minecraft:movement_speed", "amount": -0.02, "operation": "add_value"}
+  ]
+}

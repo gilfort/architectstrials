@@ -134,3 +134,19 @@ GameTests: `required_mobs_seal_exit` (glow duration, sealed exit, partial / full
 - [ ] Two instances of the same structure in parallel: killing the mobs in one does not open the other.
 - [ ] Server restart with required mobs left: progress is kept, the exit stays sealed until the rest are killed.
 - [ ] Combination with redstone: an exit that is powered **and** sealed opens only when both are cleared.
+
+## US-36 (#65): Challenge-defined player effects and attributes (+ new rule for permanent scroll effects)
+
+GameTests: `challenge_effects_entry_and_leave`, `challenge_effects_behind_scroll`, `scroll_effects_applied`
+(permanent scroll effects now last the remaining instance time).
+
+- [ ] Add `player_effects` / `player_attributes` to a structure JSON (`/reload`), enter: effects shown with the
+      remaining challenge time (not ∞), attribute active (e.g. slower walking).
+- [ ] Drink milk inside: effects are gone and stay gone; leaving and re-entering (with re-entry scroll) gives them
+      again.
+- [ ] Drink a night vision potion before entering a night vision challenge: inside the challenge effect is shown;
+      after leaving the potion is back with its old remaining time.
+- [ ] Scroll with a permanent effect upgrade: shows the remaining instance time instead of ∞; removed on leaving.
+- [ ] Scroll with a short speed effect + challenge speed II: first the scroll's speed, after it runs out speed II.
+- [ ] Leave by exit, death, time limit, `/at exit`, log out / in after the instance ended: nothing of it remains.
+- [ ] A modded effect / attribute works; a typo in an id only logs a warning.

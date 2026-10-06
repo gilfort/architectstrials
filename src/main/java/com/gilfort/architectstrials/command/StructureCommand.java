@@ -2,6 +2,7 @@ package com.gilfort.architectstrials.command;
 
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.UnaryOperator;
@@ -175,7 +176,9 @@ final class StructureCommand {
             ChallengeStructure metadata = new ChallengeStructure(entry.theme(), entry.tier(), entry.structureId(),
                     existing.flatMap(ChallengeStructure::name), Optional.of(source.getTextName()), Optional.of(System.currentTimeMillis()),
                     existing.map(ChallengeStructure::weight).orElse(1), existing.map(ChallengeStructure::rotation).orElse(false),
-                    existing.map(ChallengeStructure::gameMode).orElse(GameType.ADVENTURE));
+                    existing.map(ChallengeStructure::gameMode).orElse(GameType.ADVENTURE),
+                    existing.map(ChallengeStructure::playerEffects).orElse(List.of()),
+                    existing.map(ChallengeStructure::playerAttributes).orElse(List.of()));
             StructureLibrary.write(source.getServer(), entry, captured.get().template(), metadata);
         } catch (IOException e) {
             ArchitectsTrials.LOGGER.error("Could not save structure {}", entry, e);
@@ -306,11 +309,11 @@ final class StructureCommand {
     }
 
     private static ChallengeStructure copy(ChallengeStructure s, Optional<String> name, int weight, boolean rotation) {
-        return new ChallengeStructure(s.theme(), s.tier(), s.structure(), name, s.author(), s.created(), weight, rotation, s.gameMode());
+        return s.with(name, weight, rotation, s.gameMode());
     }
 
     private static ChallengeStructure withGameMode(ChallengeStructure s, GameType gameMode) {
-        return new ChallengeStructure(s.theme(), s.tier(), s.structure(), s.name(), s.author(), s.created(), s.weight(), s.rotation(), gameMode);
+        return s.with(s.name(), s.weight(), s.rotation(), gameMode);
     }
 
     private static void reloadThen(CommandSourceStack source, Component message) {

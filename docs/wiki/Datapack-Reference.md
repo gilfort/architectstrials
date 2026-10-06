@@ -49,6 +49,8 @@ All JSON formats of the mod at a glance. `<ns>` is your datapack namespace.
 | `weight` | no (1) | Draw weight within the pool |
 | `rotation` | no (false) | Random rotation and mirroring on placement |
 | `game_mode` | no (`adventure`) | Game mode players enter in: `adventure` or `survival` (mining rooms) |
+| `player_effects` | no | List of `{effect, amplifier (0), duration (-1 = whole stay)}` every player gets on entry |
+| `player_attributes` | no | List of `{attribute, amount, operation (add_value \| add_multiplied_base \| add_multiplied_total)}` while inside |
 
 ## Scroll components
 

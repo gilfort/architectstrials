@@ -5,6 +5,7 @@ import java.util.Optional;
 import java.util.function.Consumer;
 
 import com.gilfort.architectstrials.ArchitectsTrials;
+import com.gilfort.architectstrials.instance.ChallengeClock;
 import com.gilfort.architectstrials.instance.ChallengeInstance;
 import com.gilfort.architectstrials.instance.InstanceCreation;
 import com.gilfort.architectstrials.instance.InstanceManager;
@@ -115,8 +116,8 @@ public final class ScrollUpgradeGameTests {
 
     /**
      * Player effects are applied on entry without particles, on top of the player's own effects: an own effect
-     * behind a finite scroll effect is parked behind it (extended by the scroll duration), one replaced by an
-     * infinite scroll effect is given back unchanged on leaving. Mob effects reach existing mobs on the first
+     * is parked behind the scroll effect (extended by the scroll duration); permanent scroll effects last the
+     * remaining instance time; leaving removes the scroll effects and gives the own effects back unchanged. Mob effects reach existing mobs on the first
      * entry and mobs spawned afterwards.
      */
     private static void effectsApplied(GameTestHelper helper) {
@@ -140,8 +141,9 @@ public final class ScrollUpgradeGameTests {
         helper.assertTrue(InstanceManager.join(player, nether, instance), "Player could not join");
 
         MobEffectInstance regeneration = player.getEffect(MobEffects.REGENERATION);
-        helper.assertTrue(regeneration != null && regeneration.isInfiniteDuration() && regeneration.getAmplifier() == 0,
-                "Infinite scroll effect is not on top of the player's own effect");
+        long remaining = instance.deadline() - ChallengeClock.now(nether.getServer());
+        helper.assertTrue(regeneration != null && regeneration.getAmplifier() == 0 && Math.abs(regeneration.getDuration() - remaining) <= 20,
+                "Permanent scroll effect does not last the remaining instance time on top of the player's own effect: " + regeneration);
         helper.assertFalse(regeneration.isVisible(), "Player effect shows particles");
         MobEffectInstance fireResistance = player.getEffect(MobEffects.FIRE_RESISTANCE);
         helper.assertTrue(fireResistance != null && fireResistance.getDuration() == 200, "Finite scroll effect is not on top");
@@ -157,8 +159,10 @@ public final class ScrollUpgradeGameTests {
 
         helper.assertTrue(ChallengeTravel.returnToEntryPoint(player), "Player could not return");
         MobEffectInstance restored = player.getEffect(MobEffects.REGENERATION);
-        helper.assertTrue(restored != null && !restored.isInfiniteDuration() && restored.getAmplifier() == 1
-                && restored.getDuration() == 1200, "Own effect was not given back unchanged: " + restored);
+        helper.assertTrue(restored != null && restored.getAmplifier() == 1 && restored.getDuration() == 1200,
+                "Own effect was not given back unchanged: " + restored);
+        MobEffectInstance fireAfter = player.getEffect(MobEffects.FIRE_RESISTANCE);
+        helper.assertTrue(fireAfter != null && fireAfter.getDuration() == 600, "Own effect behind a finite scroll effect was not given back: " + fireAfter);
         helper.assertTrue(player.getData(ModAttachments.PARKED_EFFECTS).isEmpty(), "Parked effects were not cleared");
 
         before.discard();
