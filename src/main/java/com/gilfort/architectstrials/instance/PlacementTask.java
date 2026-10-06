@@ -18,6 +18,7 @@ import com.gilfort.architectstrials.marker.MarkerResolvers;
 import com.gilfort.architectstrials.registry.ModTicketTypes;
 import com.gilfort.architectstrials.structure.OreGeneration;
 import com.gilfort.architectstrials.structure.PaintingPlacement;
+import com.gilfort.architectstrials.sub.SubStructurePlacer;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.SectionPos;
@@ -42,11 +43,12 @@ import net.minecraft.world.level.levelgen.structure.templatesystem.StructureTemp
  * <li>place the sections bottom-up; every section is a sub-template with the same size, placed by vanilla's own
  * {@link StructureTemplate#placeInWorld} with the instance's settings, so the result is identical to placing the
  * whole template at once</li>
+ * <li>place the sub structures of all Sub Structure Markers (US-32, see {@link SubStructurePlacer})</li>
  * <li>if the challenge has natural ore generation (US-37), place the ores of its biome into the structure,
  * a few chunk columns per tick (see {@link OreGenerator})</li>
- * <li>add paintings through {@link PaintingPlacement}, resolve all markers, fill the exits' portal space with
- * {@link ChallengeExitPortalBlock}s, seal the exits that require the instance's required mobs (US-30) and make
- * the instance ready</li>
+ * <li>add paintings through {@link PaintingPlacement}, resolve all markers (also those of the sub structures),
+ * fill the exits' portal space with {@link ChallengeExitPortalBlock}s, seal the exits that require the instance's
+ * required mobs (US-30) and make the instance ready</li>
  * </ol>
  * The instance exists from the start but has no spawn points, so portals stay in their forming state until the
  * task is done. If the instance disappears meanwhile (time limit, command), the task stops.
@@ -65,7 +67,7 @@ final class PlacementTask {
     /** Maximum number of chunk columns that get their ores per tick (US-37). */
     private static final int ORE_COLUMNS_PER_TICK = 2;
 
-    private enum Step { LOAD_CHUNKS, INDEX, PLACE, ORES, FINISH, DONE }
+    private enum Step { LOAD_CHUNKS, INDEX, PLACE, SUB_STRUCTURES, ORES, FINISH, DONE }
 
     private final ResourceKey<Level> dimension;
     private final UUID instanceId;
@@ -81,6 +83,7 @@ final class PlacementTask {
     private final List<Consumer<ChallengeInstance>> callbacks = new ArrayList<>();
     private final Optional<OreGeneration> ores;
     private @Nullable OreGenerator oreGenerator;
+    private @Nullable SubStructurePlacer subStructures;
     private List<int[]> oreColumns = List.of();
     private List<Long> sectionOrder = List.of();
     private Step step = Step.LOAD_CHUNKS;
@@ -184,6 +187,7 @@ final class PlacementTask {
             case LOAD_CHUNKS -> this.loadChunks(level, unlimited);
             case INDEX -> this.index(unlimited);
             case PLACE -> this.place(level, unlimited);
+            case SUB_STRUCTURES -> this.placeSubStructures(level);
             case ORES -> this.generateOres(level, unlimited);
             case FINISH -> this.finish(level);
             case DONE -> {
@@ -271,8 +275,15 @@ final class PlacementTask {
             this.blocksBySection.clear();
             this.entitiesBySection.clear();
             this.cursor = 0;
-            this.step = this.ores.isPresent() ? Step.ORES : Step.FINISH;
+            this.step = Step.SUB_STRUCTURES;
         }
+    }
+
+    private void placeSubStructures(ServerLevel level) {
+        ChallengeInstance placed = InstanceManager.data(level).get(this.instanceId).orElseThrow();
+        this.subStructures = new SubStructurePlacer(level, placed.slot(), this.random);
+        this.subStructures.placeAll(this.template, this.origin, this.settings);
+        this.step = this.ores.isPresent() ? Step.ORES : Step.FINISH;
     }
 
     private void generateOres(ServerLevel level, boolean unlimited) {
@@ -303,6 +314,11 @@ final class PlacementTask {
         ChallengeInstance placed = InstanceManager.data(level).get(this.instanceId).orElseThrow();
         MarkerContext context = new MarkerContext(level, placed, this.random);
         int markers = MarkerResolvers.resolveAll(context, this.template, this.origin, this.settings);
+        if (this.subStructures != null) {
+            for (SubStructurePlacer.Placed sub : this.subStructures.placed()) {
+                markers += MarkerResolvers.resolveAll(context, sub.template(), sub.origin(), sub.settings());
+            }
+        }
         ChallengeExitPortalBlock.fill(level, context.exits());
         RequiredMobs required = context.requiredMobs().isEmpty() ? RequiredMobs.NONE : RequiredMobs.of(context.requiredMobs());
         if (required.any()) {

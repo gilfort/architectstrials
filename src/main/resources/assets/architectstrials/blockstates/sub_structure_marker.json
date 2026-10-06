@@ -1,0 +1,19 @@
+{
+  "variants": {
+    "facing=north": {
+      "model": "architectstrials:block/sub_structure_marker"
+    },
+    "facing=east": {
+      "model": "architectstrials:block/sub_structure_marker",
+      "y": 90
+    },
+    "facing=south": {
+      "model": "architectstrials:block/sub_structure_marker",
+      "y": 180
+    },
+    "facing=west": {
+      "model": "architectstrials:block/sub_structure_marker",
+      "y": 270
+    }
+  }
+}

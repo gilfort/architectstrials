@@ -5,6 +5,7 @@ import com.gilfort.architectstrials.block.MarkerBlockItem;
 import com.gilfort.architectstrials.editor.SelectionToolItem;
 import com.gilfort.architectstrials.loot.LootToolItem;
 import com.gilfort.architectstrials.scroll.ChallengeScrollItem;
+import com.gilfort.architectstrials.sub.SubStructureToolItem;
 
 import net.minecraft.world.item.Rarity;
 import net.neoforged.bus.api.IEventBus;
@@ -45,6 +46,10 @@ public final class ModItems {
     public static final DeferredItem<MarkerBlockItem> VAULT_MARKER = ITEMS.registerItem("vault_marker",
             properties -> new MarkerBlockItem(ModBlocks.VAULT_MARKER.get(), properties.rarity(Rarity.EPIC).useBlockDescriptionPrefix()));
 
+    /** Item of the {@link ModBlocks#SUB_STRUCTURE_MARKER}; creative/editor only, no recipe. */
+    public static final DeferredItem<MarkerBlockItem> SUB_STRUCTURE_MARKER = ITEMS.registerItem("sub_structure_marker",
+            properties -> new MarkerBlockItem(ModBlocks.SUB_STRUCTURE_MARKER.get(), properties.rarity(Rarity.EPIC).useBlockDescriptionPrefix()));
+
     /** Selection tool for importing world areas into the editor; creative/editor only, no recipe. */
     public static final DeferredItem<SelectionToolItem> SELECTION_TOOL = ITEMS.registerItem("selection_tool",
             properties -> new SelectionToolItem(properties.stacksTo(1).rarity(Rarity.EPIC)));
@@ -52,6 +57,10 @@ public final class ModItems {
     /** Loot tool for composed loot setups; creative/editor only, no recipe. */
     public static final DeferredItem<LootToolItem> LOOT_TOOL = ITEMS.registerItem("loot_tool",
             properties -> new LootToolItem(properties.stacksTo(1).rarity(Rarity.EPIC)));
+
+    /** Tool copying sub structure setups between markers (US-32); creative/editor only, no recipe. */
+    public static final DeferredItem<SubStructureToolItem> SUB_STRUCTURE_TOOL = ITEMS.registerItem("sub_structure_tool",
+            properties -> new SubStructureToolItem(properties.stacksTo(1).rarity(Rarity.EPIC)));
 
     /** The challenge scroll; theme and tier come from the {@code architectstrials:challenge} data component. */
     public static final DeferredItem<ChallengeScrollItem> CHALLENGE_SCROLL = ITEMS.registerItem("challenge_scroll",

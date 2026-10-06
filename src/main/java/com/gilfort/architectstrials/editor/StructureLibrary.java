@@ -11,6 +11,7 @@ import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
 import com.gilfort.architectstrials.structure.ChallengeStructure;
+import com.gilfort.architectstrials.sub.SubStructure;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonElement;
@@ -33,6 +34,8 @@ import net.minecraft.world.level.storage.LevelResource;
  * <pre>
  * data/&lt;ns&gt;/structure/challenges/&lt;theme&gt;/tier_&lt;n&gt;/&lt;id&gt;.nbt
  * data/&lt;ns&gt;/architectstrials/challenge/&lt;theme&gt;/tier_&lt;n&gt;/&lt;id&gt;.json
+ * data/&lt;ns&gt;/structure/sub/&lt;id&gt;.nbt                  (sub structures, US-32)
+ * data/&lt;ns&gt;/architectstrials/sub/&lt;id&gt;.json
  * </pre>
  * {@code <ns>} and {@code <theme>} are the namespace and path of the theme id.
  */
@@ -160,6 +163,72 @@ public final class StructureLibrary {
     public static boolean delete(MinecraftServer server, Entry entry) throws IOException {
         boolean deletedStructure = Files.deleteIfExists(structureFile(server, entry));
         boolean deletedMetadata = Files.deleteIfExists(metadataFile(server, entry));
+        return deletedStructure || deletedMetadata;
+    }
+
+    /** @return the template file of a sub structure (US-32): {@code data/<ns>/structure/sub/<id>.nbt} */
+    static Path subStructureFile(MinecraftServer server, Identifier id) {
+        Identifier template = SubStructure.templateId(id);
+        return packRoot(server).resolve("data").resolve(template.getNamespace()).resolve("structure").resolve(template.getPath() + ".nbt");
+    }
+
+    /** @return the metadata file of a sub structure (US-32): {@code data/<ns>/architectstrials/sub/<id>.json} */
+    static Path subMetadataFile(MinecraftServer server, Identifier id) {
+        return packRoot(server).resolve("data").resolve(id.getNamespace()).resolve("architectstrials").resolve("sub")
+                .resolve(id.getPath() + ".json");
+    }
+
+    /**
+     * Reads the metadata of a sub structure from the managed datapack.
+     *
+     * @param server the server
+     * @param id     the sub structure id
+     * @return the metadata, or empty if it is not in the managed datapack
+     * @throws IOException if the file exists but cannot be read
+     */
+    public static Optional<SubStructure> readSubMetadata(MinecraftServer server, Identifier id) throws IOException {
+        Path file = subMetadataFile(server, id);
+        if (!Files.exists(file)) {
+            return Optional.empty();
+        }
+        try (Reader reader = Files.newBufferedReader(file)) {
+            return SubStructure.CODEC.parse(JsonOps.INSTANCE, JsonParser.parseReader(reader)).result();
+        }
+    }
+
+    /**
+     * Writes (or replaces) template and metadata of a sub structure.
+     *
+     * @param server    the server
+     * @param id        the sub structure id
+     * @param template  the structure template
+     * @param structure the metadata
+     * @throws IOException if writing fails
+     */
+    public static void writeSub(MinecraftServer server, Identifier id, StructureTemplate template, SubStructure structure) throws IOException {
+        ensurePack(server);
+        Path file = subStructureFile(server, id);
+        Files.createDirectories(file.getParent());
+        NbtIo.writeCompressed(template.save(new CompoundTag()), file);
+        Path metadata = subMetadataFile(server, id);
+        Files.createDirectories(metadata.getParent());
+        JsonElement json = SubStructure.CODEC.encodeStart(JsonOps.INSTANCE, structure).getOrThrow();
+        try (Writer writer = Files.newBufferedWriter(metadata)) {
+            GSON.toJson(json, writer);
+        }
+    }
+
+    /**
+     * Deletes template and metadata of a sub structure from the managed datapack.
+     *
+     * @param server the server
+     * @param id     the sub structure id
+     * @return {@code true} if anything was deleted
+     * @throws IOException if deleting fails
+     */
+    public static boolean deleteSub(MinecraftServer server, Identifier id) throws IOException {
+        boolean deletedStructure = Files.deleteIfExists(subStructureFile(server, id));
+        boolean deletedMetadata = Files.deleteIfExists(subMetadataFile(server, id));
         return deletedStructure || deletedMetadata;
     }
 

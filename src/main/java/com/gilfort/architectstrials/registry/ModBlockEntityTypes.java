@@ -8,6 +8,7 @@ import com.gilfort.architectstrials.block.ExitMarkerBlockEntity;
 import com.gilfort.architectstrials.block.SpawnMarkerBlockEntity;
 import com.gilfort.architectstrials.block.TrialSpawnerMarkerBlockEntity;
 import com.gilfort.architectstrials.block.VaultMarkerBlockEntity;
+import com.gilfort.architectstrials.sub.SubStructureMarkerBlockEntity;
 
 import net.minecraft.core.registries.Registries;
 import net.minecraft.world.level.block.entity.BlockEntityType;
@@ -43,6 +44,10 @@ public final class ModBlockEntityTypes {
     /** Block entity of the vault marker (US-26). */
     public static final Supplier<BlockEntityType<VaultMarkerBlockEntity>> VAULT_MARKER = BLOCK_ENTITY_TYPES.register(
             "vault_marker", () -> new BlockEntityType<>(VaultMarkerBlockEntity::new, ModBlocks.VAULT_MARKER.get()));
+
+    /** Block entity of the sub structure marker (US-32). */
+    public static final Supplier<BlockEntityType<SubStructureMarkerBlockEntity>> SUB_STRUCTURE_MARKER = BLOCK_ENTITY_TYPES.register(
+            "sub_structure_marker", () -> new BlockEntityType<>(SubStructureMarkerBlockEntity::new, ModBlocks.SUB_STRUCTURE_MARKER.get()));
 
     private ModBlockEntityTypes() {
     }

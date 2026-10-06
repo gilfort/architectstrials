@@ -75,17 +75,18 @@ final class StructureCommand {
     }
 
     /**
-     * Adds {@code save} and {@code load} to the {@code editor} command.
+     * Adds {@code save} and {@code load} (also for sub structures, US-32) to the {@code editor} command.
      *
      * @param editor the editor literal
      * @return the same builder
      */
     static LiteralArgumentBuilder<CommandSourceStack> addEditorCommands(LiteralArgumentBuilder<CommandSourceStack> editor) {
         return editor
-                .then(Commands.literal("save").then(entryArguments(false, id -> id
+                .then(Commands.literal("save").then(SubStructureCommand.save()).then(entryArguments(false, id -> id
                         .executes(context -> save(context, false))
                         .then(Commands.literal("overwrite").executes(context -> save(context, true))))))
-                .then(Commands.literal("load").then(entryArguments(true, id -> id.executes(StructureCommand::load))));
+                .then(Commands.literal("load").then(SubStructureCommand.load())
+                        .then(entryArguments(true, id -> id.executes(StructureCommand::load))));
     }
 
     /**
@@ -97,6 +98,7 @@ final class StructureCommand {
         return Commands.literal("structure")
                 .then(Commands.literal("list")
                         .executes(context -> list(context, null, 0))
+                        .then(SubStructureCommand.list())
                         .then(Commands.argument("theme", IdentifierArgument.id()).suggests(ThemeCommand.THEME_SUGGESTIONS)
                                 .executes(context -> list(context, IdentifierArgument.getId(context, "theme"), 0))
                                 .then(Commands.argument("tier", IntegerArgumentType.integer(1))
@@ -119,9 +121,10 @@ final class StructureCommand {
                                 .then(Commands.literal("survival").executes(context -> set(context, s -> withGameMode(s, GameType.SURVIVAL)))))
                         .then(Commands.literal("name").then(Commands.argument("name", StringArgumentType.greedyString())
                                 .executes(context -> set(context, s -> copy(s, Optional.of(StringArgumentType.getString(context, "name")), s.weight(), s.rotation()))))))))
-                .then(Commands.literal("delete").then(entryArguments(true, id -> id
-                        .executes(StructureCommand::requestDelete)
-                        .then(Commands.literal("confirm").executes(StructureCommand::confirmDelete)))));
+                .then(Commands.literal("delete").then(SubStructureCommand.delete())
+                        .then(entryArguments(true, id -> id
+                                .executes(StructureCommand::requestDelete)
+                                .then(Commands.literal("confirm").executes(StructureCommand::confirmDelete)))));
     }
 
     /**
