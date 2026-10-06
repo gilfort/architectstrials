@@ -65,8 +65,7 @@ public final class ModBlocks {
                     .pushReaction(PushReaction.IMMOVEABLE)
                     .isValidSpawn((state, level, pos, entityType) -> false)
                     .isRedstoneConductor((state, level, pos) -> false)
-                    .isSuffocating((state, level, pos) -> false)
-                    .isViewBlocking((state, level, pos) -> false));
+                    .isSuffocating((state, level, pos) -> false));
 
     /** Glass-like start platform of the editor dimension; ignored when saving structures. */
     public static final DeferredBlock<EditorPlatformBlock> EDITOR_PLATFORM = BLOCKS.registerBlock(
