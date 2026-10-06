@@ -10,8 +10,8 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.block.Block;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
-import net.neoforged.neoforge.event.level.BlockEvent;
 import net.neoforged.neoforge.event.level.ExplosionEvent;
+import net.neoforged.neoforge.event.level.block.BreakBlockEvent;
 
 /**
  * Keeps the blocks a challenge needs to work intact in Survival challenges (US-31): exit bases, exit portal
@@ -30,7 +30,7 @@ public final class ChallengeProtection {
      * @param event the break event
      */
     @SubscribeEvent
-    static void onBreak(BlockEvent.BreakEvent event) {
+    static void onBreak(BreakBlockEvent event) {
         if (event.getLevel() instanceof ServerLevel level && isProtected(level, event.getPos())) {
             event.setCanceled(true);
         }
