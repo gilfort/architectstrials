@@ -33,26 +33,6 @@ jobs:
 
       # Starts a headless GameTest server that runs every registered GameTest and exits.
       # The server exits with a non-zero code (failing this step) if a required test fails.
-      # TEMPORARY: prints client render signatures for the exit camouflage (US-34); removed again afterwards.
-      - name: Inspect render classes
-        if: always()
-        run: |
-          jar=$(find build ~/.gradle -name "*.jar" 2>/dev/null | xargs -I{} sh -c 'unzip -l "{}" 2>/dev/null | grep -q "client/renderer/SubmitNodeCollector.class" && echo "{}"' | head -1)
-          echo "JAR: $jar"
-          for c in client.renderer.SubmitNodeCollector client.renderer.OrderedSubmitNodeCollector client.renderer.block.BlockRenderDispatcher client.renderer.block.model.BlockStateModel client.renderer.block.model.BlockModelPart client.renderer.block.ModelBlockRenderer client.renderer.ItemBlockRenderTypes client.renderer.Sheets client.renderer.blockentity.BlockEntityRenderer client.renderer.blockentity.BlockEntityRendererProvider\$Context client.renderer.blockentity.state.BlockEntityRenderState client.renderer.rendertype.RenderTypes client.renderer.texture.OverlayTexture client.renderer.LightTexture client.renderer.block.MovingBlockRenderState; do
-            echo "=== $c"; javap -p -cp "$jar" "net.minecraft.$c" | grep -v "lambda\$" || true
-          done
-          nf=$(find ~/.gradle build -name "*.jar" 2>/dev/null | xargs -I{} sh -c 'unzip -l "{}" 2>/dev/null | grep -q "neoforge/client/model/data/ModelData.class" && echo "{}"' | head -1)
-          echo "NF: $nf"
-          for c in client.model.data.ModelData client.model.data.ModelProperty client.extensions.IBlockStateModelExtension client.model.DelegateBlockStateModel client.event.ModelEvent\$ModifyBakingResult client.event.ModelEvent\$RegisterStandalone client.model.standalone.StandaloneModelKey client.extensions.IBlockModelPartExtension common.extensions.IBlockGetterExtension common.extensions.IBlockEntityExtension client.model.data.ModelDataManager; do
-            echo "=== $c"; javap -p -cp "$nf:$jar" "net.neoforged.neoforge.$c" | grep -v "lambda\$" || true
-          done
-          for c in client.resources.model.ModelBakery\$BakingResult client.resources.model.ModelManager client.renderer.block.model.SimpleModelWrapper client.renderer.block.BlockModelShaper; do
-            echo "=== $c"; javap -p -cp "$jar" "net.minecraft.$c" | grep -v "lambda\$" || true
-          done
-          unzip -l "$nf" | grep -E "client/model/[A-Za-z]*\.class" | awk '{print $4}' | head -60
-          ls -1 $(dirname $jar) | head; unzip -l "$jar" | grep -iE "client/renderer/(block|rendertype)/[A-Za-z]*\.class" | awk '{print $4}' | head -80
-
       - name: Run GameTests
         run: ./gradlew runGameTestServer
 
@@ -79,3 +59,15 @@ jobs:
             run/logs/
             build/run/gameTestServer/logs/
           if-no-files-found: ignore
+
+      # TEMPORARY: prints client render signatures for the exit camouflage (US-34); removed again afterwards.
+      - name: Inspect render classes
+        if: always()
+        run: |
+          jar=$(find build ~/.gradle -name "*.jar" 2>/dev/null | xargs -I{} sh -c 'unzip -l "{}" 2>/dev/null | grep -q "client/renderer/SubmitNodeCollector.class" && echo "{}"' | head -1)
+          nf=$(find ~/.gradle build -name "*.jar" 2>/dev/null | xargs -I{} sh -c 'unzip -l "{}" 2>/dev/null | grep -q "neoforge/client/model/data/ModelData.class" && echo "{}"' | head -1)
+          echo "JAR: $jar NF: $nf"
+          for c in net.neoforged.neoforge.client.model.data.ModelData net.neoforged.neoforge.client.extensions.IBlockStateModelExtension net.neoforged.neoforge.client.model.DelegateBlockStateModel 'net.neoforged.neoforge.client.event.ModelEvent$ModifyBakingResult' net.neoforged.neoforge.client.extensions.IBlockModelPartExtension net.neoforged.neoforge.common.extensions.IBlockEntityExtension 'net.minecraft.client.resources.model.ModelBakery$BakingResult' net.minecraft.client.renderer.block.model.BlockStateModel net.minecraft.client.renderer.block.model.BlockModelPart net.minecraft.client.renderer.block.BlockRenderDispatcher net.minecraft.client.renderer.block.BlockModelShaper net.minecraft.client.gui.GuiGraphicsExtractor; do
+            echo "=== $c"; javap -cp "$nf:$jar" "$c" | grep -v "lambda\$\|^Compiled\|^}" || true
+          done
+          unzip -l "$nf" | grep -E "client/model/[A-Za-z]*\.class" | awk '{print $4}' | sed 's#.*/##' | tr '\n' ' '
