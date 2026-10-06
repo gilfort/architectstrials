@@ -1,0 +1,6 @@
+{
+  "theme": "minecraft:the_nether",
+  "tier": 12,
+  "structure": "architectstrials:gametest/sub_parent",
+  "name": "Parent with a sub structure (US-32 test)"
+}

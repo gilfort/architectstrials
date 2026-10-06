@@ -45,6 +45,7 @@ public final class SubStructurePlacer {
     private final BoundingBox slotArea;
     private final RandomSource random;
     private final List<Placed> placed = new ArrayList<>();
+    private final List<String> failures = new ArrayList<>();
 
     /**
      * A placed sub structure, whose markers still have to be resolved.
@@ -64,9 +65,25 @@ public final class SubStructurePlacer {
      * @param random the placement random source
      */
     public SubStructurePlacer(ServerLevel level, int slot, RandomSource random) {
+        this(level, SlotManager.slot(level, slot).area(level.getMinY(), level.getMaxY()), random);
+    }
+
+    /**
+     * Creates a placer that keeps sub structures inside an area.
+     *
+     * @param level       the level
+     * @param allowedArea the area sub structures must stay inside
+     * @param random      the placement random source
+     */
+    public SubStructurePlacer(ServerLevel level, BoundingBox allowedArea, RandomSource random) {
         this.level = level;
-        this.slotArea = SlotManager.slot(level, slot).area(level.getMinY(), level.getMaxY());
+        this.slotArea = allowedArea;
         this.random = random;
+    }
+
+    /** @return the reasons of all failed generations so far */
+    public List<String> failures() {
+        return List.copyOf(this.failures);
     }
 
     /** @return the sub structures placed so far */
@@ -119,6 +136,7 @@ public final class SubStructurePlacer {
             if (failure == null) {
                 return true;
             }
+            this.failures.add(rolled.get() + ": " + failure);
             if (ArchitectsTrialsConfig.LOG_FAILED_SUB_STRUCTURES.getAsBoolean()) {
                 ArchitectsTrials.LOGGER.info("Sub structure {} at {} failed (attempt {} of {}): {}", rolled.get(), pos.toShortString(),
                         attempt, ATTEMPTS, failure);
