@@ -59,3 +59,12 @@ jobs:
             run/logs/
             build/run/gameTestServer/logs/
           if-no-files-found: ignore
+
+      # TEMPORARY: prints placement signatures for the ore generation (US-37); removed again afterwards.
+      - name: Inspect placement classes
+        if: always()
+        run: |
+          mc=build/moddev/artifacts/minecraft-patched-26.3.0.34-beta.jar
+          for c in placement.PlacementModifier placement.PlacedFeature placement.PlacementContext placement.RepeatingPlacement; do
+            echo "=== $c"; javap -p -cp "$mc" "net.minecraft.world.level.levelgen.$c" | grep -v 'lambda\$\|^Compiled\|^}' | sed 's/net\.minecraft\.//g; s/java\.util\.//g' || true
+          done
