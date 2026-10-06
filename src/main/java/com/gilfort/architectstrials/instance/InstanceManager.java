@@ -212,12 +212,14 @@ public final class InstanceManager {
             if (!updated.requiredMobs().allDefeated()) {
                 return;
             }
-            updated.exits().forEach(exit -> ChallengeExitBlock.setSealed(level, exit, false));
+            updated.exits().forEach(exit -> {
+                ChallengeExitBlock.setSealed(level, exit, false);
+                level.playSound(null, exit, SoundEvents.BEACON_ACTIVATE, SoundSource.BLOCKS, 0.8F, 1.4F);
+            });
             for (UUID participant : updated.participants()) {
                 ServerPlayer player = level.getServer().getPlayerList().getPlayer(participant);
                 if (player != null && player.level() == level) {
                     player.sendOverlayMessage(Component.translatable("message.architectstrials.required.all_defeated"));
-                    player.playNotifySound(SoundEvents.BEACON_ACTIVATE, SoundSource.BLOCKS, 0.8F, 1.4F);
                 }
             }
         });

@@ -84,7 +84,7 @@ public class ExitMarkerBlock extends HorizontalDirectionalBlock implements Entit
         Optional<ResourceKey<LootTable>> bonus = context.level().getBlockEntity(pos) instanceof LootTableReference reference
                 ? reference.lootTableReference() : Optional.empty();
         LootSetup setup = context.level().getBlockEntity(pos) instanceof LootSetupHolder holder ? holder.lootSetup(false) : LootSetup.EMPTY;
-        boolean requiresMobs = context.level().getBlockEntity(pos) instanceof ExitMarkerBlockEntity marker && marker.requiresMobs();
+        boolean requiresMobs = context.level().getBlockEntity(pos) instanceof ExitMarkerBlockEntity exitMarker && exitMarker.requiresMobs();
         Direction facing = marker.getBlock() instanceof ExitMarkerBlock ? marker.getValue(FACING) : Direction.NORTH;
         BlockState exit = ModBlocks.CHALLENGE_EXIT.get().defaultBlockState()
                 .setValue(ChallengeExitBlock.FACING, facing)
