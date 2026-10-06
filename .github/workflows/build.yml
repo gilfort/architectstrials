@@ -59,4 +59,3 @@ jobs:
             run/logs/
             build/run/gameTestServer/logs/
           if-no-files-found: ignore
-
