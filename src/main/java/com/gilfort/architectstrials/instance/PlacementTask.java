@@ -8,6 +8,7 @@ import java.util.UUID;
 import java.util.function.Consumer;
 
 import com.gilfort.architectstrials.ArchitectsTrials;
+import com.gilfort.architectstrials.block.ChallengeExitBlock;
 import com.gilfort.architectstrials.block.ChallengeExitPortalBlock;
 import com.gilfort.architectstrials.marker.MarkerContext;
 import com.gilfort.architectstrials.marker.MarkerResolvers;
@@ -38,7 +39,8 @@ import net.minecraft.world.level.levelgen.structure.templatesystem.StructureTemp
  * {@link StructureTemplate#placeInWorld} with the instance's settings, so the result is identical to placing the
  * whole template at once</li>
  * <li>add paintings through {@link PaintingPlacement}, resolve all markers, fill the exits' portal space with
- * {@link ChallengeExitPortalBlock}s and make the instance ready</li>
+ * {@link ChallengeExitPortalBlock}s, seal the exits that require the instance's required mobs (US-30) and make
+ * the instance ready</li>
  * </ol>
  * The instance exists from the start but has no spawn points, so portals stay in their forming state until the
  * task is done. If the instance disappears meanwhile (time limit, command), the task stops.
@@ -261,7 +263,11 @@ final class PlacementTask {
         MarkerContext context = new MarkerContext(level, placed, this.random);
         int markers = MarkerResolvers.resolveAll(context, this.template, this.origin, this.settings);
         ChallengeExitPortalBlock.fill(level, context.exits());
-        ChallengeInstance instance = placed.withSpawnPoints(context.spawnPoints()).withExits(context.exits());
+        RequiredMobs required = context.requiredMobs().isEmpty() ? RequiredMobs.NONE : RequiredMobs.of(context.requiredMobs());
+        if (required.any()) {
+            context.exits().forEach(exit -> ChallengeExitBlock.sealIfRequiringMobs(level, exit));
+        }
+        ChallengeInstance instance = placed.withSpawnPoints(context.spawnPoints()).withExits(context.exits()).withRequiredMobs(required);
         this.releaseTickets(level);
         this.step = Step.DONE;
         if (!instance.ready()) {

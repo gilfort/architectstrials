@@ -22,6 +22,7 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntitySpawnReason;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.EquipmentSlot;
+import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.component.TypedEntityData;
@@ -63,7 +64,8 @@ public final class SpawnMarkerResolvers {
 
     /**
      * Marker resolver of the Direct Spawn Marker: removes the marker and spawns one persistent entity per spawn
-     * egg in its slot, equipped as configured.
+     * egg in its slot, equipped as configured. Mobs of a marker with the "Required" option become required mobs of
+     * the instance (US-30).
      *
      * @param context the placement context
      * @param pos     the world position of the marker (already transformed)
@@ -86,6 +88,9 @@ public final class SpawnMarkerResolvers {
             if (entity instanceof Mob mob) {
                 marker.get().equipment().apply(mob, level.getRandom());
                 mob.setPersistenceRequired();
+            }
+            if (marker.get().required() && entity instanceof LivingEntity living) {
+                RequiredMobTracker.markRequired(context, living);
             }
         }
     }
@@ -218,7 +223,7 @@ public final class SpawnMarkerResolvers {
      */
     private static Optional<Marker> read(ServerLevel level, BlockPos pos) {
         if (level.getBlockEntity(pos) instanceof SpawnMarkerBlockEntity marker && marker.entityType() != null) {
-            return Optional.of(new Marker(marker.entityType(), marker.egg().copy(), marker.markerEquipment(0)));
+            return Optional.of(new Marker(marker.entityType(), marker.egg().copy(), marker.markerEquipment(0), marker.required()));
         }
         ArchitectsTrials.LOGGER.warn("Spawn marker at {} in {} has no spawn egg; removed without spawning", pos, level.dimension().identifier());
         return Optional.empty();
@@ -234,7 +239,8 @@ public final class SpawnMarkerResolvers {
      * @param type      the entity type
      * @param egg       a copy of the spawn egg stack
      * @param equipment the equipment configuration
+     * @param required  whether the spawned mobs are required mobs
      */
-    private record Marker(EntityType<?> type, ItemStack egg, MarkerEquipment equipment) {
+    private record Marker(EntityType<?> type, ItemStack egg, MarkerEquipment equipment, boolean required) {
     }
 }

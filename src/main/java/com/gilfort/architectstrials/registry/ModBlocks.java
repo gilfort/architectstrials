@@ -50,7 +50,7 @@ public final class ModBlocks {
     /** The functional challenge exit (redstone signal locks it). Only created by the exit marker resolver. */
     public static final DeferredBlock<ChallengeExitBlock> CHALLENGE_EXIT = BLOCKS.registerBlock(
             "challenge_exit", ChallengeExitBlock::new, properties -> markerProperties(properties)
-                    .mapColor(MapColor.COLOR_PURPLE).sound(SoundType.STONE).lightLevel(state -> state.getValue(ChallengeExitBlock.POWERED) ? 0 : 10));
+                    .mapColor(MapColor.COLOR_PURPLE).sound(SoundType.STONE).lightLevel(state -> state.getValue(ChallengeExitBlock.POWERED) || state.getValue(ChallengeExitBlock.SEALED) ? 0 : 10));
 
     /**
      * Invisible, unbreakable block filling the portal space of challenge exits; walking into it completes the run

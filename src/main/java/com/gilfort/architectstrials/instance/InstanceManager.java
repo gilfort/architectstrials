@@ -5,6 +5,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 import com.gilfort.architectstrials.ArchitectsTrials;
+import com.gilfort.architectstrials.block.ChallengeExitBlock;
 import com.gilfort.architectstrials.block.ChallengeExitPortalBlock;
 import com.gilfort.architectstrials.config.ArchitectsTrialsConfig;
 import com.gilfort.architectstrials.portal.ChallengePortal;
@@ -26,6 +27,8 @@ import net.minecraft.resources.Identifier;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.sounds.SoundEvents;
+import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.block.Mirror;
@@ -192,6 +195,32 @@ public final class InstanceManager {
      */
     public static void update(ServerLevel level, ChallengeInstance instance) {
         data(level).put(instance);
+    }
+
+    /**
+     * Counts a required mob of an instance as defeated (US-30). Once the last one is defeated, the exits that
+     * require them are unsealed and the participants are told.
+     *
+     * @param level      the theme level
+     * @param instanceId the instance id
+     * @param mob        the UUID of the defeated mob
+     */
+    public static void defeatRequiredMob(ServerLevel level, UUID instanceId, UUID mob) {
+        data(level).get(instanceId).filter(instance -> instance.requiredMobs().remaining().contains(mob)).ifPresent(instance -> {
+            ChallengeInstance updated = instance.withRequiredMobs(instance.requiredMobs().without(mob));
+            update(level, updated);
+            if (!updated.requiredMobs().allDefeated()) {
+                return;
+            }
+            updated.exits().forEach(exit -> ChallengeExitBlock.setSealed(level, exit, false));
+            for (UUID participant : updated.participants()) {
+                ServerPlayer player = level.getServer().getPlayerList().getPlayer(participant);
+                if (player != null && player.level() == level) {
+                    player.sendOverlayMessage(Component.translatable("message.architectstrials.required.all_defeated"));
+                    player.playNotifySound(SoundEvents.BEACON_ACTIVATE, SoundSource.BLOCKS, 0.8F, 1.4F);
+                }
+            }
+        });
     }
 
     /**

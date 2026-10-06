@@ -10,7 +10,10 @@ import com.gilfort.architectstrials.registry.ModBlocks;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.resources.ResourceKey;
+import net.minecraft.world.InteractionResult;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.context.BlockPlaceContext;
+import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.EntityBlock;
 import net.minecraft.world.level.block.HorizontalDirectionalBlock;
@@ -19,6 +22,7 @@ import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.storage.loot.LootTable;
+import net.minecraft.world.phys.BlockHitResult;
 
 /**
  * Editor marker for a challenge exit. Inert while building; when the structure is placed, {@link #resolve}
@@ -54,8 +58,23 @@ public class ExitMarkerBlock extends HorizontalDirectionalBlock implements Entit
     }
 
     /**
+     * Opens the exit's settings for builders (creative mode with operator permissions) on a right click with an
+     * empty hand.
+     */
+    @Override
+    protected InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hitResult) {
+        if (!player.canUseGameMasterBlocks()) {
+            return InteractionResult.PASS;
+        }
+        if (!level.isClientSide() && level.getBlockEntity(pos) instanceof ExitMarkerBlockEntity marker) {
+            player.openMenu(marker);
+        }
+        return InteractionResult.SUCCESS;
+    }
+
+    /**
      * Marker resolver: replaces the marker by a functional exit (locked if already powered), carries over its
-     * bonus loot table reference and records it.
+     * bonus loot table reference, loot setup and "requires required mobs" setting and records it.
      *
      * @param context the placement context
      * @param pos     the world position of the marker (already transformed)
@@ -65,6 +84,7 @@ public class ExitMarkerBlock extends HorizontalDirectionalBlock implements Entit
         Optional<ResourceKey<LootTable>> bonus = context.level().getBlockEntity(pos) instanceof LootTableReference reference
                 ? reference.lootTableReference() : Optional.empty();
         LootSetup setup = context.level().getBlockEntity(pos) instanceof LootSetupHolder holder ? holder.lootSetup(false) : LootSetup.EMPTY;
+        boolean requiresMobs = context.level().getBlockEntity(pos) instanceof ExitMarkerBlockEntity marker && marker.requiresMobs();
         Direction facing = marker.getBlock() instanceof ExitMarkerBlock ? marker.getValue(FACING) : Direction.NORTH;
         BlockState exit = ModBlocks.CHALLENGE_EXIT.get().defaultBlockState()
                 .setValue(ChallengeExitBlock.FACING, facing)
@@ -73,6 +93,7 @@ public class ExitMarkerBlock extends HorizontalDirectionalBlock implements Entit
         if (context.level().getBlockEntity(pos) instanceof ChallengeExitBlockEntity exitEntity) {
             exitEntity.setLootTableReference(bonus);
             exitEntity.setLootSetup(false, setup);
+            exitEntity.setRequiresMobs(requiresMobs);
         }
         context.addExit(pos.immutable());
     }

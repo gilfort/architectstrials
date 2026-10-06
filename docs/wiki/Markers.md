@@ -37,6 +37,9 @@ only way to complete a run.
   portal blocks when the structure is placed. Players walking into them complete the run — the server only
   reacts on contact and checks nothing while nobody uses the exit. Blocks you build into that space stay and
   block the portal there.
+- **Needs required mobs:** right-click the Exit Marker (empty hand) and switch on **Needs all required mobs
+  defeated**. The exit is then sealed — locked look, no portal — until every [required mob](#direct-spawn-marker)
+  of the instance is defeated, and opens with a sound and message. Exits without the setting work as before.
 - **Bonus override:** look at the marker and run `/at marker loot_table <id>` to give this exit its own
   completion bonus (see [Loot](Loot#completion-bonus)). The [Loot Tool](Loot#loot-tool-composed-rewards)
   composes a bonus from several loot tables and items instead; it takes precedence over the loot table.
@@ -79,6 +82,13 @@ Further rules:
 
 Turns into air and spawns its mobs right away when the structure is placed. They never despawn. Several mobs of
 one marker are spread over free spots within 1.5 blocks — build a floor around the marker, or they may fall.
+
+**Required mobs:** the **Required** button in the marker's GUI (top right) makes all its mobs *required*, e.g. a
+boss. Required mobs glow for the whole challenge time (milk removes the glow for good — they are still required).
+Exits set to need them stay **sealed** until every required mob of the instance is gone; walking into a sealed exit
+shows "Defeat all marked enemies (2/5)". Any final removal counts — killed by players, by other mobs or the void,
+`/kill`, or a conversion (a zombie turning into a drowned). Only the Direct Spawn Marker has this option: spawners
+never stop spawning.
 
 ### Spawner Marker
 

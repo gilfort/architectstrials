@@ -1,0 +1,6 @@
+{
+  "theme": "minecraft:the_nether",
+  "tier": 6,
+  "structure": "architectstrials:gametest/required_platform",
+  "name": "Required mobs platform (US-30 test)"
+}

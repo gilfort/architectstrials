@@ -5,6 +5,7 @@ import java.util.function.Supplier;
 import com.gilfort.architectstrials.ArchitectsTrials;
 import com.gilfort.architectstrials.loot.LootSetupMenu;
 import com.gilfort.architectstrials.menu.EquipmentListMenu;
+import com.gilfort.architectstrials.menu.ExitMarkerMenu;
 import com.gilfort.architectstrials.menu.SpawnMarkerMenu;
 import com.gilfort.architectstrials.menu.TrialSpawnerMarkerMenu;
 
@@ -25,6 +26,10 @@ public final class ModMenuTypes {
     /** Menu of the direct spawn and spawner markers. */
     public static final Supplier<MenuType<SpawnMarkerMenu>> SPAWN_MARKER = MENU_TYPES.register(
             "spawn_marker", () -> new MenuType<>(SpawnMarkerMenu::new, FeatureFlags.VANILLA_SET));
+
+    /** Menu of the exit marker (settings only, no slots). */
+    public static final Supplier<MenuType<ExitMarkerMenu>> EXIT_MARKER = MENU_TYPES.register(
+            "exit_marker", () -> new MenuType<>(ExitMarkerMenu::new, FeatureFlags.VANILLA_SET));
 
     /** Menu of the trial spawner marker. */
     public static final Supplier<MenuType<TrialSpawnerMarkerMenu>> TRIAL_SPAWNER_MARKER = MENU_TYPES.register(

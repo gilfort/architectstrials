@@ -116,3 +116,21 @@ GameTests: `game_mode_entry_and_restore`, `game_mode_survival_protection`, `game
 - [ ] Leave via exit, death (Dimension Ward), `/at exit`, time limit and log out/in: your original game mode
       (e.g. Creative) is back; mined items are kept.
 - [ ] A second player joining later also gets Survival.
+
+## US-30 (#59): Required mobs seal exits
+
+GameTests: `required_mobs_seal_exit` (glow duration, sealed exit, partial / full progress, completion),
+`required_mobs_marker_options` (only the Direct Spawn Marker supports it).
+
+- [ ] Direct Spawn Marker GUI: "Required: off/on" button top right; Spawner Marker GUI has no such button.
+      Exit Marker: right-click with an empty hand opens a small GUI with "Needs all required mobs defeated".
+- [ ] Settings survive `editor save` / `editor load`.
+- [ ] In a challenge: required mobs glow (also through walls); the sealed exit has the locked look and no portal;
+      walking in shows "Defeat all marked enemies (0/2)" (once per second).
+- [ ] Kill the first: still sealed (1/2). Kill the last: exit opens with sound + message, walking in completes.
+- [ ] Other ways out of the world count: `/kill @e[type=zombie]`, a required zombie drowning into a drowned, a
+      mob pushed into the void. An exit without the setting is never sealed.
+- [ ] Milk on a required mob (dispenser) removes the glow; it is not re-applied; the mob still counts.
+- [ ] Two instances of the same structure in parallel: killing the mobs in one does not open the other.
+- [ ] Server restart with required mobs left: progress is kept, the exit stays sealed until the rest are killed.
+- [ ] Combination with redstone: an exit that is powered **and** sealed opens only when both are cleared.

@@ -5,11 +5,13 @@ import java.util.Optional;
 
 import com.gilfort.architectstrials.instance.ChallengeInstance;
 import com.gilfort.architectstrials.instance.InstanceManager;
+import com.gilfort.architectstrials.instance.RequiredMobs;
 import com.gilfort.architectstrials.registry.ModAttachments;
 import com.gilfort.architectstrials.registry.ModBlocks;
 import com.gilfort.architectstrials.run.RunCompletion;
 
 import net.minecraft.core.BlockPos;
+import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Entity;
@@ -34,6 +36,9 @@ import net.minecraft.world.phys.shapes.VoxelShape;
  * keep their portal blocks.
  */
 public class ChallengeExitPortalBlock extends Block {
+
+    /** Ticks between two "defeat all marked enemies" messages while a player stands in a sealed exit. */
+    private static final int MESSAGE_INTERVAL_TICKS = 20;
 
     /**
      * Creates the block.
@@ -81,12 +86,19 @@ public class ChallengeExitPortalBlock extends Block {
             return false;
         }
         Optional<ExitGroup> group = groupBelow(level, pos);
-        if (group.isEmpty() || group.get().locked() || !group.get().portalArea().contains(Vec3.atCenterOf(pos))) {
+        if (group.isEmpty() || !group.get().portalArea().contains(Vec3.atCenterOf(pos))) {
             return false;
         }
         Optional<ChallengeInstance> instance = InstanceManager.findAt(level, pos)
                 .filter(found -> group.get().members().stream().anyMatch(found.exits()::contains));
         if (instance.isEmpty()) {
+            return false;
+        }
+        if (group.get().locked()) {
+            if (group.get().sealed() && player.tickCount % MESSAGE_INTERVAL_TICKS == 0) {
+                RequiredMobs required = instance.get().requiredMobs();
+                player.sendOverlayMessage(Component.translatable("message.architectstrials.required.progress", required.defeated(), required.total()));
+            }
             return false;
         }
         RunCompletion.completeThrough(player, level, instance.get(), group.get());

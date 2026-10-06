@@ -4,6 +4,7 @@ import com.gilfort.architectstrials.ArchitectsTrials;
 import com.gilfort.architectstrials.menu.SpawnMarkerMenu;
 
 import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.network.chat.Component;
@@ -12,11 +13,13 @@ import net.minecraft.world.entity.player.Inventory;
 
 /**
  * Screen of the {@link SpawnMarkerMenu}: a vanilla-style container with the spawn egg slot on top and the six
- * equipment slots below.
+ * equipment slots below; Direct Spawn Markers show a "Required" toggle in the title row (US-30).
  */
 public class SpawnMarkerScreen extends AbstractContainerScreen<SpawnMarkerMenu> {
 
     private static final Identifier TEXTURE = ArchitectsTrials.id("textures/gui/container/spawn_marker.png");
+
+    private Button requiredButton;
 
     /**
      * Creates the screen.
@@ -52,6 +55,26 @@ public class SpawnMarkerScreen extends AbstractContainerScreen<SpawnMarkerMenu> 
     protected void init() {
         super.init();
         CursorMemory.restore();
+        this.requiredButton = this.addRenderableWidget(Button.builder(this.requiredLabel(), button -> {
+                    if (this.minecraft.gameMode != null) {
+                        this.minecraft.gameMode.handleInventoryButtonClick(this.menu.containerId, SpawnMarkerMenu.BUTTON_TOGGLE_REQUIRED);
+                    }
+                })
+                .bounds(this.leftPos + this.imageWidth - 7 - 76, this.topPos + 3, 76, 12)
+                .build());
+        this.requiredButton.visible = this.menu.requiredAvailable();
+    }
+
+    private Component requiredLabel() {
+        return Component.translatable(this.menu.required() ? "gui.architectstrials.spawn_marker.required.on"
+                : "gui.architectstrials.spawn_marker.required.off");
+    }
+
+    @Override
+    protected void containerTick() {
+        super.containerTick();
+        this.requiredButton.visible = this.menu.requiredAvailable();
+        this.requiredButton.setMessage(this.requiredLabel());
     }
 
     @Override

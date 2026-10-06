@@ -26,13 +26,17 @@ import net.minecraft.world.phys.AABB;
  * It is a 1×1 base; adjacent bases combine into one larger portal (see {@link ExitGroup}). <strong>A redstone
  * signal locks the exit</strong>: unpowered, an animated portal surface is shown above the bases and players
  * walking through it complete the run; powered, only the bases are visible and nothing happens. Builders use
- * this to gate completion (e.g. power is removed once all enemies are defeated). Walk-through detection lives
+ * this to gate completion (e.g. power is removed once all enemies are defeated). Exits set to require the
+ * instance's required mobs are additionally <em>sealed</em> until those are defeated (US-30), with the same look. Walk-through detection lives
  * in the run completion handler; the surface is drawn by a block entity renderer.
  */
 public class ChallengeExitBlock extends HorizontalDirectionalBlock implements EntityBlock {
 
     /** Whether a redstone signal is present, i.e. the exit is locked. */
     public static final BooleanProperty POWERED = BlockStateProperties.POWERED;
+
+    /** Whether the exit is sealed until all required mobs of its instance are defeated (US-30). */
+    public static final BooleanProperty SEALED = BooleanProperty.create("sealed");
 
     /**
      * Creates the block.
@@ -41,12 +45,13 @@ public class ChallengeExitBlock extends HorizontalDirectionalBlock implements En
      */
     public ChallengeExitBlock(BlockBehaviour.Properties properties) {
         super(properties);
-        this.registerDefaultState(this.stateDefinition.any().setValue(FACING, Direction.NORTH).setValue(POWERED, false));
+        this.registerDefaultState(this.stateDefinition.any().setValue(FACING, Direction.NORTH).setValue(POWERED, false)
+                .setValue(SEALED, false));
     }
 
     @Override
     protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
-        builder.add(FACING, POWERED);
+        builder.add(FACING, POWERED, SEALED);
     }
 
     /**
@@ -56,7 +61,33 @@ public class ChallengeExitBlock extends HorizontalDirectionalBlock implements En
      * @return {@code true} if the state is an unpowered challenge exit
      */
     public static boolean isOpen(BlockState state) {
-        return state.getBlock() instanceof ChallengeExitBlock && !state.getValue(POWERED);
+        return state.getBlock() instanceof ChallengeExitBlock && !state.getValue(POWERED) && !state.getValue(SEALED);
+    }
+
+    /**
+     * Seals an exit if its block entity requires the required mobs of the instance.
+     *
+     * @param level the level
+     * @param pos   the exit base position
+     */
+    public static void sealIfRequiringMobs(Level level, BlockPos pos) {
+        if (level.getBlockEntity(pos) instanceof ChallengeExitBlockEntity exit && exit.requiresMobs()) {
+            setSealed(level, pos, true);
+        }
+    }
+
+    /**
+     * Seals or unseals an exit base; nothing happens if there is no exit at the position.
+     *
+     * @param level  the level
+     * @param pos    the exit base position
+     * @param sealed whether the exit is sealed
+     */
+    public static void setSealed(Level level, BlockPos pos, boolean sealed) {
+        BlockState state = level.getBlockState(pos);
+        if (state.getBlock() instanceof ChallengeExitBlock && state.getValue(SEALED) != sealed) {
+            level.setBlock(pos, state.setValue(SEALED, sealed), Block.UPDATE_CLIENTS);
+        }
     }
 
     @Override
