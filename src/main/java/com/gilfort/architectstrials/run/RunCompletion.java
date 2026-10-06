@@ -1,9 +1,8 @@
 package com.gilfort.architectstrials.run;
 
-import java.util.List;
 import java.util.Optional;
 
-import com.gilfort.architectstrials.ArchitectsTrials;
+import com.gilfort.architectstrials.block.ChallengeExitPortalBlock;
 import com.gilfort.architectstrials.block.ExitGroup;
 import com.gilfort.architectstrials.block.LootTableReference;
 import com.gilfort.architectstrials.loot.LootSetup;
@@ -19,70 +18,34 @@ import com.gilfort.architectstrials.travel.ChallengeTravel;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceKey;
-import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.level.storage.loot.LootTable;
-import net.neoforged.bus.api.SubscribeEvent;
-import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.common.NeoForge;
-import net.neoforged.neoforge.event.tick.ServerTickEvent;
 
 /**
- * Detects players walking through open challenge exits and completes their run.
+ * Completes the runs of players walking through open challenge exits.
  * <p>
- * Each player completes individually; the instance keeps running for everyone else.
+ * Detection is event-based: the invisible {@link ChallengeExitPortalBlock}s in the portal space call
+ * {@link #completeThrough} when vanilla reports a player touching them, so nothing is checked while nobody uses an
+ * exit. Each player completes individually; the instance keeps running for everyone else.
  */
-@EventBusSubscriber(modid = ArchitectsTrials.MOD_ID)
 public final class RunCompletion {
-
-    /** Exits are checked every this many ticks. */
-    private static final int CHECK_INTERVAL_TICKS = 2;
 
     private RunCompletion() {
     }
 
     /**
-     * Checks all challenge dimensions for players inside open exits.
+     * Completes the run of a player who walked through an open exit group of their instance, granting the bonus
+     * set on the group's bases.
      *
-     * @param event the server tick event
+     * @param player   the player
+     * @param level    the challenge level
+     * @param instance the instance the exit belongs to
+     * @param group    the used exit group
      */
-    @SubscribeEvent
-    static void onServerTick(ServerTickEvent.Post event) {
-        MinecraftServer server = event.getServer();
-        if (server.getTickCount() % CHECK_INTERVAL_TICKS != 0) {
-            return;
-        }
-        for (ChallengeTheme theme : ChallengeThemes.all()) {
-            ServerLevel level = server.getLevel(theme.dimension());
-            if (level != null && !level.players().isEmpty()) {
-                checkExits(level);
-            }
-        }
-    }
-
-    /**
-     * Completes the run of every player in a level who stands in an open exit of their instance.
-     *
-     * @param level the challenge level
-     */
-    public static void checkExits(ServerLevel level) {
-        for (ServerPlayer player : List.copyOf(level.players())) {
-            if (!player.isAlive() || player.isSpectator() || !player.hasData(ModAttachments.ENTRY_POINT)) {
-                continue;
-            }
-            Optional<ChallengeInstance> instance = InstanceManager.findAt(level, player.blockPosition());
-            if (instance.isEmpty()) {
-                continue;
-            }
-            for (BlockPos exit : instance.get().exits()) {
-                Optional<ExitGroup> group = ExitGroup.find(level, exit);
-                if (group.isPresent() && !group.get().locked() && player.getBoundingBox().intersects(group.get().portalArea())) {
-                    complete(player, instance.get(), bonusOverride(level, group.get()), bonusSetup(level, group.get()));
-                    break;
-                }
-            }
-        }
+    public static void completeThrough(ServerPlayer player, ServerLevel level, ChallengeInstance instance, ExitGroup group) {
+        complete(player, instance, bonusOverride(level, group), bonusSetup(level, group));
     }
 
     /**

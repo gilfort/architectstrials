@@ -5,6 +5,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 import com.gilfort.architectstrials.ArchitectsTrials;
+import com.gilfort.architectstrials.block.ChallengeExitPortalBlock;
 import com.gilfort.architectstrials.config.ArchitectsTrialsConfig;
 import com.gilfort.architectstrials.portal.ChallengePortal;
 import com.gilfort.architectstrials.registry.ModAttachments;
@@ -290,8 +291,24 @@ public final class InstanceManager {
         ChallengeTravel.bindInstance(player, new EntryPoint.InstanceRef(level.dimension(), instance.id()));
         ChallengeInstance current = data(level).get(instance.id()).orElse(instance);
         update(level, current.withRoster(current.roster().entered(player.getUUID())));
+        ensureExitPortals(level, current);
         ScrollEffectApplication.onEntry(player, level, current);
         return true;
+    }
+
+    /**
+     * Fills the portal space of an instance's exits with portal blocks if they are missing, e.g. for instances
+     * placed before exits used portal blocks (US-38). Only air is replaced, so this is a no-op for current
+     * instances.
+     *
+     * @param level    the theme level
+     * @param instance the instance
+     */
+    public static void ensureExitPortals(ServerLevel level, ChallengeInstance instance) {
+        if (!instance.exits().isEmpty()
+                && !(level.getBlockState(instance.exits().getFirst().above()).getBlock() instanceof ChallengeExitPortalBlock)) {
+            ChallengeExitPortalBlock.fill(level, instance.exits());
+        }
     }
 
     /**

@@ -2,6 +2,7 @@ package com.gilfort.architectstrials.travel;
 
 import com.gilfort.architectstrials.ArchitectsTrials;
 import com.gilfort.architectstrials.instance.InstanceManager;
+import com.gilfort.architectstrials.registry.ModAttachments;
 import com.gilfort.architectstrials.theme.ChallengeThemes;
 
 import net.minecraft.network.chat.Component;
@@ -28,11 +29,16 @@ public final class ChallengeTravelEvents {
      */
     @SubscribeEvent
     static void onPlayerLoggedIn(PlayerEvent.PlayerLoggedInEvent event) {
-        if (event.getEntity() instanceof ServerPlayer player
-                && ChallengeThemes.isChallengeDimension(player.level().dimension())
-                && !InstanceManager.isParticipant(player)) {
+        if (!(event.getEntity() instanceof ServerPlayer player) || !ChallengeThemes.isChallengeDimension(player.level().dimension())) {
+            return;
+        }
+        if (!InstanceManager.isParticipant(player)) {
             ChallengeTravel.exit(player);
             player.sendSystemMessage(Component.translatable("message.architectstrials.returned_on_login"));
+            return;
         }
+        player.getExistingData(ModAttachments.ENTRY_POINT).flatMap(EntryPoint::instance)
+                .flatMap(ref -> InstanceManager.data(player.level()).get(ref.id()))
+                .ifPresent(instance -> InstanceManager.ensureExitPortals(player.level(), instance));
     }
 }

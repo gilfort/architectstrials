@@ -33,6 +33,10 @@ only way to complete a run.
   run can be finished.
 - **Wider exits:** up to three Exit Markers side by side (same facing, in a line across it) form one combined
   portal of n × (n+1) blocks. A signal at any base locks the whole portal.
+- **Keep the portal space free:** the n × (n+1) blocks above the bases are filled with invisible, unbreakable
+  portal blocks when the structure is placed. Players walking into them complete the run — the server only
+  reacts on contact and checks nothing while nobody uses the exit. Blocks you build into that space stay and
+  block the portal there.
 - **Bonus override:** look at the marker and run `/at marker loot_table <id>` to give this exit its own
   completion bonus (see [Loot](Loot#completion-bonus)). The [Loot Tool](Loot#loot-tool-composed-rewards)
   composes a bonus from several loot tables and items instead; it takes precedence over the loot table.

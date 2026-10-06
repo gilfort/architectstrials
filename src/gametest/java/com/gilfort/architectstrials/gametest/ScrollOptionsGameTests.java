@@ -187,7 +187,7 @@ public final class ScrollOptionsGameTests {
 
     private static void enter(GameTestHelper helper, ChallengePortal portal, ServerPlayer player) {
         TestPlayers.teleport(player, helper.getLevel(), portal.position());
-        portal.tick();
+        portal.playerTouch(player);
         player.hasChangedDimension();
     }
 }

@@ -34,8 +34,9 @@ import net.neoforged.neoforge.registries.RegisterEvent;
 /**
  * GameTests for US-07 (base scroll and entry portal, solo default).
  * <p>
- * Scrolls target {@code minecraft:the_nether} tier 2 (the spawn platform). Portals are ticked manually to
- * make state changes deterministic.
+ * Scrolls target {@code minecraft:the_nether} tier 2 (the spawn platform). Portals are ticked manually and touched
+ * by players manually (vanilla does this from the player's tick, which mock players do not run) to make state
+ * changes deterministic.
  */
 @EventBusSubscriber(modid = ArchitectsTrials.MOD_ID)
 public final class ScrollPortalGameTests {
@@ -91,11 +92,11 @@ public final class ScrollPortalGameTests {
 
         Vec3 inside = portal.position();
         TestPlayers.teleport(stranger, level, inside);
-        portal.tick();
+        portal.playerTouch(stranger);
         helper.assertTrue(stranger.level() == level, "A foreign player entered a solo portal");
 
         TestPlayers.teleport(owner, level, inside);
-        portal.tick();
+        portal.playerTouch(owner);
         helper.assertTrue(owner.level().dimension() == Level.NETHER, "Owner did not enter the challenge");
         helper.assertTrue(portal.isRemoved(), "Solo portal did not close after the first pass-through");
 

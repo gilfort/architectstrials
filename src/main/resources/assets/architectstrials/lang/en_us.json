@@ -35,6 +35,7 @@
   "block.architectstrials.trial_spawner_marker": "Trial Spawner Marker",
   "tooltip.architectstrials.trial_spawner_marker": "Editor marker: becomes a trial spawner when the challenge is placed. Right-click: up to three mob types per page (spawn egg + equipment; total mobs = sum of the eggs), mobs at once, and an optional ominous page (Bad/Trial Omen). Rewards: /at marker loot_table <id>, /at marker ominous_loot_table <id>",
   "block.architectstrials.challenge_exit": "Challenge Exit",
+  "block.architectstrials.challenge_exit_portal": "Challenge Exit Portal",
   "block.architectstrials.editor_platform": "Editor Platform",
   "dimension.architectstrials.editor": "Editor",
   "tooltip.architectstrials.player_spawn_marker": "Editor marker: players entering the challenge spawn here, looking where the arrow points. Replaced by air when the structure is placed.",

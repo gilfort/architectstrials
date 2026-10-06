@@ -10,6 +10,7 @@ import com.gilfort.architectstrials.instance.InstanceRoster;
 import com.gilfort.architectstrials.scroll.ScrollEffects;
 import com.gilfort.architectstrials.scroll.ScrollOptions;
 import com.gilfort.architectstrials.block.ChallengeExitBlockEntity;
+import com.gilfort.architectstrials.block.ChallengeExitPortalBlock;
 import com.gilfort.architectstrials.block.ExitMarkerBlock;
 import com.gilfort.architectstrials.block.ExitMarkerBlockEntity;
 import com.gilfort.architectstrials.instance.ChallengeInstance;
@@ -124,7 +125,7 @@ public final class CompletionBonusGameTests {
         ServerPlayer player = TestPlayers.atStart(helper, GameType.SURVIVAL);
         InstanceManager.join(player, nether, instance);
         TestPlayers.teleport(player, nether, Vec3.atBottomCenterOf(exit.above()));
-        RunCompletion.checkExits(nether);
+        ChallengeExitPortalBlock.onPlayerInside(nether, exit.above(), player);
         helper.assertTrue(player.level().dimension() == Level.OVERWORLD, "Player did not complete the run");
         helper.assertTrue(count(player, Items.EMERALD) == 1, "Exit override bonus was not granted");
         helper.assertTrue(count(player, Items.DIAMOND) == 0, "Convention bonus was granted despite an override");

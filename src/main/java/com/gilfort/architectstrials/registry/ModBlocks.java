@@ -2,6 +2,7 @@ package com.gilfort.architectstrials.registry;
 
 import com.gilfort.architectstrials.ArchitectsTrials;
 import com.gilfort.architectstrials.block.ChallengeExitBlock;
+import com.gilfort.architectstrials.block.ChallengeExitPortalBlock;
 import com.gilfort.architectstrials.block.ExitMarkerBlock;
 import com.gilfort.architectstrials.block.PlayerSpawnMarkerBlock;
 import com.gilfort.architectstrials.block.SpawnMarkerBlock;
@@ -50,6 +51,22 @@ public final class ModBlocks {
     public static final DeferredBlock<ChallengeExitBlock> CHALLENGE_EXIT = BLOCKS.registerBlock(
             "challenge_exit", ChallengeExitBlock::new, properties -> markerProperties(properties)
                     .mapColor(MapColor.COLOR_PURPLE).sound(SoundType.STONE).lightLevel(state -> state.getValue(ChallengeExitBlock.POWERED) ? 0 : 10));
+
+    /**
+     * Invisible, unbreakable block filling the portal space of challenge exits; walking into it completes the run
+     * (no item).
+     */
+    public static final DeferredBlock<ChallengeExitPortalBlock> CHALLENGE_EXIT_PORTAL = BLOCKS.registerBlock(
+            "challenge_exit_portal", ChallengeExitPortalBlock::new, properties -> properties
+                    .strength(-1.0F, 3_600_000.0F)
+                    .noCollision()
+                    .noOcclusion()
+                    .noLootTable()
+                    .pushReaction(PushReaction.BLOCK)
+                    .isValidSpawn((state, level, pos, entityType) -> false)
+                    .isRedstoneConductor((state, level, pos) -> false)
+                    .isSuffocating((state, level, pos) -> false)
+                    .isViewBlocking((state, level, pos) -> false));
 
     /** Glass-like start platform of the editor dimension; ignored when saving structures. */
     public static final DeferredBlock<EditorPlatformBlock> EDITOR_PLATFORM = BLOCKS.registerBlock(

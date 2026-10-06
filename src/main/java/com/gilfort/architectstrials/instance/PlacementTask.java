@@ -8,6 +8,7 @@ import java.util.UUID;
 import java.util.function.Consumer;
 
 import com.gilfort.architectstrials.ArchitectsTrials;
+import com.gilfort.architectstrials.block.ChallengeExitPortalBlock;
 import com.gilfort.architectstrials.marker.MarkerContext;
 import com.gilfort.architectstrials.marker.MarkerResolvers;
 import com.gilfort.architectstrials.registry.ModTicketTypes;
@@ -36,7 +37,8 @@ import net.minecraft.world.level.levelgen.structure.templatesystem.StructureTemp
  * <li>place the sections bottom-up; every section is a sub-template with the same size, placed by vanilla's own
  * {@link StructureTemplate#placeInWorld} with the instance's settings, so the result is identical to placing the
  * whole template at once</li>
- * <li>add paintings through {@link PaintingPlacement}, resolve all markers and make the instance ready</li>
+ * <li>add paintings through {@link PaintingPlacement}, resolve all markers, fill the exits' portal space with
+ * {@link ChallengeExitPortalBlock}s and make the instance ready</li>
  * </ol>
  * The instance exists from the start but has no spawn points, so portals stay in their forming state until the
  * task is done. If the instance disappears meanwhile (time limit, command), the task stops.
@@ -251,6 +253,7 @@ final class PlacementTask {
         ChallengeInstance placed = InstanceManager.data(level).get(this.instanceId).orElseThrow();
         MarkerContext context = new MarkerContext(level, placed, this.random);
         int markers = MarkerResolvers.resolveAll(context, this.template, this.origin, this.settings);
+        ChallengeExitPortalBlock.fill(level, context.exits());
         ChallengeInstance instance = placed.withSpawnPoints(context.spawnPoints()).withExits(context.exits());
         this.releaseTickets(level);
         this.step = Step.DONE;
