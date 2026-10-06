@@ -27,6 +27,7 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.RandomSource;
+import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.block.Mirror;
 import net.minecraft.world.level.block.Rotation;
 import net.minecraft.world.level.levelgen.structure.templatesystem.StructurePlaceSettings;
@@ -272,8 +273,8 @@ public final class InstanceManager {
 
     /**
      * Moves a player into a ready instance, onto a spawn point chosen independently at random for this player.
-     * The entry point is stored and bound to the instance, the player is switched to Adventure (see
-     * {@link ChallengeTravel#enter}) and becomes a participant and entrant. Admission rules (scroll options) are
+     * The entry point is stored and bound to the instance, the player is switched to the structure's game mode
+     * (Adventure by default, Survival for mining rooms) and becomes a participant and entrant. Admission rules (scroll options) are
      * checked by the portal, not here.
      *
      * @param player   the player
@@ -287,7 +288,8 @@ public final class InstanceManager {
         }
         List<SpawnPoint> points = instance.spawnPoints();
         SpawnPoint point = points.get(player.getRandom().nextInt(points.size()));
-        ChallengeTravel.enter(player, level, Vec3.atBottomCenterOf(point.pos()), point.facing().toYRot(), 0.0F, true);
+        GameType gameMode = ChallengeStructures.get(instance.structure()).map(ChallengeStructure::gameMode).orElse(GameType.ADVENTURE);
+        ChallengeTravel.enter(player, level, Vec3.atBottomCenterOf(point.pos()), point.facing().toYRot(), 0.0F, gameMode);
         ChallengeTravel.bindInstance(player, new EntryPoint.InstanceRef(level.dimension(), instance.id()));
         ChallengeInstance current = data(level).get(instance.id()).orElse(instance);
         update(level, current.withRoster(current.roster().entered(player.getUUID())));

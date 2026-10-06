@@ -35,7 +35,8 @@ All JSON formats of the mod at a glance. `<ns>` is your datapack namespace.
   "author": "Optional",
   "created": 1790000000000,
   "weight": 1,
-  "rotation": false
+  "rotation": false,
+  "game_mode": "adventure"
 }
 ```
 
@@ -47,6 +48,7 @@ All JSON formats of the mod at a glance. `<ns>` is your datapack namespace.
 | `name`, `author`, `created` | no | Informational (`created` = epoch milliseconds) |
 | `weight` | no (1) | Draw weight within the pool |
 | `rotation` | no (false) | Random rotation and mirroring on placement |
+| `game_mode` | no (`adventure`) | Game mode players enter in: `adventure` or `survival` (mining rooms) |
 
 ## Scroll components
 

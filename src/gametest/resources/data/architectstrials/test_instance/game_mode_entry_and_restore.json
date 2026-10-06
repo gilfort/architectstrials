@@ -1,0 +1,8 @@
+{
+  "type": "minecraft:function",
+  "environment": "minecraft:default",
+  "function": "architectstrials:game_mode_entry_and_restore",
+  "max_ticks": 40,
+  "structure": "minecraft:empty",
+  "padding": 8
+}

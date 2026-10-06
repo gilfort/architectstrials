@@ -123,7 +123,7 @@
   "commands.architectstrials.structure.load.not_empty": "The editor is not empty. Run /at editor clear first.",
   "commands.architectstrials.structure.load.success": "Loaded %s into the editor.",
   "commands.architectstrials.structure.list.header": "Stored structures (%s):",
-  "commands.architectstrials.structure.list.entry": " - %s \"%s\" tier %s, weight %s, rotation %s",
+  "commands.architectstrials.structure.list.entry": " - %s \"%s\" tier %s, weight %s, rotation %s, game mode %s",
   "commands.architectstrials.structure.set.success": "Updated %s.",
   "commands.architectstrials.structure.validate.structure": "%s: %s problem(s)",
   "commands.architectstrials.structure.validate.problem": "  - %s (%s×)",

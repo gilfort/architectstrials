@@ -1,0 +1,7 @@
+{
+  "theme": "minecraft:the_nether",
+  "tier": 5,
+  "structure": "architectstrials:gametest/spawn_platform",
+  "name": "Survival platform (game mode test)",
+  "game_mode": "survival"
+}

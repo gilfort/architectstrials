@@ -21,6 +21,7 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.portal.TeleportTransition;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Central service for moving players into and out of Architect's Trials dimensions.
@@ -57,12 +58,27 @@ public final class ChallengeTravel {
      * @param switchAdventure whether to switch the player to Adventure mode (challenges yes, editor no)
      */
     public static void enter(ServerPlayer player, ServerLevel target, Vec3 position, float yRot, float xRot, boolean switchAdventure) {
+        enter(player, target, position, yRot, xRot, switchAdventure ? GameType.ADVENTURE : null);
+    }
+
+    /**
+     * Moves a player into an Architect's Trials dimension like {@link #enter(ServerPlayer, ServerLevel, Vec3, float, float, boolean)},
+     * switching to the given game mode (e.g. Survival for mining rooms, US-31).
+     *
+     * @param player   the player
+     * @param target   the target level
+     * @param position the target position
+     * @param yRot     the target yaw
+     * @param xRot     the target pitch
+     * @param gameMode the game mode inside, or {@code null} to keep the current one (editor)
+     */
+    public static void enter(ServerPlayer player, ServerLevel target, Vec3 position, float yRot, float xRot, @Nullable GameType gameMode) {
         if (!player.hasData(ModAttachments.ENTRY_POINT)) {
             player.setData(ModAttachments.ENTRY_POINT, EntryPoint.of(player));
         }
         teleport(player, target, position, yRot, xRot);
-        if (switchAdventure) {
-            player.setGameMode(GameType.ADVENTURE);
+        if (gameMode != null) {
+            player.setGameMode(gameMode);
         }
     }
 

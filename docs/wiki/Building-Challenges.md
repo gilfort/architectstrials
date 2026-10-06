@@ -95,13 +95,30 @@ Then add Player Spawn and Exit Markers, adjust loot and enemies and save it with
 
 | Command | Description |
 |---|---|
-| `/at structure list [theme] [tier]` | Lists stored structures with name, tier, weight and rotation |
+| `/at structure list [theme] [tier]` | Lists stored structures with name, tier, weight, rotation and game mode |
 | `/at structure set <theme> <tier> <id> weight <n>` | How often the structure is drawn (default 1) |
 | `/at structure set <theme> <tier> <id> rotation <true\|false>` | Allow random rotation and mirroring on placement (default false) |
+| `/at structure set <theme> <tier> <id> game_mode <adventure\|survival>` | Game mode players enter in (default Adventure) |
 | `/at structure set <theme> <tier> <id> name <text>` | Display name |
 | `/at structure delete <theme> <tier> <id>` + `confirm` (within 30 s) | Deletes the structure files |
 
 Editing and deleting only work for structures in the managed datapack. IDs are tab-completed.
+
+## Mining rooms (Survival challenges)
+
+By default players enter a challenge in **Adventure** mode and cannot break or place blocks. Set a structure to
+**Survival** with `/at structure set <theme> <tier> <id> game_mode survival` (or `"game_mode": "survival"` in its
+JSON) to build mining rooms:
+
+- Players can mine everything and keep the drops — including ores, chests, spawners and trial spawners — and
+  place blocks freely. Every instance is a fresh copy, so nothing affects other runs or the saved structure.
+- Always protected: exit bases, the portal space above them and the block directly below every Player Spawn
+  Marker (so late joiners never fall into a hole). Explosions skip these blocks too.
+- Leaving restores the player's own game mode, as always; the Dimension Ward keeps the inventory, including
+  everything mined.
+
+Example: a cave carved out of stone with a few ore veins, a Player Spawn Marker on a ledge and an Exit Marker
+behind a redstone-locked door that opens once the players reach the bottom.
 
 ## Structure pools and tiers
 

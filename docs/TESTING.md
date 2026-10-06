@@ -103,3 +103,16 @@ Best tested with a small content mod (e.g. any mod adding items, blocks and a mo
 - [ ] Log out inside a running challenge, remove the theme's dimension (datapack) and log in again: you are
       returned to your entry point with a message.
 - [ ] The log contains one "Skipped invalid … entry (missing mod?)" warning per skipped entry, no stack traces.
+
+## US-31 (#60): Per-challenge game mode (Survival for mining rooms)
+
+GameTests: `game_mode_entry_and_restore`, `game_mode_survival_protection`, `game_mode_metadata_default`.
+
+- [ ] `/at structure set <theme> <tier> <id> game_mode survival`, open a scroll: you arrive in Survival. Another
+      structure without the setting: Adventure. `/at structure list` shows the game mode.
+- [ ] In the Survival room: mine stone, ores, a chest (contents drop), a spawner → drops as in vanilla; place blocks.
+- [ ] The block below a spawn point, the exit bases and the portal space cannot be broken or replaced; a creeper /
+      TNT explosion next to them leaves them intact.
+- [ ] Leave via exit, death (Dimension Ward), `/at exit`, time limit and log out/in: your original game mode
+      (e.g. Creative) is back; mined items are kept.
+- [ ] A second player joining later also gets Survival.

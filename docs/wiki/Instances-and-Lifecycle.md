@@ -34,7 +34,7 @@ warning in the log and removed from the pool until the next `/reload`.
 ## Entering and leaving
 
 - Players arrive at a random [Player Spawn Marker](Markers#player-spawn-marker), facing its direction, in
-  **Adventure mode**.
+  **Adventure mode** (or Survival, if the structure is a [mining room](Building-Challenges#mining-rooms-survival-challenges)).
 - Their **entry point** (dimension, position, rotation, game mode) is stored. Every way out returns them there —
   exit, time limit, Dimension Ward, `/at exit` — with their previous game mode, turned around (they step back out
   of the portal they walked into) and with a short rune echo of the portal behind them.
