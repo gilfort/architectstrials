@@ -1,0 +1,7 @@
+{
+  "type": "architectstrials:scroll_tier",
+  "theme": "minecraft:the_nether",
+  "tier": 1,
+  "template": "minecraft:paper",
+  "addition": "minecraft:netherrack"
+}

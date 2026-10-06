@@ -150,3 +150,16 @@ GameTests: `challenge_effects_entry_and_leave`, `challenge_effects_behind_scroll
 - [ ] Scroll with a short speed effect + challenge speed II: first the scroll's speed, after it runs out speed II.
 - [ ] Leave by exit, death, time limit, `/at exit`, log out / in after the instance ended: nothing of it remains.
 - [ ] A modded effect / attribute works; a typo in an id only logs a warning.
+
+## US-33 (#62): Craft tier 1 scrolls and raise the tier
+
+GameTests: `scroll_tier_recipes` (blank → tier 1, tier 1 → 2 keeping components, wrong base / theme, cap, default
+tier 1).
+
+- [ ] In a dev run (test datapack): smithing table with paper + Blank Challenge Scroll + netherrack → Nether tier 1
+      scroll; again with that scroll → tier 2; up to tier 3.
+- [ ] Upgraded scrolls (options / effects) keep their upgrades when the tier is raised.
+- [ ] The recipe book (smithing tab) and JEI / EMI (if installed) show each step with the right input and result
+      scroll (tooltip shows theme and tier).
+- [ ] A recipe for a tier without challenges shows no result; adding a structure of that tier + `/reload` makes it
+      work.

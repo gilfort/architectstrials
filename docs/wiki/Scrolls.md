@@ -28,6 +28,32 @@ The component `architectstrials:challenge` binds the scroll to a theme and tier:
 
 For testing: `/at scroll give <theme> <tier> [targets]`.
 
+## Crafting scrolls and raising the tier
+
+Players can progress without commands: a recipe of type `architectstrials:scroll_tier` (smithing table) defines one
+step of a theme. Write one short JSON per step into `data/<ns>/recipe/`:
+
+```json
+{
+  "type": "architectstrials:scroll_tier",
+  "theme": "mypack:crypt",
+  "tier": 1,
+  "template": "minecraft:paper",
+  "addition": "minecraft:bone"
+}
+```
+
+- `tier: 1` turns the **Blank Challenge Scroll** into a tier 1 scroll of the theme.
+- `tier: 2` (and higher) takes a scroll of the theme with tier 1 (one below) and raises it; options, effects, time
+  limit and name are kept.
+- No result if the theme has no challenge of that tier yet, so recipes for future tiers can be added in advance.
+- `template` and `addition` are normal ingredients (items or `#tags`); each step can use different ones.
+- The recipe book and recipe viewers show every step like any other smithing recipe.
+- A scroll whose `architectstrials:challenge` component has no `tier` counts as tier 1.
+
+Example pack with three steps: `crypt_tier_1.json` (paper + bone), `crypt_tier_2.json` (paper + bone block),
+`crypt_tier_3.json` (paper + wither skeleton skull).
+
 ## Time limit
 
 `architectstrials:time_limit` sets the challenge's time limit in **minutes**; without it the server config's
