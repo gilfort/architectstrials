@@ -60,14 +60,16 @@ jobs:
             build/run/gameTestServer/logs/
           if-no-files-found: ignore
 
+
       # TEMPORARY: prints client render signatures for the exit camouflage (US-34); removed again afterwards.
       - name: Inspect render classes
         if: always()
         run: |
-          jar=$(find build ~/.gradle -name "*.jar" 2>/dev/null | xargs -I{} sh -c 'unzip -l "{}" 2>/dev/null | grep -q "client/renderer/SubmitNodeCollector.class" && echo "{}"' | head -1)
-          nf=$(find ~/.gradle build -name "*.jar" 2>/dev/null | xargs -I{} sh -c 'unzip -l "{}" 2>/dev/null | grep -q "neoforge/client/model/data/ModelData.class" && echo "{}"' | head -1)
-          echo "JAR: $jar NF: $nf"
-          for c in net.neoforged.neoforge.client.model.data.ModelData net.neoforged.neoforge.client.extensions.IBlockStateModelExtension net.neoforged.neoforge.client.model.DelegateBlockStateModel 'net.neoforged.neoforge.client.event.ModelEvent$ModifyBakingResult' net.neoforged.neoforge.client.extensions.IBlockModelPartExtension net.neoforged.neoforge.common.extensions.IBlockEntityExtension 'net.minecraft.client.resources.model.ModelBakery$BakingResult' net.minecraft.client.renderer.block.model.BlockStateModel net.minecraft.client.renderer.block.model.BlockModelPart net.minecraft.client.renderer.block.BlockRenderDispatcher net.minecraft.client.renderer.block.BlockModelShaper net.minecraft.client.gui.GuiGraphicsExtractor; do
-            echo "=== $c"; javap -cp "$nf:$jar" "$c" | grep -v "lambda\$\|^Compiled\|^}" || true
+          jars=$(find build ~/.gradle -name "*.jar" 2>/dev/null | xargs -I{} sh -c 'unzip -l "{}" 2>/dev/null | grep -qE "net/neoforged/neoforge/client/event/ModelEvent|client/renderer/SubmitNodeCollector.class" && echo "{}"' | sort -u)
+          echo "JARS: $jars"
+          cp=$(echo $jars | tr ' ' ':')
+          for j in $jars; do unzip -l "$j" | awk '{print $4}' | grep -E "/(ModelData|ModelProperty|BlockStateModel|BlockModelPart|DelegateBlockStateModel|ModelEvent\$ModifyBakingResult|BlockEntityExtension|BlockStateModelExtension|BlockModelPartExtension|BlockAndTintGetterExtension|BlockColors|BlockTintSource|BlockTintSources|RegisterColorHandlersEvent\$Block|ChunkSectionLayer|SimpleModelWrapper)\.class$"; done | sort -u > classes.txt
+          cat classes.txt
+          for c in $(sed 's#\.class$##; s#/#.#g' classes.txt); do
+            echo "=== $c"; javap -cp "$cp" "$c" | grep -v "lambda\$\|^Compiled\|^}" || true
           done
-          unzip -l "$nf" | grep -E "client/model/[A-Za-z]*\.class" | awk '{print $4}' | sed 's#.*/##' | tr '\n' ' '
