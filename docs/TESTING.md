@@ -64,8 +64,8 @@ GameTests: `placement_spreads_over_ticks`, `placement_interrupted_is_discarded`,
 - [ ] A structure without Player Spawn Marker in a pool (e.g. a hand-written JSON): drawing it logs
       "has no player spawn marker and is skipped" once; scrolls then use the other structures of the pool.
 - [ ] `/reload` with many stored structures: no noticeable hitch anymore.
-- [ ] Mobs effects of scroll upgrades (target `mobs`) still apply to mobs in the instance (uses the new slot
-      lookup).
+- [ ] Mob effects of scroll upgrades (target `mobs`) still apply to mobs in the instance (uses the new slot
+      lookup) — also to mobs of a large structure that are far from the spawn point when you enter.
 
 ## US-38 (#67): Collision-based exit and entry portal detection
 

@@ -173,12 +173,19 @@ final class PlacementTask {
     }
 
     private void loadChunks(ServerLevel level, boolean unlimited) {
+        if (unlimited) {
+            // Immediate placement loads the chunks synchronously below, like vanilla's placeInWorld does, and
+            // leaves their lifetime to vanilla; a ticket released right afterwards would only hide them early.
+            this.chunks.forEach(chunk -> level.getChunk(chunk[0], chunk[1]));
+            this.step = Step.INDEX;
+            return;
+        }
         if (!this.ticketsAdded) {
             this.chunks.forEach(chunk -> level.getChunkSource().addTicketWithRadius(ModTicketTypes.INSTANCE_PLACEMENT.get(),
                     new ChunkPos(chunk[0], chunk[1]), 0));
             this.ticketsAdded = true;
         }
-        boolean force = unlimited || ++this.chunkWaitTicks > MAX_CHUNK_WAIT_TICKS;
+        boolean force = ++this.chunkWaitTicks > MAX_CHUNK_WAIT_TICKS;
         for (int[] chunk : this.chunks) {
             if (level.getChunkSource().getChunkNow(chunk[0], chunk[1]) == null) {
                 if (!force) {
