@@ -11,16 +11,18 @@ import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
+import net.neoforged.bus.api.EventPriority;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.event.entity.EntityLeaveLevelEvent;
+import net.neoforged.neoforge.event.entity.living.LivingDeathEvent;
 
 /**
  * Required mobs (US-30): mobs of Direct Spawn Markers with the "Required" option.
  * <p>
  * A required mob glows for the remaining time of its instance (applied once, never re-applied) and carries its
- * instance id in its persistent data. Every final removal — death, {@code discard()} by commands or other mods,
- * conversion into another mob — counts as defeated; unloading with its chunk does not. The progress is stored in
+ * instance id in its persistent data. Death counts as defeated right away, and so does every other final removal
+ * — {@code discard()} by commands or other mods, conversion into another mob; unloading with its chunk does not. The progress is stored in
  * the instance, so nothing is scanned or ticked.
  */
 @EventBusSubscriber(modid = ArchitectsTrials.MOD_ID)
@@ -47,6 +49,19 @@ public final class RequiredMobTracker {
     }
 
     /**
+     * Counts a required mob as defeated as soon as it dies (not only once its body is removed, which needs the
+     * chunk to tick). Runs after other mods, so a cancelled death (e.g. a totem) does not count.
+     *
+     * @param event the death event
+     */
+    @SubscribeEvent(priority = EventPriority.LOWEST)
+    static void onDeath(LivingDeathEvent event) {
+        if (event.getEntity().level() instanceof ServerLevel level) {
+            defeat(level, event.getEntity());
+        }
+    }
+
+    /**
      * Counts a required mob as defeated once it is removed for good.
      *
      * @param event the leave event
@@ -61,6 +76,10 @@ public final class RequiredMobTracker {
         if (reason == null || !reason.shouldDestroy()) {
             return;
         }
+        defeat(level, entity);
+    }
+
+    private static void defeat(ServerLevel level, Entity entity) {
         String instance = entity.getPersistentData().getStringOr(INSTANCE_KEY, "");
         if (instance.isEmpty()) {
             return;
