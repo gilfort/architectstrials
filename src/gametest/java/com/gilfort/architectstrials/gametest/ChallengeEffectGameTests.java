@@ -20,11 +20,13 @@ import net.minecraft.core.registries.Registries;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.NbtOps;
+import net.minecraft.resources.Identifier;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
+import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.Level;
@@ -74,7 +76,7 @@ public final class ChallengeEffectGameTests {
         ChallengeInstance instance = create(nether, ScrollEffects.NONE);
         ServerPlayer player = TestPlayers.atStart(helper, GameType.SURVIVAL);
         player.addEffect(new MobEffectInstance(MobEffects.NIGHT_VISION, 300));
-        double baseSpeed = player.getAttributeValue(Attributes.MOVEMENT_SPEED);
+        Identifier modifier = ArchitectsTrials.id("challenge_attribute_0");
 
         helper.assertTrue(InstanceManager.join(player, nether, instance), "Player could not join");
         long remaining = instance.deadline() - ChallengeClock.now(nether.getServer());
@@ -83,8 +85,8 @@ public final class ChallengeEffectGameTests {
                 "Permanent challenge effect does not last the remaining instance time: " + nightVision);
         MobEffectInstance speed = player.getEffect(MobEffects.SPEED);
         helper.assertTrue(speed != null && speed.getAmplifier() == 1, "Challenge effect speed II missing: " + speed);
-        helper.assertTrue(Math.abs(player.getAttributeValue(Attributes.MOVEMENT_SPEED) - (baseSpeed - 0.02)) < 1.0E-6,
-                "Challenge attribute modifier was not applied");
+        AttributeModifier added = player.getAttribute(Attributes.MOVEMENT_SPEED).getModifier(modifier);
+        helper.assertTrue(added != null && Math.abs(added.amount() + 0.02) < 1.0E-6, "Challenge attribute modifier was not applied: " + added);
 
         player.removeEffect(MobEffects.SPEED);
         helper.assertFalse(player.hasEffect(MobEffects.SPEED), "Removed challenge effect came back");
@@ -98,7 +100,7 @@ public final class ChallengeEffectGameTests {
         MobEffectInstance own = player.getEffect(MobEffects.NIGHT_VISION);
         helper.assertTrue(own != null && own.getDuration() == 300, "Own effect was not given back unchanged: " + own);
         helper.assertFalse(player.hasEffect(MobEffects.SPEED), "Challenge effect was not removed on leaving");
-        helper.assertTrue(Math.abs(player.getAttributeValue(Attributes.MOVEMENT_SPEED) - baseSpeed) < 1.0E-6,
+        helper.assertTrue(player.getAttribute(Attributes.MOVEMENT_SPEED).getModifier(modifier) == null,
                 "Challenge attribute modifier was not removed on leaving");
         helper.assertTrue(player.getData(ModAttachments.PARKED_EFFECTS).isEmpty(), "Bookkeeping was not cleared");
 

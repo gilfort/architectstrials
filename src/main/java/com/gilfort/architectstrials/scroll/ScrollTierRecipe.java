@@ -18,6 +18,7 @@ import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.resources.Identifier;
 import net.minecraft.util.ExtraCodecs;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.ItemStackTemplate;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.item.crafting.PlacementInfo;
@@ -160,9 +161,10 @@ public class ScrollTierRecipe extends SimpleSmithingRecipe {
     public List<RecipeDisplay> display() {
         return List.of(new SmithingRecipeDisplay(
                 Ingredient.optionalIngredientToDisplay(this.template),
-                new SlotDisplay.ItemStackSlotDisplay(this.tier == 1 ? new ItemStack(ModItems.CHALLENGE_SCROLL.get()) : this.scroll(this.tier - 1)),
+                new SlotDisplay.ItemStackSlotDisplay(ItemStackTemplate.fromNonEmptyStack(this.tier == 1
+                        ? new ItemStack(ModItems.CHALLENGE_SCROLL.get()) : this.scroll(this.tier - 1))),
                 Ingredient.optionalIngredientToDisplay(this.addition),
-                new SlotDisplay.ItemStackSlotDisplay(this.scroll(this.tier)),
+                new SlotDisplay.ItemStackSlotDisplay(ItemStackTemplate.fromNonEmptyStack(this.scroll(this.tier))),
                 new SlotDisplay.ItemSlotDisplay(Items.SMITHING_TABLE)));
     }
 
