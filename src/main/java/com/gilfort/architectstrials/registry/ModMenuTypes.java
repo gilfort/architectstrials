@@ -9,11 +9,13 @@ import com.gilfort.architectstrials.menu.ExitMarkerMenu;
 import com.gilfort.architectstrials.menu.SpawnMarkerMenu;
 import com.gilfort.architectstrials.menu.TrialSpawnerMarkerMenu;
 import com.gilfort.architectstrials.menu.VaultMarkerMenu;
+import com.gilfort.architectstrials.sub.SubStructureMarkerMenu;
 
 import net.minecraft.core.registries.Registries;
 import net.minecraft.world.flag.FeatureFlags;
 import net.minecraft.world.inventory.MenuType;
 import net.neoforged.bus.api.IEventBus;
+import net.neoforged.neoforge.common.extensions.IMenuTypeExtension;
 import net.neoforged.neoforge.registries.DeferredRegister;
 
 /**
@@ -35,6 +37,10 @@ public final class ModMenuTypes {
     /** Menu of the vault marker (US-26). */
     public static final Supplier<MenuType<VaultMarkerMenu>> VAULT_MARKER = MENU_TYPES.register(
             "vault_marker", () -> new MenuType<>(VaultMarkerMenu::new, FeatureFlags.VANILLA_SET));
+
+    /** Menu of the sub structure marker (US-32); the marker position is sent along when opened. */
+    public static final Supplier<MenuType<SubStructureMarkerMenu>> SUB_STRUCTURE_MARKER = MENU_TYPES.register(
+            "sub_structure_marker", () -> IMenuTypeExtension.create((id, inventory, buffer) -> new SubStructureMarkerMenu(id, buffer.readBlockPos())));
 
     /** Menu of the trial spawner marker. */
     public static final Supplier<MenuType<TrialSpawnerMarkerMenu>> TRIAL_SPAWNER_MARKER = MENU_TYPES.register(

@@ -43,7 +43,8 @@ public final class MarkerResolvers {
     }
 
     /**
-     * Resolves all markers of a placed structure.
+     * Resolves all markers of a placed structure that are still in the world (a sub structure may have replaced
+     * some).
      *
      * @param context  the placement context
      * @param template the placed template
@@ -53,10 +54,14 @@ public final class MarkerResolvers {
      */
     public static int resolveAll(MarkerContext context, StructureTemplate template, BlockPos origin, StructurePlaceSettings settings) {
         int resolved = 0;
+        context.useTransform(settings.getRotation(), settings.getMirror());
         for (Map.Entry<Block, MarkerResolver> entry : RESOLVERS.entrySet()) {
             for (StructureTemplate.StructureBlockInfo info : template.filterBlocks(origin, settings, entry.getKey())) {
-                entry.getValue().resolve(context, info.pos());
-                resolved++;
+                // A sub structure (US-32) may have replaced the marker meanwhile.
+                if (context.level().getBlockState(info.pos()).is(entry.getKey())) {
+                    entry.getValue().resolve(context, info.pos());
+                    resolved++;
+                }
             }
         }
         return resolved;

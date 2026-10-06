@@ -32,6 +32,7 @@ import net.minecraft.world.level.GameType;
  *                  e.g. for mining rooms (US-31)
  * @param playerEffects    mob effects every player gets on entry (US-36)
  * @param playerAttributes attribute modifiers every player gets while inside (US-36)
+ * @param oreGeneration    natural ore generation when an instance is created (US-37), if any
  */
 public record ChallengeStructure(
         Identifier theme,
@@ -44,7 +45,8 @@ public record ChallengeStructure(
         boolean rotation,
         GameType gameMode,
         List<ChallengeEffect> playerEffects,
-        List<ChallengeAttribute> playerAttributes
+        List<ChallengeAttribute> playerAttributes,
+        Optional<OreGeneration> oreGeneration
 ) {
 
     /** Game modes a challenge may use; Creative and Spectator would bypass the challenge. */
@@ -65,7 +67,8 @@ public record ChallengeStructure(
             LenientCodecs.list(ChallengeEffect.CODEC, "challenge player effect").optionalFieldOf("player_effects", List.of())
                     .forGetter(ChallengeStructure::playerEffects),
             LenientCodecs.list(ChallengeAttribute.CODEC, "challenge player attribute").optionalFieldOf("player_attributes", List.of())
-                    .forGetter(ChallengeStructure::playerAttributes)
+                    .forGetter(ChallengeStructure::playerAttributes),
+            OreGeneration.CODEC.optionalFieldOf("ore_generation").forGetter(ChallengeStructure::oreGeneration)
     ).apply(instance, ChallengeStructure::new));
 
     /** Creates the metadata, defensively copying the lists. */
@@ -88,11 +91,11 @@ public record ChallengeStructure(
      */
     public ChallengeStructure(Identifier theme, int tier, Identifier structure, Optional<String> name, Optional<String> author,
             Optional<Long> created, int weight, boolean rotation) {
-        this(theme, tier, structure, name, author, created, weight, rotation, GameType.ADVENTURE, List.of(), List.of());
+        this(theme, tier, structure, name, author, created, weight, rotation, GameType.ADVENTURE, List.of(), List.of(), Optional.empty());
     }
 
     /**
-     * Returns a copy with other editor-managed fields; player effects and attributes are kept.
+     * Returns a copy with other editor-managed fields; player effects, attributes and ore generation are kept.
      *
      * @param name     the name
      * @param weight   the selection weight
@@ -102,6 +105,6 @@ public record ChallengeStructure(
      */
     public ChallengeStructure with(Optional<String> name, int weight, boolean rotation, GameType gameMode) {
         return new ChallengeStructure(this.theme, this.tier, this.structure, name, this.author, this.created, weight, rotation, gameMode,
-                this.playerEffects, this.playerAttributes);
+                this.playerEffects, this.playerAttributes, this.oreGeneration);
     }
 }

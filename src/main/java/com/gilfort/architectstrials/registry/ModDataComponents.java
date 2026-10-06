@@ -8,6 +8,7 @@ import com.gilfort.architectstrials.loot.LootSetup;
 import com.gilfort.architectstrials.scroll.ScrollEffects;
 import com.gilfort.architectstrials.scroll.ScrollOptions;
 import com.gilfort.architectstrials.scroll.ScrollTarget;
+import com.gilfort.architectstrials.sub.SubStructureSetup;
 
 import net.minecraft.core.component.DataComponentType;
 import net.minecraft.core.registries.Registries;
@@ -51,6 +52,10 @@ public final class ModDataComponents {
     /** Loot setup stored in the loot tool for pasting ({@code architectstrials:loot_clipboard}). */
     public static final Supplier<DataComponentType<LootSetup>> LOOT_CLIPBOARD = DATA_COMPONENTS.registerComponentType(
             "loot_clipboard", builder -> builder.persistent(LootSetup.CODEC).networkSynchronized(LootSetup.STREAM_CODEC));
+
+    /** Sub structure setup stored in the sub structure tool for pasting ({@code architectstrials:sub_structure_clipboard}). */
+    public static final Supplier<DataComponentType<SubStructureSetup>> SUB_STRUCTURE_CLIPBOARD = DATA_COMPONENTS.registerComponentType(
+            "sub_structure_clipboard", builder -> builder.persistent(SubStructureSetup.CODEC).networkSynchronized(SubStructureSetup.STREAM_CODEC));
 
     private ModDataComponents() {
     }

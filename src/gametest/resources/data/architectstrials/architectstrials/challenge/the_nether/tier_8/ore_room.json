@@ -1,0 +1,10 @@
+{
+  "theme": "minecraft:the_nether",
+  "tier": 8,
+  "structure": "architectstrials:gametest/ore_room",
+  "name": "Overworld ore room (US-37 test)",
+  "ore_generation": {
+    "biome": "minecraft:plains",
+    "density": 4
+  }
+}

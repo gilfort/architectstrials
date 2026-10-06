@@ -9,6 +9,7 @@ import com.gilfort.architectstrials.block.SpawnMarkerBlock;
 import com.gilfort.architectstrials.block.TrialSpawnerMarkerBlock;
 import com.gilfort.architectstrials.block.VaultMarkerBlock;
 import com.gilfort.architectstrials.editor.EditorPlatformBlock;
+import com.gilfort.architectstrials.sub.SubStructureMarkerBlock;
 
 import net.minecraft.world.level.block.SoundType;
 import net.minecraft.world.level.block.state.BlockBehaviour;
@@ -51,6 +52,10 @@ public final class ModBlocks {
     /** Editor marker that becomes a vanilla vault (US-26). */
     public static final DeferredBlock<VaultMarkerBlock> VAULT_MARKER = BLOCKS.registerBlock(
             "vault_marker", VaultMarkerBlock::new, properties -> markerProperties(properties).mapColor(MapColor.GOLD));
+
+    /** Editor marker that places a sub structure (US-32). */
+    public static final DeferredBlock<SubStructureMarkerBlock> SUB_STRUCTURE_MARKER = BLOCKS.registerBlock(
+            "sub_structure_marker", SubStructureMarkerBlock::new, properties -> markerProperties(properties).mapColor(MapColor.COLOR_BLUE));
 
     /** The functional challenge exit (redstone signal locks it). Only created by the exit marker resolver. */
     public static final DeferredBlock<ChallengeExitBlock> CHALLENGE_EXIT = BLOCKS.registerBlock(

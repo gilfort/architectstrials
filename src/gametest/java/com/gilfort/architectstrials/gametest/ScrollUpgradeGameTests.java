@@ -22,6 +22,7 @@ import com.gilfort.architectstrials.registry.ModAttachments;
 import com.gilfort.architectstrials.travel.ChallengeTravel;
 
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.SectionPos;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.nbt.CompoundTag;
@@ -133,42 +134,50 @@ public final class ScrollUpgradeGameTests {
             return;
         }
         BlockPos mobPos = instance.spawnPoints().getFirst().pos();
-        Zombie before = spawnZombie(nether, mobPos);
+        // Immediate placement leaves the chunk without a ticket; keep it entity-loaded so the mob is found on entry.
+        int chunkX = SectionPos.blockToSectionCoord(mobPos.getX());
+        int chunkZ = SectionPos.blockToSectionCoord(mobPos.getZ());
+        nether.setChunkForced(chunkX, chunkZ, true);
+        // Wait for the ticket to make the chunk entity-ticking before spawning the mob.
+        helper.runAfterDelay(2, () -> {
+            Zombie before = spawnZombie(nether, mobPos);
 
-        ServerPlayer player = TestPlayers.atStart(helper, GameType.SURVIVAL);
-        player.addEffect(new MobEffectInstance(MobEffects.REGENERATION, 1200, 1));
-        player.addEffect(new MobEffectInstance(MobEffects.FIRE_RESISTANCE, 600));
-        helper.assertTrue(InstanceManager.join(player, nether, instance), "Player could not join");
+            ServerPlayer player = TestPlayers.atStart(helper, GameType.SURVIVAL);
+            player.addEffect(new MobEffectInstance(MobEffects.REGENERATION, 1200, 1));
+            player.addEffect(new MobEffectInstance(MobEffects.FIRE_RESISTANCE, 600));
+            helper.assertTrue(InstanceManager.join(player, nether, instance), "Player could not join");
 
-        MobEffectInstance regeneration = player.getEffect(MobEffects.REGENERATION);
-        long remaining = instance.deadline() - ChallengeClock.now(nether.getServer());
-        helper.assertTrue(regeneration != null && regeneration.getAmplifier() == 0 && Math.abs(regeneration.getDuration() - remaining) <= 20,
-                "Permanent scroll effect does not last the remaining instance time on top of the player's own effect: " + regeneration);
-        helper.assertFalse(regeneration.isVisible(), "Player effect shows particles");
-        MobEffectInstance fireResistance = player.getEffect(MobEffects.FIRE_RESISTANCE);
-        helper.assertTrue(fireResistance != null && fireResistance.getDuration() == 200, "Finite scroll effect is not on top");
-        int parked = MobEffectInstance.CODEC.encodeStart(NbtOps.INSTANCE, fireResistance).getOrThrow() instanceof CompoundTag tag
-                ? tag.getCompoundOrEmpty("hidden_effect").getIntOr("duration", 0) : 0;
-        helper.assertTrue(parked == 800, "Own effect is not parked behind the scroll effect with 600 + 200 ticks: " + parked);
+            MobEffectInstance regeneration = player.getEffect(MobEffects.REGENERATION);
+            long remaining = instance.deadline() - ChallengeClock.now(nether.getServer());
+            helper.assertTrue(regeneration != null && regeneration.getAmplifier() == 0 && Math.abs(regeneration.getDuration() - remaining) <= 20,
+                    "Permanent scroll effect does not last the remaining instance time on top of the player's own effect: " + regeneration);
+            helper.assertFalse(regeneration.isVisible(), "Player effect shows particles");
+            MobEffectInstance fireResistance = player.getEffect(MobEffects.FIRE_RESISTANCE);
+            helper.assertTrue(fireResistance != null && fireResistance.getDuration() == 200, "Finite scroll effect is not on top");
+            int parked = MobEffectInstance.CODEC.encodeStart(NbtOps.INSTANCE, fireResistance).getOrThrow() instanceof CompoundTag tag
+                    ? tag.getCompoundOrEmpty("hidden_effect").getIntOr("duration", 0) : 0;
+            helper.assertTrue(parked == 800, "Own effect is not parked behind the scroll effect with 600 + 200 ticks: " + parked);
 
-        MobEffectInstance speed = before.getEffect(MobEffects.SPEED);
-        helper.assertTrue(speed != null && speed.getAmplifier() == 1, "Mob effect not applied to existing mob on first entry");
-        helper.assertTrue(speed.isVisible(), "Mob effect hides its particles");
-        Zombie after = spawnZombie(nether, mobPos);
-        helper.assertTrue(after.hasEffect(MobEffects.SPEED), "Mob effect not applied to a mob spawned after the first entry");
+            MobEffectInstance speed = before.getEffect(MobEffects.SPEED);
+            helper.assertTrue(speed != null && speed.getAmplifier() == 1, "Mob effect not applied to existing mob on first entry");
+            helper.assertTrue(speed.isVisible(), "Mob effect hides its particles");
+            Zombie after = spawnZombie(nether, mobPos);
+            helper.assertTrue(after.hasEffect(MobEffects.SPEED), "Mob effect not applied to a mob spawned after the first entry");
 
-        helper.assertTrue(ChallengeTravel.returnToEntryPoint(player), "Player could not return");
-        MobEffectInstance restored = player.getEffect(MobEffects.REGENERATION);
-        helper.assertTrue(restored != null && restored.getAmplifier() == 1 && restored.getDuration() == 1200,
-                "Own effect was not given back unchanged: " + restored);
-        MobEffectInstance fireAfter = player.getEffect(MobEffects.FIRE_RESISTANCE);
-        helper.assertTrue(fireAfter != null && fireAfter.getDuration() == 600, "Own effect behind a finite scroll effect was not given back: " + fireAfter);
-        helper.assertTrue(player.getData(ModAttachments.PARKED_EFFECTS).isEmpty(), "Parked effects were not cleared");
+            helper.assertTrue(ChallengeTravel.returnToEntryPoint(player), "Player could not return");
+            MobEffectInstance restored = player.getEffect(MobEffects.REGENERATION);
+            helper.assertTrue(restored != null && restored.getAmplifier() == 1 && restored.getDuration() == 1200,
+                    "Own effect was not given back unchanged: " + restored);
+            MobEffectInstance fireAfter = player.getEffect(MobEffects.FIRE_RESISTANCE);
+            helper.assertTrue(fireAfter != null && fireAfter.getDuration() == 600, "Own effect behind a finite scroll effect was not given back: " + fireAfter);
+            helper.assertTrue(player.getData(ModAttachments.PARKED_EFFECTS).isEmpty(), "Parked effects were not cleared");
 
-        before.discard();
-        after.discard();
-        SlotManager.release(nether, instance.slot());
-        TestPlayers.finish(helper, player);
+            before.discard();
+            after.discard();
+            nether.setChunkForced(chunkX, chunkZ, false);
+            SlotManager.release(nether, instance.slot());
+            TestPlayers.finish(helper, player);
+        });
     }
 
     private static Zombie spawnZombie(ServerLevel level, BlockPos pos) {

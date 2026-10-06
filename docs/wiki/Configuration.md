@@ -15,3 +15,4 @@ Content — themes, structures, tiers, scrolls — is **never** configured here;
 | `defaultTimeLimitMinutes` | 60 | Time limit of challenges whose scroll defines none. |
 | `portalTimeoutSeconds` | 60 | Seconds an opened portal waits for its player before collapsing (the scroll may then drop again, see below). |
 | `unusedPortalScrollDropChance` | 0.5 | Chance (0.0–1.0) that the scroll drops back when a portal collapses unused. |
+| `logFailedSubStructures` | false | Writes failed [sub structure](Markers#sub-structure-marker) generations (overwritten spawn / exit marker, outside the slot area, unknown id) to the log. |

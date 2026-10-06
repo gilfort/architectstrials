@@ -55,6 +55,12 @@ public final class ArchitectsTrialsConfig {
                     "Players still inside when it expires are sent back (the run does not count as completed).")
             .defineInRange("defaultTimeLimitMinutes", 60, 1, 1440);
 
+    /** Whether failed sub structure generations are written to the log (US-32). */
+    public static final ModConfigSpec.BooleanValue LOG_FAILED_SUB_STRUCTURES = BUILDER
+            .comment("Write failed sub structure generations to the log (overwritten spawn / exit marker, outside the",
+                    "slot area, unknown sub structure). Off by default; useful while building.")
+            .define("logFailedSubStructures", false);
+
     /** The built specification, registered as {@code SERVER} config. */
     public static final ModConfigSpec SPEC = BUILDER.build();
 

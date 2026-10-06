@@ -83,6 +83,8 @@ public final class ArchitectsTrials {
             MarkerResolvers.register(ModBlocks.SPAWNER_MARKER.get(), SpawnMarkerResolvers::resolveSpawner);
             MarkerResolvers.register(ModBlocks.TRIAL_SPAWNER_MARKER.get(), TrialSpawnerMarkerResolver::resolve);
             MarkerResolvers.register(ModBlocks.VAULT_MARKER.get(), VaultMarkerBlock::resolve);
+            // Sub structures are placed before the markers are resolved; leftovers (e.g. in tests) just disappear.
+            MarkerResolvers.register(ModBlocks.SUB_STRUCTURE_MARKER.get(), (context, pos) -> context.level().removeBlock(pos, false));
         });
     }
 

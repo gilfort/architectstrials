@@ -108,16 +108,38 @@ public final class EditorCapture {
      * @return the validation result
      */
     public static Validation validate(ServerLevel level, Captured captured) {
+        return validate(level, captured, false);
+    }
+
+    /**
+     * Validates a captured sub structure (US-32): Player Spawn and Exit Markers are optional, Sub Structure
+     * Markers are not allowed (no nesting); the warnings are the same as for challenge structures.
+     *
+     * @param level    the level the structure was captured from
+     * @param captured the capture
+     * @return the validation result
+     */
+    public static Validation validateSub(ServerLevel level, Captured captured) {
+        return validate(level, captured, true);
+    }
+
+    private static Validation validate(ServerLevel level, Captured captured, boolean sub) {
         StructureTemplate template = captured.template();
         List<Component> errors = new ArrayList<>();
         List<Component> warnings = new ArrayList<>();
         StructurePlaceSettings settings = new StructurePlaceSettings();
         List<StructureTemplate.StructureBlockInfo> spawns = template.filterBlocks(BlockPos.ZERO, settings, ModBlocks.PLAYER_SPAWN_MARKER.get());
-        if (spawns.isEmpty()) {
-            errors.add(Component.translatable("message.architectstrials.save.no_spawn_marker"));
-        }
-        if (template.filterBlocks(BlockPos.ZERO, settings, ModBlocks.EXIT_MARKER.get()).isEmpty()) {
-            errors.add(Component.translatable("message.architectstrials.save.no_exit_marker"));
+        if (sub) {
+            if (!template.filterBlocks(BlockPos.ZERO, settings, ModBlocks.SUB_STRUCTURE_MARKER.get()).isEmpty()) {
+                errors.add(Component.translatable("message.architectstrials.save.nested_sub_structure"));
+            }
+        } else {
+            if (spawns.isEmpty()) {
+                errors.add(Component.translatable("message.architectstrials.save.no_spawn_marker"));
+            }
+            if (template.filterBlocks(BlockPos.ZERO, settings, ModBlocks.EXIT_MARKER.get()).isEmpty()) {
+                errors.add(Component.translatable("message.architectstrials.save.no_exit_marker"));
+            }
         }
         for (StructureTemplate.StructureBlockInfo spawn : spawns) {
             BlockPos marker = captured.origin().offset(spawn.pos());

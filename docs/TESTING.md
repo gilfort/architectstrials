@@ -179,3 +179,80 @@ player), `vault_marker_default_key_and_hint`, `vault_marker_world_import`.
 - [ ] Empty key slot: Trial Key (normal) / Ominous Trial Key (ominous) works.
 - [ ] Import a real trial chamber (`/at editor import`): vaults become Vault Markers (message counts them) with
       variant, key and loot table; the resulting challenge works like the original.
+
+## US-34 (#63): Camouflage for exit blocks
+
+GameTests: `exit_camouflage_set_and_remove` (valid / invalid blocks, block state property, save / load, sync data,
+GUI remove button), `exit_camouflage_carried_over` (exit gets the camouflage, rotated with the structure).
+
+- [ ] Editor: right-click an Exit Marker with stone bricks → it looks like stone bricks with the green door on the
+      front and the arrow on top (pointing to the front); action bar "Exit camouflaged as …".
+- [ ] Right-click with a chest, glass, a slab, a torch → red message, nothing changes.
+- [ ] Right-click with an oak log looking from the side → log lies sideways as if placed; with stairs / a furnace
+      it faces as when placed (furnace is rejected — block entity).
+- [ ] Sneak + right-click with a block places it against the marker; camouflage unchanged.
+- [ ] Empty hand opens the GUI: block icon + "Camouflage: …", "Remove camouflage" removes it (button grey without
+      camouflage). Required-mobs toggle still works.
+- [ ] `editor save` / `editor load`: camouflage kept. Rejoin the world / move away and back: still camouflaged.
+- [ ] In a challenge: a locked (powered) or sealed exit looks exactly like the block; open exit: block + purple
+      glowing lines on all sides; portal above unchanged. Lighting and shading of the block look like the
+      surrounding blocks (no dark or too bright faces).
+- [ ] Wider exit (2–3 markers, different camouflages): each base shows its own block; one combined portal.
+- [ ] Rotated structure: a sideways log camouflage stays aligned with the room.
+- [ ] A camouflage from another mod works; remove that mod → the exit shows its normal look, the log mentions the
+      missing block.
+- [ ] Breaking particles / sounds stay the exit's; grass-like blocks may be untinted (grey), check how it looks.
+- [ ] Survival player cannot change the camouflage of a placed exit (right-click with a block does nothing special).
+
+## US-37 (#66): Natural ore generation when an instance is created
+
+GameTests: `ore_generation_overworld` (Overworld ores in a stone room inside the Nether dimension, diamonds only
+low, stone brick pillar and markers intact, two instances differ), `ore_generation_nether` (quartz / Nether gold in
+netherrack), `ore_generation_disabled` (no setting, unknown biome), `ore_generation_settings` (JSON, default range
+and density).
+
+Test rooms in the dev datapack: `/at instance create minecraft:the_nether 8 join` (16 × 32 × 16 stone, plains,
+density 4), tier 9 (netherrack, nether wastes), tier 10 (unknown biome), tier 11 (no ore generation).
+
+- [ ] Tier 8: mine into the room (Spectator or `game_mode` survival via `/at structure set`) — coal / iron /
+      copper / granite / dirt / gravel visible, diamonds and redstone near the bottom, coal also at the top.
+- [ ] Tier 9: quartz and Nether gold in netherrack (ancient debris rare).
+- [ ] Open tier 8 twice: different ore positions. The saved structure (`/at editor load`) has no ores.
+- [ ] Tier 10: one warning "Ore generation uses unknown biome …" in the log, no ores, challenge works.
+- [ ] A real mining room: deepslate in the lower part gets deepslate ores; chests, markers, planks, glass are
+      untouched; spawners / chests from markers are on intact blocks.
+- [ ] `density` 0.2 vs 5 is clearly visible. Without `density` it looks roughly like a vanilla cave.
+- [ ] Modded ores (a mod adding ores to Overworld biomes via biome modifiers) appear in an Overworld ore room.
+- [ ] Lag check: a 128 × 128 × 64 stone room with ore generation, opened via scroll on a dedicated server — no
+      freeze (`/tick query`); the portal becomes active a little later than without ores.
+- [ ] Server restart directly after opening such a portal: the instance is discarded as with US-28.
+
+## US-32 (#61): Sub structures
+
+GameTests: `sub_structure_roll` (chances, fallback, nothing, > 100 % rejected, loading), `sub_structure_facing_and_offsets`
+(facing north / east, offset area turned with the parent, nested marker removed), `sub_structure_failures` (spawn /
+exit marker → fail + one retry, other markers and blocks overwritten, outside the allowed area, retry with
+fallback), `sub_structure_instance` (Nether tier 12: sub structure placed, its spawn registered),
+`sub_structure_tool_and_editor` (tool copies, editor rejects nested markers).
+
+Test data in the dev datapack: sub structures `architectstrials:row`, `single`, `nested`, `spawn_room`;
+`/at instance create minecraft:the_nether 12 join` places `spawn_room` in the corner of a platform.
+
+- [ ] Creative tab: Sub Structure Marker and Sub Structure Tool with tooltips. Placing the marker: top arrow points
+      the way you looked.
+- [ ] Build a small piece in the editor, `/at editor save sub mypack:test` → saved, `/at structure list sub` lists
+      it, `/at editor load sub mypack:test` loads it. With a Sub Structure Marker inside: saving is refused.
+- [ ] Marker GUI: enter `mypack:test` 100 %, Save → "saved"; a typo → "Unknown sub structure"; 60 % + 50 % → error.
+      Reopen: values are kept. `editor save` / `editor load` of the parent keeps them.
+- [ ] Open the challenge several times with facing north / east / south / west: the piece is turned accordingly.
+- [ ] Chances: 50 % + fallback → roughly half the runs show the fallback. Without fallback some runs show nothing.
+- [ ] Offsets (e.g. +X 6): the piece starts at different places along X; in a rotated parent (rotation on) it
+      stays aligned with the room.
+- [ ] A piece that would cover the main Player Spawn Marker or an Exit Marker is never placed (second roll may place
+      the fallback); with `logFailedSubStructures = true` the log shows why.
+- [ ] Markers inside the piece work: a spawn inside the piece is used as entry point, mobs spawn, chests have loot,
+      an exit inside the piece completes the run.
+- [ ] Tool: shift + right-click copies, left click on another marker pastes (its offsets stay); left click never
+      breaks the marker.
+- [ ] With ore generation (US-37): the piece gets ores like the rest of the room.
+

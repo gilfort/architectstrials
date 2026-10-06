@@ -15,10 +15,13 @@ complete datapack and command reference.
 - **Themes are dimensions** — sky, fog, light and biome ambience per theme, defined by datapack.
 - **In-game editor** — build challenges in a shared void dimension and save them into tiered structure pools
   with one command.
-- **Markers** — player spawns, redstone-lockable exits, mobs with custom equipment, spawners and trial spawners.
+- **Markers** — player spawns, redstone-lockable and camouflaged exits, mobs with custom equipment (optionally
+  required to open the exits), spawners, trial spawners, vaults and randomly rolled sub structures.
+- **Varied rooms** — sub structures with chances, natural ore generation per instance, Survival mining rooms,
+  challenge-wide effects and attributes.
 - **Loot** — pool loot via vanilla loot tables (fresh per run), fixed loot, completion bonus per theme and tier.
-- **Scrolls** — theme, tier, time limit and multiplayer options as data components; upgrades with options and
-  effects at the smithing table.
+- **Scrolls** — theme, tier, time limit and multiplayer options as data components; crafting and tier upgrades,
+  upgrades with options and effects at the smithing table.
 - **Progression** — ranks per theme, an advancement trigger for completed runs and an event for other mods.
 - **Safe** — instances in separate slots, time limits with boss bar, and a death protection that always brings
   players home with their full inventory.

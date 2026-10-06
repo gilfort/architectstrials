@@ -1,0 +1,9 @@
+{
+  "theme": "minecraft:the_nether",
+  "tier": 10,
+  "structure": "architectstrials:gametest/ore_room",
+  "name": "Ore room with unknown biome (US-37 test)",
+  "ore_generation": {
+    "biome": "architectstrials:missing_biome"
+  }
+}

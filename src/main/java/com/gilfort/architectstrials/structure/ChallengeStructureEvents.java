@@ -1,6 +1,7 @@
 package com.gilfort.architectstrials.structure;
 
 import com.gilfort.architectstrials.ArchitectsTrials;
+import com.gilfort.architectstrials.sub.SubStructures;
 
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
@@ -17,12 +18,13 @@ public final class ChallengeStructureEvents {
     }
 
     /**
-     * Registers the challenge structure metadata loader.
+     * Registers the challenge structure and sub structure (US-32) metadata loaders.
      *
      * @param event the reload listener registration event
      */
     @SubscribeEvent
     static void onAddReloadListeners(AddServerReloadListenersEvent event) {
         event.addListener(ChallengeStructureLoader.ID, new ChallengeStructureLoader());
+        event.addListener(SubStructures.Loader.ID, new SubStructures.Loader());
     }
 }
