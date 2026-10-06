@@ -62,7 +62,7 @@ public final class ModBlocks {
                     .noCollision()
                     .noOcclusion()
                     .noLootTable()
-                    .pushReaction(PushReaction.BLOCK)
+                    .pushReaction(PushReaction.IMMOVEABLE)
                     .isValidSpawn((state, level, pos, entityType) -> false)
                     .isRedstoneConductor((state, level, pos) -> false)
                     .isSuffocating((state, level, pos) -> false)
