@@ -33,6 +33,17 @@ jobs:
 
       # Starts a headless GameTest server that runs every registered GameTest and exits.
       # The server exits with a non-zero code (failing this step) if a required test fails.
+      # TEMPORARY: prints client render signatures for the exit camouflage (US-34); removed again afterwards.
+      - name: Inspect render classes
+        if: always()
+        run: |
+          jar=$(find build ~/.gradle -name "*.jar" 2>/dev/null | xargs -I{} sh -c 'unzip -l "{}" 2>/dev/null | grep -q "client/renderer/SubmitNodeCollector.class" && echo "{}"' | head -1)
+          echo "JAR: $jar"
+          for c in client.renderer.SubmitNodeCollector client.renderer.OrderedSubmitNodeCollector client.renderer.block.BlockRenderDispatcher client.renderer.block.model.BlockStateModel client.renderer.block.model.BlockModelPart client.renderer.block.ModelBlockRenderer client.renderer.ItemBlockRenderTypes client.renderer.Sheets client.renderer.blockentity.BlockEntityRenderer client.renderer.blockentity.BlockEntityRendererProvider\$Context client.renderer.blockentity.state.BlockEntityRenderState client.renderer.rendertype.RenderTypes client.renderer.texture.OverlayTexture client.renderer.LightTexture client.renderer.block.MovingBlockRenderState; do
+            echo "=== $c"; javap -p -cp "$jar" "net.minecraft.$c" | grep -v "lambda\$" || true
+          done
+          ls -1 $(dirname $jar) | head; unzip -l "$jar" | grep -iE "client/renderer/(block|rendertype)/[A-Za-z]*\.class" | awk '{print $4}' | head -80
+
       - name: Run GameTests
         run: ./gradlew runGameTestServer
 
