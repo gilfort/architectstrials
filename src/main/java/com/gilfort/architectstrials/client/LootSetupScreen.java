@@ -22,6 +22,7 @@ import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.neoforged.neoforge.client.network.ClientPacketDistributor;
 
 /**
@@ -30,7 +31,7 @@ import net.neoforged.neoforge.client.network.ClientPacketDistributor;
  * or a loot table button, a chance field (not on the consolation page) and a roll range. The loot table button
  * opens a searchable list of all loot tables inside the screen.
  */
-public class LootSetupScreen extends AbstractContainerScreen<LootSetupMenu> {
+public class LootSetupScreen extends AbstractContainerScreen<LootSetupMenu> implements GhostSlotScreen {
 
     private static final Identifier TEXTURE = ArchitectsTrials.id("textures/gui/container/loot_setup.png");
     private static final int TEXTURE_WIDTH = 256;
@@ -278,7 +279,7 @@ public class LootSetupScreen extends AbstractContainerScreen<LootSetupMenu> {
             this.listOffset = Math.clamp(this.listOffset - (int) Math.signum(scrollY) * 3, 0, max);
             return true;
         }
-        return super.mouseScrolled(mouseX, mouseY, scrollX, scrollY);
+        return GhostSlotScreen.scroll(this, this.hoveredSlot, scrollY) || super.mouseScrolled(mouseX, mouseY, scrollX, scrollY);
     }
 
     @Override
@@ -366,5 +367,20 @@ public class LootSetupScreen extends AbstractContainerScreen<LootSetupMenu> {
             return true;
         }
         return super.keyPressed(event);
+    }
+
+    @Override
+    public int ghostLeft() {
+        return this.leftPos;
+    }
+
+    @Override
+    public int ghostTop() {
+        return this.topPos;
+    }
+
+    @Override
+    public AbstractContainerMenu ghostMenu() {
+        return this.menu;
     }
 }

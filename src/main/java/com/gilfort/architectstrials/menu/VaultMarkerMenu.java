@@ -9,12 +9,14 @@ import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.ContainerData;
+import net.minecraft.world.inventory.ContainerInput;
 import net.minecraft.world.inventory.SimpleContainerData;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 
 /**
- * Menu of the Vault Marker (US-26): the key slot, a normal / ominous switch and the player inventory.
+ * Menu of the Vault Marker (US-26): the key slot (a {@link GhostSlot ghost slot}, US-39), a normal / ominous switch
+ * and the player inventory.
  */
 public class VaultMarkerMenu extends AbstractContainerMenu {
 
@@ -58,7 +60,7 @@ public class VaultMarkerMenu extends AbstractContainerMenu {
         this.container = container;
         this.data = data;
         container.startOpen(inventory.player);
-        this.addSlot(new Slot(container, VaultMarkerBlockEntity.KEY_SLOT, KEY_X, KEY_Y));
+        this.addSlot(new GhostSlot(container, VaultMarkerBlockEntity.KEY_SLOT, KEY_X, KEY_Y));
         this.addStandardInventorySlots(inventory, 8, INVENTORY_Y);
         this.addDataSlots(data);
     }
@@ -78,23 +80,16 @@ public class VaultMarkerMenu extends AbstractContainerMenu {
     }
 
     @Override
+    public void clicked(int slotIndex, int button, ContainerInput clickType, Player player) {
+        if (!GhostSlots.click(this, slotIndex, button, clickType)) {
+            super.clicked(slotIndex, button, clickType, player);
+        }
+    }
+
+    @Override
     public ItemStack quickMoveStack(Player player, int slotIndex) {
         Slot slot = this.slots.get(slotIndex);
-        if (slot == null || !slot.hasItem()) {
-            return ItemStack.EMPTY;
-        }
-        ItemStack stack = slot.getItem();
-        ItemStack original = stack.copy();
-        boolean moved = slotIndex == 0 ? this.moveItemStackTo(stack, 1, this.slots.size(), true) : this.moveItemStackTo(stack, 0, 1, false);
-        if (!moved) {
-            return ItemStack.EMPTY;
-        }
-        if (stack.isEmpty()) {
-            slot.setByPlayer(ItemStack.EMPTY);
-        } else {
-            slot.setChanged();
-        }
-        return original;
+        return slotIndex == 0 || !slot.hasItem() ? ItemStack.EMPTY : GhostSlots.copyToFirstFree(this, slot.getItem(), 0, 1);
     }
 
     @Override

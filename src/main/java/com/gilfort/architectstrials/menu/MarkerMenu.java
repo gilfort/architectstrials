@@ -83,8 +83,8 @@ public abstract class MarkerMenu extends AbstractContainerMenu {
             }
 
             @Override
-            public boolean mayPlace(ItemStack stack) {
-                return super.mayPlace(stack) && !MarkerMenu.this.hasList(index);
+            public boolean accepts(ItemStack stack) {
+                return super.accepts(stack) && !MarkerMenu.this.hasList(index);
             }
         };
     }
@@ -131,7 +131,8 @@ public abstract class MarkerMenu extends AbstractContainerMenu {
     }
 
     /**
-     * Opens the list menu when an empty equipment slot is clicked with an empty cursor.
+     * Opens the list menu when an empty equipment slot is clicked with an empty cursor; other clicks on marker slots
+     * are {@link GhostSlots ghost slot clicks}.
      */
     @Override
     public void clicked(int slotIndex, int button, ContainerInput clickType, Player player) {
@@ -146,7 +147,9 @@ public abstract class MarkerMenu extends AbstractContainerMenu {
                 return;
             }
         }
-        super.clicked(slotIndex, button, clickType, player);
+        if (!GhostSlots.click(this, slotIndex, button, clickType)) {
+            super.clicked(slotIndex, button, clickType, player);
+        }
     }
 
     /**
@@ -171,24 +174,10 @@ public abstract class MarkerMenu extends AbstractContainerMenu {
     @Override
     public ItemStack quickMoveStack(Player player, int slotIndex) {
         Slot slot = this.slots.get(slotIndex);
-        if (slot == null || !slot.hasItem()) {
+        if (slotIndex < this.container.getContainerSize() || slotIndex >= this.inventoryEnd || !slot.hasItem()) {
             return ItemStack.EMPTY;
         }
-        ItemStack stack = slot.getItem();
-        ItemStack original = stack.copy();
-        int size = this.container.getContainerSize();
-        boolean moved = slotIndex < size
-                ? this.moveItemStackTo(stack, size, this.inventoryEnd, true)
-                : this.moveItemStackTo(stack, 0, size, false);
-        if (!moved) {
-            return ItemStack.EMPTY;
-        }
-        if (stack.isEmpty()) {
-            slot.setByPlayer(ItemStack.EMPTY);
-        } else {
-            slot.setChanged();
-        }
-        return original;
+        return GhostSlots.copyToFirstFree(this, slot.getItem(), 0, this.container.getContainerSize());
     }
 
     @Override

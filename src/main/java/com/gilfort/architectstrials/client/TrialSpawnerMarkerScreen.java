@@ -10,13 +10,14 @@ import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.inventory.AbstractContainerMenu;
 
 /**
  * Screen of the {@link TrialSpawnerMarkerMenu}: three mob rows (spawn egg + equipment) of the current page, the
  * page's total mob count and simultaneous mobs with +/- buttons, a page switch (normal / ominous) and the
  * ominous toggle.
  */
-public class TrialSpawnerMarkerScreen extends AbstractContainerScreen<TrialSpawnerMarkerMenu> {
+public class TrialSpawnerMarkerScreen extends AbstractContainerScreen<TrialSpawnerMarkerMenu> implements GhostSlotScreen {
 
     private static final Identifier TEXTURE = ArchitectsTrials.id("textures/gui/container/trial_spawner_marker.png");
 
@@ -114,5 +115,25 @@ public class TrialSpawnerMarkerScreen extends AbstractContainerScreen<TrialSpawn
     public void removed() {
         CursorMemory.remember();
         super.removed();
+    }
+
+    @Override
+    public int ghostLeft() {
+        return this.leftPos;
+    }
+
+    @Override
+    public int ghostTop() {
+        return this.topPos;
+    }
+
+    @Override
+    public AbstractContainerMenu ghostMenu() {
+        return this.menu;
+    }
+
+    @Override
+    public boolean mouseScrolled(double mouseX, double mouseY, double scrollX, double scrollY) {
+        return GhostSlotScreen.scroll(this, this.hoveredSlot, scrollY) || super.mouseScrolled(mouseX, mouseY, scrollX, scrollY);
     }
 }

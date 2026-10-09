@@ -4,6 +4,7 @@ import com.gilfort.architectstrials.ArchitectsTrials;
 import com.gilfort.architectstrials.block.MarkerBlockItem;
 import com.gilfort.architectstrials.editor.SelectionToolItem;
 import com.gilfort.architectstrials.loot.LootToolItem;
+import com.gilfort.architectstrials.marker.SpawnMarkerToolItem;
 import com.gilfort.architectstrials.scroll.ChallengeScrollItem;
 import com.gilfort.architectstrials.sub.SubStructureToolItem;
 
@@ -61,6 +62,10 @@ public final class ModItems {
     /** Tool copying sub structure setups between markers (US-32); creative/editor only, no recipe. */
     public static final DeferredItem<SubStructureToolItem> SUB_STRUCTURE_TOOL = ITEMS.registerItem("sub_structure_tool",
             properties -> new SubStructureToolItem(properties.stacksTo(1).rarity(Rarity.EPIC)));
+
+    /** Tool copying spawn marker configurations between markers of the same type (US-39); creative/editor only, no recipe. */
+    public static final DeferredItem<SpawnMarkerToolItem> SPAWN_MARKER_TOOL = ITEMS.registerItem("spawn_marker_tool",
+            properties -> new SpawnMarkerToolItem(properties.stacksTo(1).rarity(Rarity.EPIC)));
 
     /** The challenge scroll; theme and tier come from the {@code architectstrials:challenge} data component. */
     public static final DeferredItem<ChallengeScrollItem> CHALLENGE_SCROLL = ITEMS.registerItem("challenge_scroll",

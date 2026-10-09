@@ -5,6 +5,7 @@ import java.util.function.Supplier;
 import com.gilfort.architectstrials.ArchitectsTrials;
 import com.gilfort.architectstrials.editor.Selection;
 import com.gilfort.architectstrials.loot.LootSetup;
+import com.gilfort.architectstrials.marker.SpawnMarkerClipboard;
 import com.gilfort.architectstrials.scroll.ScrollEffects;
 import com.gilfort.architectstrials.scroll.ScrollOptions;
 import com.gilfort.architectstrials.scroll.ScrollTarget;
@@ -56,6 +57,10 @@ public final class ModDataComponents {
     /** Sub structure setup stored in the sub structure tool for pasting ({@code architectstrials:sub_structure_clipboard}). */
     public static final Supplier<DataComponentType<SubStructureSetup>> SUB_STRUCTURE_CLIPBOARD = DATA_COMPONENTS.registerComponentType(
             "sub_structure_clipboard", builder -> builder.persistent(SubStructureSetup.CODEC).networkSynchronized(SubStructureSetup.STREAM_CODEC));
+
+    /** Spawn marker configuration stored in the spawn marker tool for pasting ({@code architectstrials:spawn_marker_clipboard}, US-39). */
+    public static final Supplier<DataComponentType<SpawnMarkerClipboard>> SPAWN_MARKER_CLIPBOARD = DATA_COMPONENTS.registerComponentType(
+            "spawn_marker_clipboard", builder -> builder.persistent(SpawnMarkerClipboard.CODEC).networkSynchronized(SpawnMarkerClipboard.STREAM_CODEC));
 
     private ModDataComponents() {
     }

@@ -16,6 +16,13 @@ Useful commands: `/at instance create <theme> <tier> join`, `/at instance list`,
 
 ---
 
+## #57 Multiplayer test of instances (from US-12)
+
+Needs `./gradlew runServer` plus two clients. Checklist lives in issue #57 — tick it off there:
+maxPlayers 0 / 2 / 1, re-entry after death (never after completion), log out / in before and after the time limit,
+late joiner without rank, death protection / scroll effects / completion bonus per player, instance closes once
+everybody left. While at it, repeat the multiplayer points of US-28, US-30, US-31 and US-26 below.
+
 ## #54 CI: build and GameTests on every PR
 
 Automated: the workflow itself is the test.
@@ -256,3 +263,34 @@ Test data in the dev datapack: sub structures `architectstrials:row`, `single`, 
       breaks the marker.
 - [ ] With ore generation (US-37): the piece gets ores like the rest of the room.
 
+## US-39 (#71): Ghost slots in marker GUIs and Spawn Marker Tool
+
+GameTests: `ghost_slots_marker_menu` (copy without consuming, count up / down / clear, wrong items, shift click,
+payload clamp, list blocks fixed item, no hopper access), `ghost_slots_list_and_vault`, `spawn_marker_tool_copy_paste`
+(complete copy, same type only, replaces everything, trial spawner pages and settings).
+
+- [ ] Direct Spawn / Spawner / Trial Spawner Marker: click with 8 eggs → 8 in the slot, still 8 on the cursor;
+      right click with the egg +1; empty hand left +1 / right −1 / at 1 → empty; shift + click clears.
+- [ ] Mouse wheel over a filled egg slot: ±1 (never below 1). Wheel over equipment does nothing.
+- [ ] Equipment: click with an enchanted, renamed sword → copy shows name / enchantments; spawned mob carries it.
+      A chestplate is refused in the head slot. Right click with an empty hand clears.
+- [ ] Empty equipment slot + empty hand still opens the random list; list entries are ghost slots too (click copies,
+      right click removes).
+- [ ] Shift + click an item in the inventory: copied into the first free matching slot (trial spawner: current page
+      only); the inventory item stays.
+- [ ] Nothing can be taken out: no dragging, no number keys, no double-click collecting, no Q-drop from ghost slots.
+      Middle click in creative copies the content to the cursor.
+- [ ] Loot Tool GUI: cells behave like egg slots (count up to the item's stack size), loot table entries still work.
+- [ ] Vault Marker key slot: 2× renamed item set by clicking; the vault in a challenge needs exactly that.
+- [ ] Hopper below / above a marker: neither pulls items out nor pushes items in.
+- [ ] Old world / saved structure with real items in markers: contents are kept and now behave as ghosts.
+- [ ] **JEI** (dev client has it): drag an egg / armor / item from the JEI list onto the slots — matching slots light
+      up, drop sets 1×, Shift while dropping sets a full stack. Works in all five screens (spawn, trial spawner,
+      equipment list, loot tool, vault). Without JEI the mod loads normally.
+- [ ] Spawn Marker Tool in the creative tab with texture and tooltip. Shift + right click a configured Direct Spawn
+      Marker → "Direct Spawn Marker configuration copied.", tooltip lists `3× Zombie` etc.
+- [ ] Left click another Direct Spawn Marker → everything replaced (eggs, fixed equipment, lists, equipment table,
+      Required). Left click a Spawner / Trial Spawner Marker → red "holds a Direct Spawn Marker configuration".
+- [ ] Trial Spawner copy: both pages, "at once", "Ominous: allowed", loot table / Loot Tool rewards (normal and
+      ominous) are pasted.
+- [ ] Right click with the tool opens the marker GUI; left click never breaks the marker; empty tool → red message.

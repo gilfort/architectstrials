@@ -7,13 +7,14 @@ import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.Slot;
 
 /**
  * Screen of the {@link VaultMarkerMenu}: the key slot with a hint, the normal / ominous switch and the player
  * inventory, drawn as a vanilla-style panel.
  */
-public class VaultMarkerScreen extends AbstractContainerScreen<VaultMarkerMenu> {
+public class VaultMarkerScreen extends AbstractContainerScreen<VaultMarkerMenu> implements GhostSlotScreen {
 
     private static final int BACKGROUND = 0xFFC6C6C6;
     private static final int BORDER = 0xFF555555;
@@ -77,5 +78,25 @@ public class VaultMarkerScreen extends AbstractContainerScreen<VaultMarkerMenu> 
         super.extractLabels(graphics, mouseX, mouseY);
         Component hint = Component.translatable("gui.architectstrials.vault_marker.key");
         graphics.text(this.font, hint, VaultMarkerMenu.KEY_X - 4 - this.font.width(hint), VaultMarkerMenu.KEY_Y + 4, TEXT_COLOR, false);
+    }
+
+    @Override
+    public int ghostLeft() {
+        return this.leftPos;
+    }
+
+    @Override
+    public int ghostTop() {
+        return this.topPos;
+    }
+
+    @Override
+    public AbstractContainerMenu ghostMenu() {
+        return this.menu;
+    }
+
+    @Override
+    public boolean mouseScrolled(double mouseX, double mouseY, double scrollX, double scrollY) {
+        return GhostSlotScreen.scroll(this, this.hoveredSlot, scrollY) || super.mouseScrolled(mouseX, mouseY, scrollX, scrollY);
     }
 }

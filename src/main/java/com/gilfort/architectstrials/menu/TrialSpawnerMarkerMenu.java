@@ -11,7 +11,6 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.ContainerData;
 import net.minecraft.world.inventory.DataSlot;
 import net.minecraft.world.inventory.SimpleContainerData;
-import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 
 /**
@@ -125,32 +124,5 @@ public class TrialSpawnerMarkerMenu extends MarkerMenu {
             }
         }
         return true;
-    }
-
-    /**
-     * Shift-click only moves items into the slots of the current page.
-     */
-    @Override
-    public ItemStack quickMoveStack(Player player, int slotIndex) {
-        Slot slot = this.slots.get(slotIndex);
-        if (slot == null || !slot.hasItem()) {
-            return ItemStack.EMPTY;
-        }
-        ItemStack stack = slot.getItem();
-        ItemStack original = stack.copy();
-        int containerSize = this.container().getContainerSize();
-        int pageStart = this.ominousPage() ? PAGE_SLOTS : 0;
-        boolean moved = slotIndex < containerSize
-                ? this.moveItemStackTo(stack, containerSize, this.inventoryEnd(), true)
-                : this.moveItemStackTo(stack, pageStart, pageStart + PAGE_SLOTS, false);
-        if (!moved) {
-            return ItemStack.EMPTY;
-        }
-        if (stack.isEmpty()) {
-            slot.setByPlayer(ItemStack.EMPTY);
-        } else {
-            slot.setChanged();
-        }
-        return original;
     }
 }
