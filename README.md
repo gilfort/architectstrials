@@ -16,7 +16,8 @@ complete datapack and command reference.
 - **In-game editor** — build challenges in a shared void dimension and save them into tiered structure pools
   with one command.
 - **Markers** — player spawns, redstone-lockable and camouflaged exits, mobs with custom equipment (optionally
-  required to open the exits), spawners, trial spawners, vaults and randomly rolled sub structures.
+  required to open the exits), spawners, trial spawners, vaults and randomly rolled sub structures; configured
+  with ghost slots (no real items needed, JEI drag & drop) and copied with the Spawn Marker Tool.
 - **Varied rooms** — sub structures with chances, natural ore generation per instance, Survival mining rooms,
   challenge-wide effects and attributes.
 - **Loot** — pool loot via vanilla loot tables (fresh per run), fixed loot, completion bonus per theme and tier.

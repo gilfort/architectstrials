@@ -87,7 +87,8 @@ A setup has up to **five groups** and a **consolation list**, each a page in the
 
 - An entry is either a **loot table** (click "+ Loot table" in an empty cell for a searchable list;
   block drop tables like `minecraft:blocks/…` are left out) or a
-  **fixed item** (put the item into the cell's slot).
+  **fixed item** (click with the item on the cell's slot — it is a [ghost slot](Markers#ghost-slots), your item
+  is not used up; its count is the stack given per roll).
 - Every entry has a **chance** (0.1 % steps) and a **roll range** (min–max, up to 64): a drawn entry rolls its
   loot table, or gives its item, that many times.
 - **Every group draws at most one entry.** The chances of a group add up to at most 100 %; the rest is the

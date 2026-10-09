@@ -18,13 +18,14 @@ import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.inventory.AbstractContainerMenu;
 
 /**
  * Screen of the {@link EquipmentListMenu}: 3 × 3 item slots, each with a chance field in percent (one decimal),
  * the remaining "nothing" chance and a button back to the marker. Typed chances are sent to the server, which
  * clamps them so the list stays at or below 100 %; fields show the stored value while not being edited.
  */
-public class EquipmentListScreen extends AbstractContainerScreen<EquipmentListMenu> {
+public class EquipmentListScreen extends AbstractContainerScreen<EquipmentListMenu> implements GhostSlotScreen {
 
     private static final Identifier TEXTURE = ArchitectsTrials.id("textures/gui/container/equipment_list.png");
     private static final int TEXT_COLOR = 0xFF404040;
@@ -152,5 +153,25 @@ public class EquipmentListScreen extends AbstractContainerScreen<EquipmentListMe
             return true;
         }
         return super.keyPressed(event);
+    }
+
+    @Override
+    public int ghostLeft() {
+        return this.leftPos;
+    }
+
+    @Override
+    public int ghostTop() {
+        return this.topPos;
+    }
+
+    @Override
+    public AbstractContainerMenu ghostMenu() {
+        return this.menu;
+    }
+
+    @Override
+    public boolean mouseScrolled(double mouseX, double mouseY, double scrollX, double scrollY) {
+        return GhostSlotScreen.scroll(this, this.hoveredSlot, scrollY) || super.mouseScrolled(mouseX, mouseY, scrollX, scrollY);
     }
 }

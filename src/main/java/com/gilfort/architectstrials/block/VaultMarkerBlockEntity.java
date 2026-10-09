@@ -11,6 +11,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.NonNullList;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceKey;
+import net.minecraft.world.Container;
 import net.minecraft.world.ContainerHelper;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.inventory.AbstractContainerMenu;
@@ -145,6 +146,19 @@ public class VaultMarkerBlockEntity extends BaseContainerBlockEntity implements 
     @Override
     public int getMaxStackSize() {
         return 64;
+    }
+
+    /**
+     * The key is a ghost copy (US-39): hoppers and other automation can neither insert nor extract.
+     */
+    @Override
+    public boolean canPlaceItem(int slot, ItemStack stack) {
+        return false;
+    }
+
+    @Override
+    public boolean canTakeItem(Container target, int slot, ItemStack stack) {
+        return false;
     }
 
     /**

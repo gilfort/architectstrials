@@ -253,9 +253,17 @@ public abstract class MobMarkerBlockEntity extends BaseContainerBlockEntity {
         return this.items.size();
     }
 
+    /**
+     * The contents are ghost copies (US-39): hoppers and other automation can neither insert nor extract.
+     */
     @Override
     public boolean canPlaceItem(int slot, ItemStack stack) {
-        return MarkerSlot.accepts(slot, stack) && this.equipmentList(slot).isEmpty();
+        return false;
+    }
+
+    @Override
+    public boolean canTakeItem(Container target, int slot, ItemStack stack) {
+        return false;
     }
 
     /**

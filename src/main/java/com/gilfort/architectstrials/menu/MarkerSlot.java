@@ -9,7 +9,6 @@ import net.minecraft.resources.Identifier;
 import net.minecraft.world.Container;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.inventory.InventoryMenu;
-import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.SpawnEggItem;
 import net.minecraft.world.item.equipment.Equippable;
@@ -17,9 +16,10 @@ import net.minecraft.world.item.equipment.Equippable;
 /**
  * A slot of a mob marker row. Every row consists of {@link #ROW_SIZE} container slots: one spawn egg slot
  * (entity type; the stack size is the count) followed by one slot per {@link #EQUIPMENT_SLOTS equipment slot}.
- * Equipment slots hold a single item; armor slots only accept items equippable in that slot.
+ * Equipment slots hold a single item; armor slots only accept items equippable in that slot. All of them are
+ * {@link GhostSlot ghost slots} (US-39).
  */
-public class MarkerSlot extends Slot {
+public class MarkerSlot extends GhostSlot {
 
     /** Sprite shown in an empty spawn egg slot. */
     public static final Identifier EMPTY_SPAWN_EGG_SLOT = ArchitectsTrials.id("container/slot/spawn_egg");
@@ -81,8 +81,13 @@ public class MarkerSlot extends Slot {
     }
 
     @Override
-    public boolean mayPlace(ItemStack stack) {
+    public boolean accepts(ItemStack stack) {
         return accepts(this.getContainerSlot(), stack);
+    }
+
+    @Override
+    public boolean countable() {
+        return this.getContainerSlot() % ROW_SIZE == 0;
     }
 
     @Override

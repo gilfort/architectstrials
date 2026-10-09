@@ -16,6 +16,27 @@ and cannot be broken in survival.
 
 When a structure is rotated or mirrored, markers move with it; mobs and spawners are not rotated otherwise.
 
+## Ghost slots
+
+All item slots of the marker GUIs — spawn eggs, equipment, random equipment lists, the vault key and the cells of
+the [Loot Tool](Loot#loot-tool-composed-rewards) — are **ghost slots**: they only hold a *copy*. The item on your
+cursor is never used up, and nothing can be taken out of a ghost slot (hoppers neither insert nor extract).
+
+| Action | Spawn egg, loot cell, vault key (with count) | Equipment |
+|---|---|---|
+| Left click with an item | copy with the cursor's count (same item: added) | copy (1×, with name, enchantments, …) |
+| Right click with an item | one more of that item | same as left click |
+| Left click, empty hand | +1 | — (empty equipment slot: opens its random list) |
+| Right click, empty hand | −1 (at 0 the slot is empty) | clears the slot |
+| Shift + click, empty hand | clears the slot | clears the slot |
+| Shift + click in your inventory | copy into the first free matching slot | same |
+| Mouse wheel over the slot | +1 / −1 | — |
+| Middle click (creative) | copies the content onto your cursor (vanilla) | same |
+
+Counts are capped at the item's stack size (spawn eggs: 64). With [JEI](https://www.curseforge.com/minecraft/mc-mods/jei)
+installed you can also **drag items from the JEI list** onto a ghost slot: matching slots light up, dropping sets
+one item, holding **Shift** while dropping sets a full stack.
+
 ## Player Spawn Marker
 
 Records a possible entry point: its position and the direction its arrow points (players look that way on
@@ -60,15 +81,16 @@ only way to complete a run.
 The Direct Spawn, Spawner and Trial Spawner Markers define enemies. Right-click one (creative mode + operator)
 to open its inventory. Each **mob row** has:
 
-- one **spawn egg** slot — the entity type (eggs from any mod work); the stack size is the count,
+- one **spawn egg** slot — the entity type (eggs from any mod work); the count is the number of mobs
+  (click 8 times instead of using 8 real eggs, see [ghost slots](#ghost-slots)),
 - six **equipment** slots — head, chest, legs, feet, main hand, off hand (fixed item or random list, see below).
 
 Each equipment slot is one of three things:
 
 - **Empty** — the mob keeps its natural equipment (a skeleton still gets its bow). Empty slots show a small dice
   icon in their top-right corner.
-- **A fixed item** — drag or shift-click an item into the slot. It is always used; the slot shows "100%". To turn
-  it into a random slot, take the item out first.
+- **A fixed item** — click with the item on the slot (or shift-click it in your inventory). It is always used; the
+  slot shows "100%". To turn it into a random slot, clear it first (right click with an empty hand).
 - **A random list** — **click an empty slot** (with nothing on the cursor) to open its list: up to 9 items, each
   with a chance in percent (one decimal, e.g. `0.5`). Exactly one item is drawn per mob, the remainder up to 100 %
   means **nothing** — the slot is then empty, even if the mob would naturally carry something. A slot with a list
@@ -143,14 +165,26 @@ ominous variant with 3 wither skeletons and nether fortress loot:
 4. Look at the marker: `/at marker loot_table minecraft:chests/simple_dungeon` and
    `/at marker ominous_loot_table minecraft:chests/nether_bridge`.
 
+### Spawn Marker Tool
+
+The **Spawn Marker Tool** (creative tab, no recipe) copies the complete configuration of a Direct Spawn, Spawner
+or Trial Spawner Marker onto other markers — all rows with counts, fixed equipment, random lists, equipment loot
+tables, the Required setting and, for trial spawners, both pages, "at once", "Ominous: allowed" and the rewards.
+
+- **Shift + right-click** a marker: copies its configuration into the tool. The tooltip shows the marker type and
+  the copied mobs (e.g. `3× Zombie`).
+- **Left-click** a marker of the **same type**: replaces its whole configuration with the copy. Other marker types
+  are refused with a message (a Spawner Marker copy only fits Spawner Markers).
+- **Right-click**: opens the marker GUI. The tool never breaks blocks.
+
 ## Vault Marker
 
 Becomes a vanilla **vault**: players unlock it with a key and get a reward — every player once per instance (each
 new instance places a fresh vault). Right-click the marker to set it up:
 
 - **Normal / Ominous** (top right) — the vault's look and its default key and reward.
-- **Key slot** — any item, including count and components (name, enchantments, …); that many are consumed. Empty
-  = the vanilla key of the variant (Trial Key / Ominous Trial Key).
+- **Key slot** ([ghost slot](#ghost-slots)) — any item, including count and components (name, enchantments, …);
+  that many are consumed. Empty = the vanilla key of the variant (Trial Key / Ominous Trial Key).
 - **Reward** — compose it with the [Loot Tool](Loot#loot-tool-composed-rewards) (rolled per player on unlock; the
   floating preview shows possible rewards). Without a setup: the loot table set with `/at marker loot_table <id>`,
   otherwise the vanilla trial chamber reward of the variant.

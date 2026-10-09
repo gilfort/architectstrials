@@ -124,10 +124,8 @@ public final class EquipmentListGameTests {
                 "New list entry did not get the default chance of 10 %");
         marker.listChances(head).set(0, 2000);
         helper.assertTrue(marker.equipmentList(head).totalChance() == 1000, "Chance above 100 % was not clamped");
-        helper.assertFalse(marker.canPlaceItem(head, new ItemStack(Items.IRON_HELMET)), "Fixed item accepted in a slot with a list");
         container.removeItemNoUpdate(0);
-        helper.assertTrue(marker.equipmentList(head).isEmpty() && marker.canPlaceItem(head, new ItemStack(Items.IRON_HELMET)),
-                "Emptying the list did not free the slot");
+        helper.assertTrue(marker.equipmentList(head).isEmpty(), "Emptying the list did not remove the entry");
         helper.succeed();
     }
 

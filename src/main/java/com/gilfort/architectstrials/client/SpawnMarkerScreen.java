@@ -10,12 +10,13 @@ import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.inventory.AbstractContainerMenu;
 
 /**
  * Screen of the {@link SpawnMarkerMenu}: a vanilla-style container with the spawn egg slot on top and the six
  * equipment slots below; Direct Spawn Markers show a "Required" toggle in the title row (US-30).
  */
-public class SpawnMarkerScreen extends AbstractContainerScreen<SpawnMarkerMenu> {
+public class SpawnMarkerScreen extends AbstractContainerScreen<SpawnMarkerMenu> implements GhostSlotScreen {
 
     private static final Identifier TEXTURE = ArchitectsTrials.id("textures/gui/container/spawn_marker.png");
 
@@ -81,5 +82,25 @@ public class SpawnMarkerScreen extends AbstractContainerScreen<SpawnMarkerMenu> 
     public void removed() {
         CursorMemory.remember();
         super.removed();
+    }
+
+    @Override
+    public int ghostLeft() {
+        return this.leftPos;
+    }
+
+    @Override
+    public int ghostTop() {
+        return this.topPos;
+    }
+
+    @Override
+    public AbstractContainerMenu ghostMenu() {
+        return this.menu;
+    }
+
+    @Override
+    public boolean mouseScrolled(double mouseX, double mouseY, double scrollX, double scrollY) {
+        return GhostSlotScreen.scroll(this, this.hoveredSlot, scrollY) || super.mouseScrolled(mouseX, mouseY, scrollX, scrollY);
     }
 }

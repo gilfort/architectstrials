@@ -4,6 +4,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+import com.gilfort.architectstrials.menu.GhostSlot;
+import com.gilfort.architectstrials.menu.GhostSlots;
 import com.gilfort.architectstrials.registry.ModMenuTypes;
 
 import net.minecraft.core.registries.Registries;
@@ -15,6 +17,7 @@ import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
+import net.minecraft.world.inventory.ContainerInput;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.entity.BlockEntity;
@@ -25,9 +28,9 @@ import org.jspecify.annotations.Nullable;
 
 /**
  * Menu of the loot tool: edits the {@link LootSetup} of one loot source, one page at a time (groups 1–5 and the
- * consolation list). The nine item slots show the fixed items of the current page; loot table entries, chances
- * and roll ranges are synchronized with {@link LootNetwork payloads}. Every change is stored in the loot source
- * immediately.
+ * consolation list). The nine item slots ({@link GhostSlot ghost slots}, US-39) show the fixed items of the current
+ * page; loot table entries, chances and roll ranges are synchronized with {@link LootNetwork payloads}. Every change
+ * is stored in the loot source immediately.
  */
 public class LootSetupMenu extends AbstractContainerMenu {
 
@@ -100,7 +103,7 @@ public class LootSetupMenu extends AbstractContainerMenu {
         for (int position = 0; position < LootGroup.MAX_ENTRIES; position++) {
             int x = GRID_X + (position % 3) * CELL_WIDTH + 1;
             int y = GRID_Y + (position / 3) * CELL_HEIGHT + 1;
-            this.addSlot(new Slot(this.items, position, x, y) {
+            this.addSlot(new GhostSlot(this.items, position, x, y) {
                 @Override
                 public int getMaxStackSize() {
                     return 99;
@@ -280,28 +283,19 @@ public class LootSetupMenu extends AbstractContainerMenu {
     }
 
     @Override
-    public ItemStack quickMoveStack(Player clicker, int slotIndex) {
-        Slot slot = this.slots.get(slotIndex);
-        if (slot == null || !slot.hasItem()) {
-            return ItemStack.EMPTY;
+    public void clicked(int slotIndex, int button, ContainerInput clickType, Player clicker) {
+        if (!GhostSlots.click(this, slotIndex, button, clickType)) {
+            super.clicked(slotIndex, button, clickType, clicker);
         }
-        ItemStack stack = slot.getItem();
-        ItemStack original = stack.copy();
-        boolean moved = slotIndex < LootGroup.MAX_ENTRIES
-                ? this.moveItemStackTo(stack, LootGroup.MAX_ENTRIES, this.slots.size(), true)
-                : this.moveItemStackTo(stack, 0, LootGroup.MAX_ENTRIES, false);
-        if (!moved) {
-            return ItemStack.EMPTY;
-        }
-        if (stack.isEmpty()) {
-            slot.setByPlayer(ItemStack.EMPTY);
-        } else {
-            slot.setChanged();
-        }
-        return original;
     }
 
-    /** Live view on the fixed items of the current page (server side). */
+    @Override
+    public ItemStack quickMoveStack(Player clicker, int slotIndex) {
+        Slot slot = this.slots.get(slotIndex);
+        return slotIndex < LootGroup.MAX_ENTRIES || !slot.hasItem() ? ItemStack.EMPTY
+                : GhostSlots.copyToFirstFree(this, slot.getItem(), 0, LootGroup.MAX_ENTRIES);
+    }
+
     private final class PageItems implements Container {
 
         @Override

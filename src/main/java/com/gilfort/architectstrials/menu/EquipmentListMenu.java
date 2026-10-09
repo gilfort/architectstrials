@@ -10,6 +10,7 @@ import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.ContainerData;
+import net.minecraft.world.inventory.ContainerInput;
 import net.minecraft.world.inventory.DataSlot;
 import net.minecraft.world.inventory.SimpleContainerData;
 import net.minecraft.world.inventory.Slot;
@@ -19,7 +20,8 @@ import org.jspecify.annotations.Nullable;
 /**
  * Menu of the weighted list of one equipment slot of a mob marker: up to {@value EquipmentList#MAX_ENTRIES} items
  * (3 × 3 slots) with a chance each. Items and chances are stored in the marker immediately; the chance of an entry
- * is clamped so the list never exceeds 100 %. The remainder up to 100 % means "nothing".
+ * is clamped so the list never exceeds 100 %. The remainder up to 100 % means "nothing". The list slots are
+ * {@link GhostSlot ghost slots} (US-39).
  * <p>
  * Chances are set with menu button clicks: id = position × {@value #CHANCE_STRIDE} + chance (tenths of a percent).
  * {@link #BUTTON_BACK} returns to the marker menu.
@@ -85,15 +87,15 @@ public class EquipmentListMenu extends AbstractContainerMenu {
         for (int position = 0; position < EquipmentList.MAX_ENTRIES; position++) {
             int x = GRID_X + (position % 3) * CELL_WIDTH;
             int y = GRID_Y + (position / 3) * CELL_HEIGHT;
-            this.addSlot(new Slot(list, position, x, y) {
+            this.addSlot(new GhostSlot(list, position, x, y) {
                 @Override
-                public boolean mayPlace(ItemStack stack) {
+                public boolean accepts(ItemStack stack) {
                     return MarkerSlot.accepts(EquipmentListMenu.this.markerIndex.get(), stack);
                 }
 
                 @Override
-                public int getMaxStackSize() {
-                    return 1;
+                public boolean countable() {
+                    return false;
                 }
             });
         }
@@ -165,24 +167,16 @@ public class EquipmentListMenu extends AbstractContainerMenu {
     }
 
     @Override
+    public void clicked(int slotIndex, int button, ContainerInput clickType, Player player) {
+        if (!GhostSlots.click(this, slotIndex, button, clickType)) {
+            super.clicked(slotIndex, button, clickType, player);
+        }
+    }
+
+    @Override
     public ItemStack quickMoveStack(Player player, int slotIndex) {
         Slot slot = this.slots.get(slotIndex);
-        if (slot == null || !slot.hasItem()) {
-            return ItemStack.EMPTY;
-        }
-        ItemStack stack = slot.getItem();
-        ItemStack original = stack.copy();
-        boolean moved = slotIndex < EquipmentList.MAX_ENTRIES
-                ? this.moveItemStackTo(stack, EquipmentList.MAX_ENTRIES, this.slots.size(), true)
-                : this.moveItemStackTo(stack, 0, EquipmentList.MAX_ENTRIES, false);
-        if (!moved) {
-            return ItemStack.EMPTY;
-        }
-        if (stack.isEmpty()) {
-            slot.setByPlayer(ItemStack.EMPTY);
-        } else {
-            slot.setChanged();
-        }
-        return original;
+        return slotIndex < EquipmentList.MAX_ENTRIES || !slot.hasItem() ? ItemStack.EMPTY
+                : GhostSlots.copyToFirstFree(this, slot.getItem(), 0, EquipmentList.MAX_ENTRIES);
     }
 }
