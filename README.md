@@ -47,6 +47,8 @@ also defines the dimension `architectstrials:gametest_theme` for manual testing 
 The wiki is generated from [`docs/wiki/`](docs/wiki) by a GitHub Action on every push to `main` — edit the
 Markdown files there, never the wiki directly.
 
+Conventions, branch / PR workflow and test rules: [CONTRIBUTING.md](CONTRIBUTING.md).
+
 ## License
 
 GPL-3.0 — see [LICENSE](LICENSE).
