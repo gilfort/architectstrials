@@ -353,3 +353,28 @@ unused timeout before the first entry, then stays open until the deadline; chall
 - [ ] Required Piglin Brute with netherite armor in a theme using `architectstrials:challenge`: does not zombify after
       15+ s, the exit stays sealed until it is killed.
 - [ ] Config screen shows "Default Time Limit (Seconds)" with 3600.
+
+## US-42 (#76): Edit challenge settings in the GUI
+
+GameTests: `browser_edit_merge` (editable fields taken, theme / tier / template / author kept, conflict on a stale
+revision, broken JSON, unknown biome and too long name rejected), `browser_edit_not_editable`,
+`browser_test_run_forced_structure`.
+
+- [ ] A structure saved with `editor save`: details show the form; an entry of the test datapack stays read-only text.
+- [ ] Change the weight with −/+: the chance next to it updates, the row gets a ●, Save becomes active; Discard
+      restores the stored values.
+- [ ] Time limit `1:30` → Save → "Saved – reloading"; the form shows the new value, the JSON in
+      `datapacks/architectstrials_structures` has `"time_limit": 90`. `1:7x` turns the row red and disables Save.
+- [ ] Portal mode cycles through the three modes; "open for" shows the `m:ss` field.
+- [ ] + Effect: searchable list with icons (also modded effects), pick one → row with level −/+, duration, "∞ whole
+      stay" toggle, ✕. Same for mob effects. Saved effects appear in the JSON and apply in a test run.
+- [ ] + Attribute: movement speed, −0.02 add value → hint "base 0.1 → 0.08 (−20 %)"; operation toggle changes the hint.
+- [ ] Ore generation on: biome picker, min / max Y, density −/+ and ↺; min ≥ max turns the rows red.
+- [ ] Two clients / console: open the form, run `/at structure set … weight 3` elsewhere, then Save → conflict
+      dialog; Reload shows the new weight.
+- [ ] With unsaved changes: selecting another challenge, Esc, Load to editor and Test run each ask "Discard changes?";
+      Cancel keeps the draft.
+- [ ] Test run: instance of exactly this structure, you enter once it is placed, the browser closes.
+- [ ] Delete a challenge: dialog (last one in a tier: tier warning); after deleting it disappears from the list.
+      Delete a sub structure used by a challenge: dialog lists the challenge.
+- [ ] Small window / GUI scale 4: the form scrolls, buttons in the footer do not overlap.
