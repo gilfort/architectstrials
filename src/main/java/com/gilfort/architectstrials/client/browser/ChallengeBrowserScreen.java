@@ -12,9 +12,11 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.TreeMap;
+import java.util.function.Function;
 
 import com.gilfort.architectstrials.browser.BrowserNetwork;
 import com.gilfort.architectstrials.browser.BrowserSnapshot;
+import com.gilfort.architectstrials.browser.ChallengeEdits;
 import com.gilfort.architectstrials.browser.StructureStats;
 import com.gilfort.architectstrials.editor.EditorState;
 import com.gilfort.architectstrials.structure.ChallengeAttribute;
@@ -56,8 +58,11 @@ import org.jspecify.annotations.Nullable;
  * Selecting a theme or an entry collapses its column to a narrow strip with an arrow, which expands it again, so the
  * details get as much room as possible. The data is a {@link BrowserSnapshot} from the server, refreshed with the
  * refresh button and pushed by the server after every reload.
+ * <p>
+ * Challenges of the managed datapack are edited in place (US-42): the details become a form, changes stay a local
+ * draft until "Save", and leaving the entry with unsaved changes asks first.
  */
-public class ChallengeBrowserScreen extends Screen {
+public class ChallengeBrowserScreen extends Screen implements ChallengeEditor.Host {
 
     private static final int PAD = 6;
     private static final int HEADER = 26;
@@ -102,6 +107,10 @@ public class ChallengeBrowserScreen extends Screen {
     private int detailScroll;
     private final List<Hit> hits = new ArrayList<>();
     private @Nullable EditBox search;
+    private @Nullable ChallengeEditor editor;
+    private @Nullable ChallengeEditList editList;
+    private @Nullable Button saveButton;
+    private @Nullable Button discardButton;
 
     /**
      * Creates the browser, restoring the selection of the last time it was open.
@@ -131,7 +140,83 @@ public class ChallengeBrowserScreen extends Screen {
         if (this.entry == null) {
             this.entriesCollapsed = false;
         }
+        if (this.editor != null) {
+            BrowserSnapshot.ChallengeEntry fresh = this.entry == null || this.subs ? null : this.challengeEntry(this.entry);
+            boolean sameEntry = fresh != null && fresh.id().equals(this.editor.entry().id()) && fresh.editable();
+            // A saved draft (or one without changes) follows the new metadata; unsaved changes are kept.
+            if (!sameEntry || this.editor.saving() || !this.editor.dirty()) {
+                this.editor = null;
+            }
+        }
         this.rebuildWidgets();
+    }
+
+    /**
+     * Shows the server's answer to a save.
+     *
+     * @param result the answer
+     */
+    public void onSaveResult(BrowserNetwork.SaveResult result) {
+        if (this.editor == null || !this.editor.entry().id().equals(result.id())) {
+            return;
+        }
+        this.editor.onSaveResult(result.status(), result.errors());
+        if (result.status() == ChallengeEdits.SaveStatus.CONFLICT) {
+            this.minecraft.gui.setScreen(new ConfirmScreen(reload -> {
+                if (reload) {
+                    this.editor = null;
+                    ClientPacketDistributor.sendToServer(new BrowserNetwork.Refresh());
+                }
+                this.minecraft.gui.setScreen(this);
+            }, Component.translatable("gui.architectstrials.browser.edit.conflict.title"),
+                    Component.translatable("gui.architectstrials.browser.edit.conflict.message"),
+                    Component.translatable("gui.architectstrials.browser.edit.conflict.reload"), Component.translatable("gui.cancel")));
+        }
+    }
+
+    /**
+     * Runs an action that leaves the edited entry; with unsaved changes it asks first.
+     *
+     * @param action the action
+     */
+    private void leaveDraft(Runnable action) {
+        if (this.editor == null || !this.editor.dirty()) {
+            this.editor = null;
+            action.run();
+            return;
+        }
+        this.minecraft.gui.setScreen(new ConfirmScreen(discard -> {
+            this.minecraft.gui.setScreen(this);
+            if (discard) {
+                this.editor = null;
+                action.run();
+            }
+        }, Component.translatable("gui.architectstrials.browser.edit.discard.title"),
+                Component.translatable("gui.architectstrials.browser.edit.discard.message"),
+                Component.translatable("gui.architectstrials.browser.edit.discard"), Component.translatable("gui.cancel")));
+    }
+
+    @Override
+    public void rebuildForm() {
+        this.rebuildWidgets();
+    }
+
+    @Override
+    public void openPicker(Function<Screen, RegistryPickerScreen<?>> picker) {
+        this.minecraft.gui.setScreen(picker.apply(this));
+    }
+
+    @Override
+    public String drawChance(int weight) {
+        if (this.editor == null) {
+            return "-";
+        }
+        ChallengeStructure edited = this.editor.entry().metadata();
+        BrowserSnapshot.ThemeEntry theme = this.themeEntry(edited.theme());
+        int others = theme == null ? 0 : theme.challenges().stream()
+                .filter(other -> other.metadata().tier() == edited.tier() && !other.id().equals(this.editor.entry().id()))
+                .mapToInt(other -> other.metadata().weight()).sum();
+        return weight < 1 ? "-" : formatNumber(100.0 * weight / (others + weight));
     }
 
     /**
@@ -226,20 +311,124 @@ public class ChallengeBrowserScreen extends Screen {
             });
             this.addRenderableWidget(this.search);
         }
+        this.editList = null;
+        this.saveButton = null;
+        this.discardButton = null;
         Optional<EditorState.StructureRef> selected = this.selectedRef();
-        if (selected.isPresent()) {
-            Button load = Button.builder(Component.translatable("gui.architectstrials.browser.load"),
-                            button -> ClientPacketDistributor.sendToServer(new BrowserNetwork.Load(selected.get(), false)))
-                    .bounds(this.detailsX() + 4, this.bottom() - FOOTER + 4, 120, 20).build();
-            load.active = this.selectedStats().map(StructureStats::found).orElse(false);
-            load.setTooltip(Tooltip.create(Component.translatable("gui.architectstrials.browser.load.tooltip")));
-            this.addRenderableWidget(load);
+        if (selected.isEmpty()) {
+            return;
+        }
+        BrowserSnapshot.ChallengeEntry challenge = this.subs ? null : this.challengeEntry(selected.get().id());
+        BrowserSnapshot.SubEntry sub = this.subs ? this.subEntry(selected.get().id()) : null;
+        if (challenge != null && challenge.editable()) {
+            if (this.editor == null || !this.editor.entry().id().equals(challenge.id())) {
+                this.editor = new ChallengeEditor(challenge, this);
+            }
+            this.editList = new ChallengeEditList(this.minecraft, this.detailsX() + 1, this.top() + 2, this.detailsWidth() - 2,
+                    this.detailContentHeight(), this.editor::changed, this.editor::errors);
+            List<ChallengeEditList.Row> rows = new ArrayList<>(this.editor.rows(this.editList, this.font));
+            List<Line> template = new ArrayList<>();
+            template.add(Line.BLANK);
+            this.statsLines(template, challenge.stats());
+            this.problemLines(template, challenge.problems());
+            for (Line line : template) {
+                if (line.text() == null) {
+                    rows.add(this.editList.text(Component.empty(), WHITE, 0));
+                    continue;
+                }
+                for (FormattedCharSequence part : this.font.split(line.text(), Math.max(20, this.editList.textWidth() - line.indent()))) {
+                    rows.add(this.editList.text(Component.literal(plain(part)), line.color(), line.indent()));
+                }
+            }
+            this.editList.setRows(rows);
+            this.addRenderableWidget(this.editList);
+        } else {
+            this.editor = null;
+        }
+
+        int x = this.detailsX() + 4;
+        int y = this.bottom() - FOOTER + 4;
+        if (this.editor != null) {
+            ChallengeEditor current = this.editor;
+            this.saveButton = this.addRenderableWidget(Button.builder(Component.translatable("gui.architectstrials.browser.edit.save"),
+                    button -> current.save()).bounds(x, y, 56, 20).build());
+            this.discardButton = this.addRenderableWidget(Button.builder(Component.translatable("gui.architectstrials.browser.edit.discard"),
+                    button -> {
+                        this.editor = null;
+                        this.rebuildWidgets();
+                    }).bounds(x + 58, y, 62, 20).build());
+            x += 128;
+        }
+        Button load = Button.builder(Component.translatable("gui.architectstrials.browser.load"),
+                        button -> this.leaveDraft(() -> ClientPacketDistributor.sendToServer(new BrowserNetwork.Load(selected.get(), false))))
+                .bounds(x, y, 100, 20).build();
+        load.active = this.selectedStats().map(StructureStats::found).orElse(false);
+        load.setTooltip(Tooltip.create(Component.translatable("gui.architectstrials.browser.load.tooltip")));
+        this.addRenderableWidget(load);
+        x += 102;
+        if (challenge != null) {
+            Button testRun = Button.builder(Component.translatable("gui.architectstrials.browser.test_run"),
+                            button -> this.leaveDraft(() -> ClientPacketDistributor.sendToServer(new BrowserNetwork.TestRun(challenge.id()))))
+                    .bounds(x, y, 70, 20).build();
+            testRun.active = challenge.stats().found() && this.themeEntry(challenge.metadata().theme()) != null
+                    && this.themeEntry(challenge.metadata().theme()).registered();
+            testRun.setTooltip(Tooltip.create(Component.translatable("gui.architectstrials.browser.test_run.tooltip")));
+            this.addRenderableWidget(testRun);
+            x += 72;
+        }
+        boolean deletable = challenge != null ? challenge.editable() : sub != null && sub.editable();
+        if (deletable) {
+            this.addRenderableWidget(Button.builder(Component.translatable("gui.architectstrials.browser.delete"),
+                    button -> this.confirmDelete(selected.get())).bounds(x, y, 56, 20).build());
+        }
+    }
+
+    /** Asks before deleting a structure, naming what is affected. */
+    private void confirmDelete(EditorState.StructureRef ref) {
+        MutableComponent message = Component.translatable("gui.architectstrials.browser.delete.message", refLabel(ref));
+        if (ref.sub()) {
+            BrowserSnapshot.SubEntry sub = this.subEntry(ref.id());
+            if (sub != null && !sub.usedBy().isEmpty()) {
+                message.append("\n\n").append(Component.translatable("gui.architectstrials.browser.delete.used_by",
+                        String.join(", ", sub.usedBy().stream().map(Identifier::toString).toList())));
+            }
+        } else {
+            BrowserSnapshot.ChallengeEntry challenge = this.challengeEntry(ref.id());
+            BrowserSnapshot.ThemeEntry theme = challenge == null ? null : this.themeEntry(challenge.metadata().theme());
+            if (challenge != null && theme != null
+                    && theme.challenges().stream().filter(other -> other.metadata().tier() == challenge.metadata().tier()).count() == 1) {
+                message.append("\n\n").append(Component.translatable("gui.architectstrials.browser.delete.last_in_tier",
+                        challenge.metadata().tier(), themeName(theme.id())));
+            }
+        }
+        this.minecraft.gui.setScreen(new ConfirmScreen(confirmed -> {
+            if (confirmed) {
+                this.editor = null;
+                ClientPacketDistributor.sendToServer(new BrowserNetwork.Delete(ref));
+            }
+            this.minecraft.gui.setScreen(this);
+        }, Component.translatable("gui.architectstrials.browser.delete.title"), message,
+                Component.translatable("gui.architectstrials.browser.delete"), Component.translatable("gui.cancel")));
+    }
+
+    @Override
+    public void tick() {
+        super.tick();
+        if (this.saveButton != null && this.editor != null) {
+            this.saveButton.active = this.editor.canSave();
+        }
+        if (this.discardButton != null && this.editor != null) {
+            this.discardButton.active = this.editor.dirty();
         }
     }
 
     // ---------------------------------------------------------------- selection
 
     private void selectTheme(Identifier id) {
+        if (this.editor != null && this.editor.dirty() && !this.isEdited(id)) {
+            this.leaveDraft(() -> this.selectTheme(id));
+            return;
+        }
         this.theme = id;
         this.subs = false;
         this.entry = null;
@@ -252,6 +441,10 @@ public class ChallengeBrowserScreen extends Screen {
     }
 
     private void selectSubs() {
+        if (this.editor != null && this.editor.dirty() && !this.isEdited(null)) {
+            this.leaveDraft(() -> this.selectSubs());
+            return;
+        }
         this.theme = null;
         this.subs = true;
         this.entry = null;
@@ -263,6 +456,10 @@ public class ChallengeBrowserScreen extends Screen {
     }
 
     private void selectChallenge(Identifier id) {
+        if (this.editor != null && this.editor.dirty() && !this.isEdited(id)) {
+            this.leaveDraft(() -> this.selectChallenge(id));
+            return;
+        }
         BrowserSnapshot.ChallengeEntry challenge = this.challengeEntry(id);
         if (challenge == null) {
             return;
@@ -277,6 +474,10 @@ public class ChallengeBrowserScreen extends Screen {
     }
 
     private void selectSub(Identifier id) {
+        if (this.editor != null && this.editor.dirty() && !this.isEdited(id)) {
+            this.leaveDraft(() -> this.selectSub(id));
+            return;
+        }
         if (this.subEntry(id) == null) {
             return;
         }
@@ -287,6 +488,10 @@ public class ChallengeBrowserScreen extends Screen {
         this.entriesCollapsed = true;
         this.detailScroll = 0;
         this.remember();
+    }
+
+    private boolean isEdited(@Nullable Identifier id) {
+        return this.editor != null && id != null && this.editor.entry().id().equals(id);
     }
 
     private void remember() {
@@ -569,6 +774,10 @@ public class ChallengeBrowserScreen extends Screen {
         int y = this.top();
         int w = this.detailsWidth();
         this.panel(graphics, x, y, w, this.bottom() - y);
+        if (this.editList != null) {
+            graphics.horizontalLine(x + 1, x + w - 2, this.bottom() - FOOTER, BORDER);
+            return;
+        }
         int contentHeight = this.detailContentHeight();
         List<WrappedLine> wrapped = this.detailWrapped();
         this.detailScroll = Math.clamp(this.detailScroll, 0, Math.max(0, wrapped.size() * (ROW - 1) - contentHeight));
@@ -880,7 +1089,7 @@ public class ChallengeBrowserScreen extends Screen {
             }
             return rowAction(this.entryRows(), mouseY - this.entryListTop() + this.entryScroll);
         }
-        if (mouseX >= this.detailsX() && mouseY < this.top() + 2 + this.detailContentHeight()) {
+        if (this.editList == null && mouseX >= this.detailsX() && mouseY < this.top() + 2 + this.detailContentHeight()) {
             List<WrappedLine> wrapped = this.detailWrapped();
             for (int i = 0; i < wrapped.size(); i++) {
                 WrappedLine line = wrapped.get(i);
@@ -910,6 +1119,8 @@ public class ChallengeBrowserScreen extends Screen {
             this.themeScroll += delta;
         } else if (this.entriesVisible() && !this.entriesCollapsed && mouseX >= this.entriesX() && mouseX < this.entriesX() + this.entriesWidth()) {
             this.entryScroll += delta;
+        } else if (mouseX >= this.detailsX() && this.editList != null) {
+            return this.editList.mouseScrolled(mouseX, mouseY, scrollX, scrollY);
         } else if (mouseX >= this.detailsX()) {
             this.detailScroll += delta;
         } else {
@@ -920,9 +1131,20 @@ public class ChallengeBrowserScreen extends Screen {
 
     @Override
     public void onClose() {
-        current = null;
-        ClientPacketDistributor.sendToServer(new BrowserNetwork.Closed());
-        super.onClose();
+        this.leaveDraft(() -> {
+            current = null;
+            ClientPacketDistributor.sendToServer(new BrowserNetwork.Closed());
+            super.onClose();
+        });
+    }
+
+    private static String plain(FormattedCharSequence sequence) {
+        StringBuilder builder = new StringBuilder();
+        sequence.accept((index, style, codePoint) -> {
+            builder.appendCodePoint(codePoint);
+            return true;
+        });
+        return builder.toString();
     }
 
     @Override

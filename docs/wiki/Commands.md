@@ -66,7 +66,7 @@ modpack to be safe).
 | Command | Description |
 |---|---|
 | `/at instance list` | Lists all instances with state, remaining time and participant count |
-| `/at instance create <theme> <tier> [join]` | Creates an instance with the challenge's own run settings: draws a structure, places it in a free slot and resolves its markers; `join` lets you enter at a random spawn marker |
+| `/at instance create <theme> <tier> [id] [join]` | Creates an instance with the challenge's own run settings: draws a structure (or places exactly `id`), places it in a free slot and resolves its markers; `join` lets you enter at a random spawn marker |
 | `/at instance close <id>` | Returns the participants and removes an instance |
 | `/at slot list <theme>` | Lists occupied and clearing slots of a theme dimension |
 | `/at slot allocate <theme>` | Allocates the next free slot |

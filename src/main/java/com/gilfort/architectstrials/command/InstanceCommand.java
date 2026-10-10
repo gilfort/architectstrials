@@ -13,13 +13,16 @@ import com.gilfort.architectstrials.instance.InstanceManager;
 import com.gilfort.architectstrials.instance.InstancePlacements;
 import com.gilfort.architectstrials.scroll.ScrollEffects;
 import com.gilfort.architectstrials.scroll.ScrollModifiers;
+import com.gilfort.architectstrials.structure.ChallengeStructures;
 import com.gilfort.architectstrials.theme.ChallengeTheme;
 import com.gilfort.architectstrials.theme.ChallengeThemes;
 import com.gilfort.architectstrials.travel.ChallengeTravel;
 import com.mojang.brigadier.arguments.IntegerArgumentType;
+import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
+import com.mojang.brigadier.suggestion.SuggestionProvider;
 
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
@@ -27,6 +30,7 @@ import net.minecraft.commands.SharedSuggestionProvider;
 import net.minecraft.commands.arguments.IdentifierArgument;
 import net.minecraft.commands.arguments.UuidArgument;
 import net.minecraft.network.chat.Component;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
@@ -45,6 +49,14 @@ final class InstanceCommand {
     private InstanceCommand() {
     }
 
+    /** Suggests the structure ids (last path segment) of the theme + tier pool given before. */
+    private static final SuggestionProvider<CommandSourceStack> STRUCTURE_SUGGESTIONS = (context, builder) -> {
+        Identifier theme = IdentifierArgument.getId(context, "theme");
+        int tier = IntegerArgumentType.getInteger(context, "tier");
+        return SharedSuggestionProvider.suggest(ChallengeStructures.pool(theme, tier).stream()
+                .map(id -> id.getPath().substring(id.getPath().lastIndexOf('/') + 1)), builder);
+    };
+
     /**
      * Builds the {@code instance} sub command tree.
      *
@@ -62,7 +74,10 @@ final class InstanceCommand {
                                 .suggests(ThemeCommand.THEME_SUGGESTIONS)
                                 .then(Commands.argument("tier", IntegerArgumentType.integer(1))
                                         .executes(context -> create(context, false))
-                                        .then(Commands.literal("join").executes(context -> create(context, true))))));
+                                        .then(Commands.literal("join").executes(context -> create(context, true)))
+                                        .then(Commands.argument("id", StringArgumentType.word()).suggests(STRUCTURE_SUGGESTIONS)
+                                                .executes(context -> create(context, false))
+                                                .then(Commands.literal("join").executes(context -> create(context, true)))))));
     }
 
     private static int list(CommandContext<CommandSourceStack> context) {
@@ -120,7 +135,17 @@ final class InstanceCommand {
         ChallengeTheme theme = ChallengeThemes.get(IdentifierArgument.getId(context, "theme")).orElseThrow();
         int tier = IntegerArgumentType.getInteger(context, "tier");
 
-        InstanceCreation result = InstanceManager.create(level, theme, tier, level.getRandom(), ScrollModifiers.NONE, ScrollEffects.NONE);
+        Optional<Identifier> structure = Optional.empty();
+        if (context.getNodes().stream().anyMatch(node -> node.getNode().getName().equals("id"))) {
+            String name = StringArgumentType.getString(context, "id");
+            structure = ChallengeStructures.pool(theme.id(), tier).stream()
+                    .filter(id -> id.getPath().substring(id.getPath().lastIndexOf('/') + 1).equals(name)).findFirst();
+            if (structure.isEmpty()) {
+                source.sendFailure(Component.translatable("commands.architectstrials.structure.unknown", name));
+                return 0;
+            }
+        }
+        InstanceCreation result = InstanceManager.create(level, theme, tier, level.getRandom(), structure, ScrollModifiers.NONE, ScrollEffects.NONE);
         if (result instanceof InstanceCreation.Failure(Component reason)) {
             source.sendFailure(reason);
             return 0;

@@ -94,9 +94,18 @@ public final class StructureLibrary {
 
     /** @return the metadata file of an entry */
     static Path metadataFile(MinecraftServer server, Entry entry) {
-        Identifier id = entry.metadataId();
-        return packRoot(server).resolve("data").resolve(id.getNamespace()).resolve("architectstrials").resolve("challenge")
-                .resolve(id.getPath() + ".json");
+        return metadataFile(server, entry.metadataId());
+    }
+
+    /** @return the metadata file of a challenge structure by its metadata id */
+    static Path metadataFile(MinecraftServer server, Identifier metadataId) {
+        return packRoot(server).resolve("data").resolve(metadataId.getNamespace()).resolve("architectstrials").resolve("challenge")
+                .resolve(metadataId.getPath() + ".json");
+    }
+
+    /** @return the template file of a structure template id inside the managed datapack */
+    static Path templateFile(MinecraftServer server, Identifier templateId) {
+        return packRoot(server).resolve("data").resolve(templateId.getNamespace()).resolve("structure").resolve(templateId.getPath() + ".nbt");
     }
 
     /**
@@ -108,7 +117,19 @@ public final class StructureLibrary {
      * @throws IOException if the file exists but cannot be read
      */
     public static Optional<ChallengeStructure> readMetadata(MinecraftServer server, Entry entry) throws IOException {
-        Path file = metadataFile(server, entry);
+        return readMetadata(server, entry.metadataId());
+    }
+
+    /**
+     * Reads the metadata of a challenge structure from the managed datapack by its metadata id (US-42).
+     *
+     * @param server     the server
+     * @param metadataId the metadata id ({@code <ns>:<theme>/tier_<n>/<name>})
+     * @return the metadata, or empty if it is not in the managed datapack
+     * @throws IOException if the file exists but cannot be read
+     */
+    public static Optional<ChallengeStructure> readMetadata(MinecraftServer server, Identifier metadataId) throws IOException {
+        Path file = metadataFile(server, metadataId);
         if (!Files.exists(file)) {
             return Optional.empty();
         }
@@ -126,8 +147,20 @@ public final class StructureLibrary {
      * @throws IOException if writing fails
      */
     public static void writeMetadata(MinecraftServer server, Entry entry, ChallengeStructure structure) throws IOException {
+        writeMetadata(server, entry.metadataId(), structure);
+    }
+
+    /**
+     * Writes (or replaces) the metadata of a challenge structure by its metadata id (US-42).
+     *
+     * @param server     the server
+     * @param metadataId the metadata id
+     * @param structure  the metadata
+     * @throws IOException if writing fails
+     */
+    public static void writeMetadata(MinecraftServer server, Identifier metadataId, ChallengeStructure structure) throws IOException {
         ensurePack(server);
-        Path file = metadataFile(server, entry);
+        Path file = metadataFile(server, metadataId);
         Files.createDirectories(file.getParent());
         JsonElement json = ChallengeStructure.CODEC.encodeStart(JsonOps.INSTANCE, structure).getOrThrow();
         try (Writer writer = Files.newBufferedWriter(file)) {
@@ -164,6 +197,24 @@ public final class StructureLibrary {
         boolean deletedStructure = Files.deleteIfExists(structureFile(server, entry));
         boolean deletedMetadata = Files.deleteIfExists(metadataFile(server, entry));
         return deletedStructure || deletedMetadata;
+    }
+
+    /**
+     * Deletes template and metadata of a challenge structure from the managed datapack by its metadata id (US-42).
+     * The template is taken from the metadata, so structures whose files do not follow the editor's layout work too.
+     *
+     * @param server     the server
+     * @param metadataId the metadata id
+     * @return {@code true} if anything was deleted
+     * @throws IOException if deleting fails
+     */
+    public static boolean delete(MinecraftServer server, Identifier metadataId) throws IOException {
+        Optional<ChallengeStructure> metadata = readMetadata(server, metadataId);
+        if (metadata.isEmpty()) {
+            return false;
+        }
+        Files.deleteIfExists(templateFile(server, metadata.get().structure()));
+        return Files.deleteIfExists(metadataFile(server, metadataId));
     }
 
     /** @return the template file of a sub structure (US-32): {@code data/<ns>/structure/sub/<id>.nbt} */
