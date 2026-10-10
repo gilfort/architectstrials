@@ -311,6 +311,9 @@ public class ChallengeBrowserScreen extends Screen implements ChallengeEditor.Ho
             });
             this.addRenderableWidget(this.search);
         }
+        // Rebuilding the form (portal mode, added effect, …) must not jump back to the top of the same challenge.
+        Identifier previousEdited = this.editor == null ? null : this.editor.entry().id();
+        double previousScroll = this.editList == null ? 0.0 : this.editList.scrollAmount();
         this.editList = null;
         this.saveButton = null;
         this.discardButton = null;
@@ -341,6 +344,9 @@ public class ChallengeBrowserScreen extends Screen implements ChallengeEditor.Ho
                 }
             }
             this.editList.setRows(rows);
+            if (challenge.id().equals(previousEdited)) {
+                this.editList.setScrollAmount(previousScroll);
+            }
             this.addRenderableWidget(this.editList);
         } else {
             this.editor = null;
