@@ -44,8 +44,8 @@ step of a theme. Write one short JSON per step into `data/<ns>/recipe/`:
 ```
 
 - `tier: 1` turns the **Blank Challenge Scroll** into a tier 1 scroll of the theme.
-- `tier: 2` (and higher) takes a scroll of the theme with tier 1 (one below) and raises it; options, effects, time
-  limit and name are kept.
+- `tier: 2` (and higher) takes a scroll of the theme with tier 1 (one below) and raises it; modifiers, effects and
+  name are kept.
 - No result if the theme has no challenge of that tier yet, so recipes for future tiers can be added in advance.
 - `template` and `addition` are normal ingredients (items or `#tags`); each step can use different ones.
 - The recipe book and recipe viewers show every step like any other smithing recipe.
@@ -54,51 +54,51 @@ step of a theme. Write one short JSON per step into `data/<ns>/recipe/`:
 Example pack with three steps: `crypt_tier_1.json` (paper + bone), `crypt_tier_2.json` (paper + bone block),
 `crypt_tier_3.json` (paper + wither skeleton skull).
 
-## Time limit
+## Time limit and players come from the challenge
 
-`architectstrials:time_limit` sets the challenge's time limit in **minutes**; without it the server config's
-`defaultTimeLimitMinutes` (60) applies. The time limit is never shorter than the portal's open time. See
-[Instances & Lifecycle](Instances-and-Lifecycle#time-limit).
+Every challenge defines how it is played — its time limit, how many players may enter, how long the portal stays
+open and whether re-entry is allowed (see [Building Challenges](Building-Challenges#run-settings-time-limit-and-players)).
+A 2-minute loot room and an hour-long boss room need different times, so the scroll does not carry them. It can only
+**modify** the values of the challenge it opens, with the component `architectstrials:modifiers`:
 
 ```json
 "components": {
   "architectstrials:challenge": { "theme": "mypack:crypt", "tier": 2 },
-  "architectstrials:time_limit": 30
+  "architectstrials:modifiers": { "time": 25, "max_players": 2, "allow_reentry": true }
 }
 ```
 
-## Multiplayer options
-
-`architectstrials:options` controls who may enter and how long the portal stays open. The options are fixed
-into the instance when the portal opens. All fields are optional; without the component a scroll is solo.
-
-| Field | Values | Default |
+| Field | Effect | Example |
 |---|---|---|
-| `max_players` | `1` = only the scroll user, `n` = up to n distinct players, `0` = unlimited | `1` |
-| `portal_open_seconds` | `0` = closes after the first pass-through, `>0` = open that many seconds once active, `-1` = open until the time limit expires | `0` |
-| `allow_reentry` | `true` / `false` | `false` |
+| `time` | Time limit in percent | `25` = ×1.25, `-50` = ×0.5 (a 4-minute room gets 2 minutes, an hour 30 minutes) |
+| `portal_open` | Positive portal open time of the challenge in percent (`0` and `-1` stay as they are) | `100` = twice as long |
+| `max_players` | Additional players; `0` = unlimited | `2` turns a 2-player room into a 4-player room |
+| `allow_reentry` | `true` switches re-entry on; a scroll can never switch it off | |
 
-```json
-"components": {
-  "architectstrials:challenge": { "theme": "mypack:crypt", "tier": 2 },
-  "architectstrials:options": { "max_players": 4, "portal_open_seconds": 120, "allow_reentry": true }
-}
-```
+- All fields are optional; without the component the challenge's own values apply.
+- Percentages must be above −100. The time limit never drops below one second.
+- The tooltip lists the modifiers ("Time: +25 %", "Players: +2"); the actual time depends on the challenge drawn
+  when the portal opens.
+- The options are fixed into the instance when the portal opens. **The time limit starts when the first player
+  enters**, not when the portal opens — forming, placement and waiting for the first player do not count. See
+  [Instances & Lifecycle](Instances-and-Lifecycle#time-limit).
+
+### Who may enter
 
 - Scrolls for more than one player keep the portal open **at least 15 seconds**, so everyone can get in —
   shorter values (including `0`) are raised automatically.
-- Anyone may walk into an open portal until `max_players` is reached — there is no party system, and late
+- Anyone may walk into an open portal until the player limit is reached — there is no party system, and late
   joiners are not rank-checked. Everyone lands on a random player spawn marker; nothing is rebalanced.
-- The portal closes when its time is up or `max_players` is reached, whichever comes first. With
-  `allow_reentry` it stays open for its full time so players can come back.
+- The portal closes when its time is up, the player limit is reached or the time limit expires, whichever comes
+  first. With re-entry it stays open for its full time so players can come back.
 - Re-entry is for players who left without completing (e.g. after being saved by the Dimension Ward) and does
-  not count against `max_players`. Players who completed the run can never re-enter.
+  not count against the player limit. Players who completed the run can never re-enter.
 
 ## Upgrades at the smithing table
 
 Scrolls can be upgraded at the vanilla smithing table with the recipe type `architectstrials:scroll_upgrade`.
 Template and addition are freely chosen per recipe — the mod ships no template item. The result is the same
-scroll with all its data (theme, tier, time limit, options, earlier upgrades) plus the recipe's upgrades.
+scroll with all its data (theme, tier, modifiers, earlier upgrades) plus the recipe's upgrades.
 
 ```json
 {
@@ -106,7 +106,7 @@ scroll with all its data (theme, tier, time limit, options, earlier upgrades) pl
   "template": "minecraft:paper",
   "base": "architectstrials:challenge_scroll",
   "addition": "minecraft:rabbit_foot",
-  "options": { "max_players": 4 },
+  "modifiers": { "time": 25, "max_players": 2 },
   "effects": [
     { "target": "player", "effect": "minecraft:luck", "duration": -1 },
     { "target": "mobs", "effect": "minecraft:speed", "duration": 6000, "amplifier": 1 }
@@ -116,10 +116,11 @@ scroll with all its data (theme, tier, time limit, options, earlier upgrades) pl
 
 Place it as `data/<ns>/recipe/<name>.json`.
 
-### Options
+### Modifiers
 
-`options` (optional) sets `max_players`, `portal_open_seconds` and/or `allow_reentry`; the new values overwrite
-the scroll's values.
+`modifiers` (optional) adds [modifiers](#time-limit-and-players-come-from-the-challenge) to the scroll's own:
+percentages **multiply** (two upgrades with `"time": 25` give +56.25 %, two with `-50` give −75 %), additional players
+add up (unlimited wins), re-entry stays on once switched on.
 
 ### Effects
 

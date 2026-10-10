@@ -21,8 +21,8 @@ complete datapack and command reference.
 - **Varied rooms** — sub structures with chances, natural ore generation per instance, Survival mining rooms,
   challenge-wide effects and attributes.
 - **Loot** — pool loot via vanilla loot tables (fresh per run), fixed loot, completion bonus per theme and tier.
-- **Scrolls** — theme, tier, time limit and multiplayer options as data components; crafting and tier upgrades,
-  upgrades with options and effects at the smithing table.
+- **Scrolls** — theme and tier as data components; the challenge defines time limit and players, scrolls modify
+  them (percent / extra players); crafting and tier upgrades, upgrades with modifiers and effects at the smithing table.
 - **Progression** — ranks per theme, an advancement trigger for completed runs and an event for other mods.
 - **Safe** — instances in separate slots, time limits with boss bar, and a death protection that always brings
   players home with their full inventory.

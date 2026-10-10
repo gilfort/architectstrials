@@ -49,11 +49,12 @@ public final class ArchitectsTrialsConfig {
                     "0 blocks all scrolls until the player receives an upgrade (e.g. via /at rank in an advancement reward).")
             .defineInRange("startingRank", 1, 0, 1000);
 
-    /** Time limit of challenges whose scroll defines none, in minutes. */
-    public static final ModConfigSpec.IntValue DEFAULT_TIME_LIMIT_MINUTES = BUILDER
-            .comment("Time limit in minutes for challenges whose scroll does not define one.",
+    /** Time limit of challenges whose metadata defines none, in seconds. */
+    public static final ModConfigSpec.IntValue DEFAULT_TIME_LIMIT_SECONDS = BUILDER
+            .comment("Time limit in seconds for challenges whose structure metadata does not define one (time_limit).",
+                    "Scroll modifiers scale it. The time starts when the first player enters.",
                     "Players still inside when it expires are sent back (the run does not count as completed).")
-            .defineInRange("defaultTimeLimitMinutes", 60, 1, 1440);
+            .defineInRange("defaultTimeLimitSeconds", 3600, 1, 86400);
 
     /** Whether failed sub structure generations are written to the log (US-32). */
     public static final ModConfigSpec.BooleanValue LOG_FAILED_SUB_STRUCTURES = BUILDER

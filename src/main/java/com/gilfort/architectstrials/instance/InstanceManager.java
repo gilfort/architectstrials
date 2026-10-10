@@ -3,6 +3,7 @@ package com.gilfort.architectstrials.instance;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.function.Function;
 
 import com.gilfort.architectstrials.ArchitectsTrials;
 import com.gilfort.architectstrials.block.ChallengeExitBlock;
@@ -11,6 +12,7 @@ import com.gilfort.architectstrials.config.ArchitectsTrialsConfig;
 import com.gilfort.architectstrials.portal.ChallengePortal;
 import com.gilfort.architectstrials.registry.ModAttachments;
 import com.gilfort.architectstrials.scroll.ScrollEffects;
+import com.gilfort.architectstrials.scroll.ScrollModifiers;
 import com.gilfort.architectstrials.scroll.ScrollOptions;
 import com.gilfort.architectstrials.slot.Slot;
 import com.gilfort.architectstrials.slot.SlotManager;
@@ -57,19 +59,39 @@ public final class InstanceManager {
     }
 
     /**
-     * Creates a new instance of a theme and tier. The instance is registered right away; its structure is placed
-     * over the following ticks ({@link InstancePlacements}) and it becomes {@link ChallengeInstance#ready() ready}
-     * once placement and marker resolution are done.
+     * Creates a new instance of a theme and tier the way a scroll does (US-41): the time limit and admission rules
+     * come from the drawn structure's {@link ChallengeStructure#run() run settings}, changed by the scroll's
+     * modifiers. The instance is registered right away; its structure is placed over the following ticks
+     * ({@link InstancePlacements}) and it becomes {@link ChallengeInstance#ready() ready} once placement and marker
+     * resolution are done. The time limit starts when the first player enters.
      * <p>
      * Fails without side effects if the pool is empty, no slot is available, or the drawn structure's
      * template is missing or too large.
      *
-     * @param level  the level of the theme dimension
-     * @param theme  the theme
-     * @param tier   the tier
-     * @param random the random source for structure selection and transformation
-     * @param timeLimitTicks the time limit; raised to at least the portal open duration
-     * @param options the multiplayer options of the scroll, fixed into the instance
+     * @param level     the level of the theme dimension
+     * @param theme     the theme
+     * @param tier      the tier
+     * @param random    the random source for structure selection and transformation
+     * @param modifiers the scroll's modifiers of the run settings
+     * @param effects   the effect upgrades of the scroll, fixed into the instance
+     * @return the outcome
+     */
+    public static InstanceCreation create(ServerLevel level, ChallengeTheme theme, int tier, RandomSource random, ScrollModifiers modifiers,
+            ScrollEffects effects) {
+        return create(level, theme, tier, random, structure -> new RunSetup(
+                (long) modifiers.timeLimitSeconds(structure.run()) * ChallengeClock.TICKS_PER_SECOND, modifiers.options(structure.run())), effects);
+    }
+
+    /**
+     * Creates an instance like {@link #create(ServerLevel, ChallengeTheme, int, RandomSource, ScrollModifiers, ScrollEffects)},
+     * but with explicit run settings instead of the structure's own (for tests and debugging).
+     *
+     * @param level          the level of the theme dimension
+     * @param theme          the theme
+     * @param tier           the tier
+     * @param random         the random source for structure selection and transformation
+     * @param timeLimitTicks the time limit
+     * @param options        the admission options, fixed into the instance
      * @return the outcome
      */
     public static InstanceCreation create(ServerLevel level, ChallengeTheme theme, int tier, RandomSource random,
@@ -78,20 +100,28 @@ public final class InstanceManager {
     }
 
     /**
-     * Creates an instance like {@link #create(ServerLevel, ChallengeTheme, int, RandomSource, long, ScrollOptions)},
-     * with the effect upgrades of the scroll.
+     * Creates an instance with explicit run settings and the effect upgrades of a scroll (for tests and debugging).
      *
      * @param level          the level of the theme dimension
      * @param theme          the theme
      * @param tier           the tier
      * @param random         the random source for structure selection and transformation
-     * @param timeLimitTicks the time limit; raised to at least the portal open duration
-     * @param options        the multiplayer options of the scroll, fixed into the instance
+     * @param timeLimitTicks the time limit
+     * @param options        the admission options, fixed into the instance
      * @param effects        the effect upgrades of the scroll, fixed into the instance
      * @return the outcome
      */
     public static InstanceCreation create(ServerLevel level, ChallengeTheme theme, int tier, RandomSource random,
             long timeLimitTicks, ScrollOptions options, ScrollEffects effects) {
+        return create(level, theme, tier, random, structure -> new RunSetup(timeLimitTicks, options), effects);
+    }
+
+    /** Time limit and admission options of a new instance. */
+    private record RunSetup(long timeLimitTicks, ScrollOptions options) {
+    }
+
+    private static InstanceCreation create(ServerLevel level, ChallengeTheme theme, int tier, RandomSource random,
+            Function<ChallengeStructure, RunSetup> setup, ScrollEffects effects) {
         Optional<Identifier> drawn = ChallengeStructures.drawEnterable(level.getServer(), theme.id(), tier, random);
         if (drawn.isEmpty()) {
             return new InstanceCreation.Failure(Component.translatable("message.architectstrials.instance.pool_empty",
@@ -123,11 +153,11 @@ public final class InstanceManager {
                 slot.get().centerZ() - size.getZ() / 2);
         StructurePlaceSettings settings = placeSettings(size, rotation, mirror);
         long now = ChallengeClock.now(level.getServer());
-        long portalOpenTicks = portalOpenTicks(options, timeLimitTicks);
-        long timeLimit = Math.max(timeLimitTicks, portalOpenTicks);
+        RunSetup run = setup.apply(structure);
         ChallengeInstance instance = new ChallengeInstance(UUID.randomUUID(), theme.id(), tier, drawn.get(),
                 slot.get().index(), origin, rotation, mirror, List.of(), List.of(),
-                timeLimit, now + timeLimit, now + portalOpenTicks, options, effects, InstanceRoster.EMPTY);
+                run.timeLimitTicks(), ChallengeInstance.NOT_STARTED, now + ChallengePortal.FORMING_TICKS + unstartedPortalTicks(run.options()),
+                run.options(), effects, InstanceRoster.EMPTY);
         data(level).put(instance);
         ArchitectsTrials.LOGGER.debug("Created instance {} of {} tier {} with structure {} in slot {}; placing",
                 instance.id(), theme.id(), tier, drawn.get(), instance.slot());
@@ -145,36 +175,28 @@ public final class InstanceManager {
      * @return the configured default time limit in ticks
      */
     public static long defaultTimeLimitTicks() {
-        return ArchitectsTrialsConfig.DEFAULT_TIME_LIMIT_MINUTES.getAsInt() * 60L * ChallengeClock.TICKS_PER_SECOND;
+        return ArchitectsTrialsConfig.DEFAULT_TIME_LIMIT_SECONDS.getAsInt() * (long) ChallengeClock.TICKS_PER_SECOND;
     }
 
     /**
-     * Returns how long an active entry portal stays open according to the scroll options: the configured
-     * unused timeout for {@code portal_open_seconds = 0} (it closes earlier, on the first pass-through), the
-     * given seconds for positive values, or the whole time limit for {@code -1}.
+     * Returns how long the active entry portal of an instance stays open: the configured unused timeout for
+     * {@code portal_open_seconds = 0} (it closes earlier, on the first pass-through), the given seconds for positive
+     * values, and for {@code -1} the unused timeout until the first player entered, then until the time limit
+     * expires (the instance and its portal end with it).
      *
-     * @param options        the scroll options
-     * @param timeLimitTicks the time limit of the instance
+     * @param instance the instance
      * @return the open duration in ticks, counted from the moment the portal becomes active
      */
-    public static long activePortalTicks(ScrollOptions options, long timeLimitTicks) {
-        if (options.portalOpenSeconds() == ScrollOptions.OPEN_UNTIL_TIME_LIMIT) {
-            return timeLimitTicks;
+    public static long activePortalTicks(ChallengeInstance instance) {
+        if (instance.options().portalOpenSeconds() == ScrollOptions.OPEN_UNTIL_TIME_LIMIT && instance.started()) {
+            return Long.MAX_VALUE;
         }
-        int seconds = options.portalOpenSeconds() == 0 ? ArchitectsTrialsConfig.PORTAL_TIMEOUT_SECONDS.getAsInt() : options.portalOpenSeconds();
-        return (long) seconds * ChallengeClock.TICKS_PER_SECOND;
+        return unstartedPortalTicks(instance.options());
     }
 
-    /**
-     * Returns how long an entry portal exists at most (forming phase plus open duration). The time limit of an
-     * instance is never shorter than this.
-     *
-     * @param options        the scroll options
-     * @param timeLimitTicks the requested time limit
-     * @return the maximum portal lifetime in ticks
-     */
-    public static long portalOpenTicks(ScrollOptions options, long timeLimitTicks) {
-        return ChallengePortal.FORMING_TICKS + activePortalTicks(options, timeLimitTicks);
+    private static long unstartedPortalTicks(ScrollOptions options) {
+        int seconds = options.portalOpenSeconds() > 0 ? options.portalOpenSeconds() : ArchitectsTrialsConfig.PORTAL_TIMEOUT_SECONDS.getAsInt();
+        return (long) seconds * ChallengeClock.TICKS_PER_SECOND;
     }
 
     /**
@@ -323,11 +345,32 @@ public final class InstanceManager {
         GameType gameMode = ChallengeStructures.get(instance.structure()).map(ChallengeStructure::gameMode).orElse(GameType.ADVENTURE);
         ChallengeTravel.enter(player, level, Vec3.atBottomCenterOf(point.pos()), point.facing().toYRot(), 0.0F, gameMode);
         ChallengeTravel.bindInstance(player, new EntryPoint.InstanceRef(level.dimension(), instance.id()));
-        ChallengeInstance current = data(level).get(instance.id()).orElse(instance);
+        ChallengeInstance current = start(level, data(level).get(instance.id()).orElse(instance));
         update(level, current.withRoster(current.roster().entered(player.getUUID())));
         ensureExitPortals(level, current);
         ScrollEffectApplication.onEntry(player, level, current);
         return true;
+    }
+
+    /**
+     * Starts the time limit of an instance when its first player enters (US-41); a portal that stays open until
+     * the time limit expires now has its deadline. Instances that already run are returned unchanged.
+     *
+     * @param level    the theme level
+     * @param instance the instance
+     * @return the started instance
+     */
+    private static ChallengeInstance start(ServerLevel level, ChallengeInstance instance) {
+        if (instance.started()) {
+            return instance;
+        }
+        long deadline = ChallengeClock.now(level.getServer()) + instance.timeLimit();
+        ChallengeInstance started = instance.withDeadline(deadline);
+        if (started.portalOpen() && started.options().portalOpenSeconds() == ScrollOptions.OPEN_UNTIL_TIME_LIMIT) {
+            started = started.withPortalDeadline(deadline);
+        }
+        update(level, started);
+        return started;
     }
 
     /**

@@ -19,6 +19,8 @@ import com.gilfort.architectstrials.browser.StructureStats;
 import com.gilfort.architectstrials.editor.EditorState;
 import com.gilfort.architectstrials.structure.ChallengeAttribute;
 import com.gilfort.architectstrials.structure.ChallengeEffect;
+import com.gilfort.architectstrials.scroll.ScrollOptions;
+import com.gilfort.architectstrials.structure.ChallengeRunSettings;
 import com.gilfort.architectstrials.structure.ChallengeStructure;
 import com.gilfort.architectstrials.structure.OreGeneration;
 import com.gilfort.architectstrials.theme.ChallengeTheme;
@@ -650,6 +652,20 @@ public class ChallengeBrowserScreen extends Screen {
         lines.add(Line.of(Component.translatable("gui.architectstrials.browser.detail.rotation",
                 Component.translatable(metadata.rotation() ? "options.on" : "options.off")), WHITE));
         lines.add(Line.of(Component.translatable("gui.architectstrials.browser.detail.game_mode", metadata.gameMode().getLongDisplayName()), WHITE));
+        ChallengeRunSettings run = metadata.run();
+        lines.add(Line.of(Component.translatable("gui.architectstrials.browser.detail.time_limit", run.timeLimitSeconds()
+                .<Component>map(seconds -> Component.literal(StringUtil.formatTickDuration(seconds * 20, 20.0F)))
+                .orElse(Component.translatable("gui.architectstrials.browser.detail.time_limit.default"))), WHITE));
+        lines.add(Line.of(Component.translatable("gui.architectstrials.browser.detail.max_players", run.maxPlayers() == 0
+                ? Component.translatable("gui.architectstrials.browser.detail.max_players.unlimited")
+                : Component.literal(Integer.toString(run.maxPlayers()))), WHITE));
+        lines.add(Line.of(Component.translatable("gui.architectstrials.browser.detail.portal", switch (run.portalOpenSeconds()) {
+            case 0 -> Component.translatable("gui.architectstrials.browser.detail.portal.first");
+            case ScrollOptions.OPEN_UNTIL_TIME_LIMIT -> Component.translatable("gui.architectstrials.browser.detail.portal.time_limit");
+            default -> Component.translatable("gui.architectstrials.browser.detail.portal.seconds", run.portalOpenSeconds());
+        }), WHITE));
+        lines.add(Line.of(Component.translatable("gui.architectstrials.browser.detail.reentry",
+                Component.translatable(run.allowReentry() ? "options.on" : "options.off")), WHITE));
         metadata.author().ifPresent(author -> lines.add(Line.of(Component.translatable("gui.architectstrials.browser.detail.author", author), WHITE)));
         metadata.created().ifPresent(created -> lines.add(Line.of(Component.translatable("gui.architectstrials.browser.detail.created",
                 DATE_FORMAT.format(Instant.ofEpochMilli(created))), WHITE)));
@@ -659,6 +675,13 @@ public class ChallengeBrowserScreen extends Screen {
             lines.add(Line.indented(Component.translatable("gui.architectstrials.browser.none"), GREY));
         }
         for (ChallengeEffect effect : metadata.playerEffects()) {
+            lines.add(Line.indented(effectText(effect), WHITE));
+        }
+        lines.add(Line.of(Component.translatable("gui.architectstrials.browser.detail.mob_effects"), GOLD));
+        if (metadata.mobEffects().isEmpty()) {
+            lines.add(Line.indented(Component.translatable("gui.architectstrials.browser.none"), GREY));
+        }
+        for (ChallengeEffect effect : metadata.mobEffects()) {
             lines.add(Line.indented(effectText(effect), WHITE));
         }
         lines.add(Line.of(Component.translatable("gui.architectstrials.browser.detail.player_attributes"), GOLD));

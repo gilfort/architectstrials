@@ -80,11 +80,9 @@ public final class RequiredMobGameTests {
         List<Mob> mobs = nether.getEntitiesOfClass(Mob.class, new AABB(created.origin()).inflate(12),
                 mob -> created.requiredMobs().remaining().contains(mob.getUUID()));
         helper.assertTrue(mobs.size() == 2, "Required mobs not found in the world: " + mobs.size());
-        long remaining = created.deadline() - ChallengeClock.now(nether.getServer());
         for (Mob mob : mobs) {
             MobEffectInstance glowing = mob.getEffect(MobEffects.GLOWING);
-            helper.assertTrue(glowing != null && Math.abs(glowing.getDuration() - remaining) <= 20,
-                    "Required mob does not glow for the remaining instance time: " + glowing + " vs " + remaining);
+            helper.assertTrue(glowing != null && glowing.isInfiniteDuration(), "Required mob does not glow for the whole challenge: " + glowing);
         }
 
         BlockPos exit = created.origin().offset(EXIT_OFFSET);

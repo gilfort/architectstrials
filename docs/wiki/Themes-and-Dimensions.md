@@ -67,12 +67,15 @@ translation via a resource pack; otherwise the theme id is shown (e.g. on scroll
 
 - fixed time of day, no weather (`has_ceiling` is set),
 - beds and respawn anchors do not work, raids and pillager patrols are disabled,
+- piglins and piglin brutes do not turn into zombified piglins (`minecraft:gameplay/piglins_zombify` is `false`) —
+  otherwise a required piglin boss would "disappear" by converting and open the exit without a fight,
 - light blue sky and fog colors.
 
 You may use your own `dimension_type` instead, e.g. to give a Nether theme a Nether sky. Copy
 [`challenge.json`](https://github.com/gilfort/architectstrials/blob/main/src/main/resources/data/architectstrials/dimension_type/challenge.json)
 into your datapack as `data/<namespace>/dimension_type/<name>.json`, adjust it and reference it from the
-dimension's `"type"`. Keep the bed and respawn anchor rules — challenges are not meant to be a home.
+dimension's `"type"`. Keep the bed and respawn anchor rules — challenges are not meant to be a home — and set
+`minecraft:gameplay/piglins_zombify` to `false` if piglins may appear.
 
 ## Time of day
 

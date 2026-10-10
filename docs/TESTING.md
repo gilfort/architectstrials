@@ -326,3 +326,30 @@ required mobs, problems, "used by", codec round trip), `browser_template_statist
       without closing (draw chance changes). Refresh button also updates after `/reload`.
 - [ ] Load to editor from inside a challenge: you end up in the editor; `/at exit` brings you back to the challenge
       entry point as usual.
+
+## US-41 (#75): Challenge defines run settings, scrolls modify them; timer starts on first entry
+
+GameTests: `options_from_challenge` (time limit and options from the metadata, scaled / extended by modifiers,
+unstarted instance never expires, deadline set on the first entry), `options_open_until_time_limit` (portal waits the
+unused timeout before the first entry, then stays open until the deadline; challenge mob effect on a joining mob),
+`scroll_modifiers_combine` (multiplicative percentages, players add up, unlimited wins, −100 % rejected, rounding),
+`lifecycle_scroll_time_limit` (default time limit scaled by −50 %, not started before entry), `options_group_portal_and_late_join`,
+`options_reentry_rules`, `options_portal_closes_on_time`, `scroll_upgrade_recipe` (modifiers combined), `scroll_tier_recipes`
+(modifiers kept), `required_mobs_seal_exit` (infinite glow).
+
+- [ ] Old scroll components are gone: `/give @s architectstrials:challenge_scroll[architectstrials:time_limit=5]` is rejected.
+- [ ] `/at structure set minecraft:the_nether 13 run_platform time_limit 90` (managed copy needed: load, save, then set):
+      `/at gui` shows "Time limit: 1:30"; a scroll of that tier gives 1:30 in the boss bar.
+- [ ] Scroll with `"architectstrials:modifiers": {"time": -50}` on a 2-minute challenge → boss bar starts at 1:00; the
+      tooltip shows "Time: -50 %" and "Time limit and players depend on the challenge."
+- [ ] Open a portal and wait 20 s before stepping in: the boss bar starts with the full time on entry, not 20 s less.
+- [ ] Large structure (Nether tier 4): placement time does not count; boss bar appears only after entering.
+- [ ] Unused portal still collapses after `portalTimeoutSeconds` (60 s) and drops the scroll with 50 %.
+- [ ] `portal_open_seconds -1` challenge: portal stays until the time runs out after the first entry; when the time
+      expires everyone is sent back and the portal disappears.
+- [ ] Smithing two upgrades with `"time": 25` → tooltip "Time: +56.3 %"; upgrade with `"max_players": 0` → "Players: unlimited".
+- [ ] `mob_effects add minecraft:speed 1` on a challenge with mobs: every mob (direct spawn, spawner, trial spawner) has
+      Speed II with particles, also mobs spawned later.
+- [ ] Required Piglin Brute with netherite armor in a theme using `architectstrials:challenge`: does not zombify after
+      15+ s, the exit stays sealed until it is killed.
+- [ ] Config screen shows "Default Time Limit (Seconds)" with 3600.

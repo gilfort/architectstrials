@@ -1,11 +1,12 @@
 package com.gilfort.architectstrials.gametest;
 
+import java.util.Optional;
 import java.util.function.Consumer;
 
 import com.gilfort.architectstrials.ArchitectsTrials;
 import com.gilfort.architectstrials.registry.ModDataComponents;
 import com.gilfort.architectstrials.registry.ModItems;
-import com.gilfort.architectstrials.scroll.ScrollOptions;
+import com.gilfort.architectstrials.scroll.ScrollModifiers;
 import com.gilfort.architectstrials.scroll.ScrollTarget;
 import com.gilfort.architectstrials.scroll.ScrollTierRecipe;
 import com.google.gson.JsonParser;
@@ -63,13 +64,12 @@ public final class ScrollTierGameTests {
         helper.assertTrue(new ScrollTarget(nether, 1).equals(first.get(ModDataComponents.SCROLL_TARGET.get())), "Blank scroll did not become tier 1");
         helper.assertFalse(tier1.matches(input(first), level), "Tier 1 recipe matched an already bound scroll");
 
-        first.set(ModDataComponents.SCROLL_OPTIONS.get(), new ScrollOptions(4, 0, false));
-        first.set(ModDataComponents.TIME_LIMIT.get(), 9);
+        ScrollModifiers modifiers = new ScrollModifiers(-25.0, 0.0, Optional.of(3), false);
+        first.set(ModDataComponents.SCROLL_MODIFIERS.get(), modifiers);
         helper.assertFalse(tier2.matches(input(blank), level), "Tier 2 recipe matched the blank scroll");
         ItemStack second = tier2.assemble(input(first));
         helper.assertTrue(new ScrollTarget(nether, 2).equals(second.get(ModDataComponents.SCROLL_TARGET.get())), "Tier 1 scroll was not raised to tier 2");
-        helper.assertTrue(new ScrollOptions(4, 0, false).equals(second.get(ModDataComponents.SCROLL_OPTIONS.get()))
-                && Integer.valueOf(9).equals(second.get(ModDataComponents.TIME_LIMIT.get())), "Components were lost when raising the tier");
+        helper.assertTrue(modifiers.equals(second.get(ModDataComponents.SCROLL_MODIFIERS.get())), "Modifiers were lost when raising the tier");
         helper.assertFalse(tier2.matches(input(second), level), "Tier 2 recipe matched a tier 2 scroll");
 
         ItemStack otherTheme = new ItemStack(ModItems.CHALLENGE_SCROLL.get());

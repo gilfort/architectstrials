@@ -1,8 +1,8 @@
 package com.gilfort.architectstrials.scroll;
 
+import java.util.Locale;
 import java.util.function.Consumer;
 
-import com.gilfort.architectstrials.config.ArchitectsTrialsConfig;
 import com.gilfort.architectstrials.registry.ModDataComponents;
 
 import net.minecraft.ChatFormatting;
@@ -74,22 +74,20 @@ public class ChallengeScrollItem extends Item {
             return;
         }
         builder.accept(Component.translatable("tooltip.architectstrials.challenge_scroll.usage").withStyle(ChatFormatting.GRAY));
-        ScrollOptions options = stack.getOrDefault(ModDataComponents.SCROLL_OPTIONS.get(), ScrollOptions.DEFAULT);
-        if (options.equals(ScrollOptions.DEFAULT)) {
-            builder.accept(Component.translatable("tooltip.architectstrials.challenge_scroll.solo").withStyle(ChatFormatting.DARK_GRAY));
-        } else {
-            builder.accept((options.unlimitedPlayers()
-                    ? Component.translatable("tooltip.architectstrials.challenge_scroll.players_unlimited")
-                    : Component.translatable("tooltip.architectstrials.challenge_scroll.players", options.maxPlayers()))
+        ScrollModifiers modifiers = stack.getOrDefault(ModDataComponents.SCROLL_MODIFIERS.get(), ScrollModifiers.NONE);
+        if (modifiers.timePercent() != 0.0) {
+            builder.accept(Component.translatable("tooltip.architectstrials.challenge_scroll.modifier.time", percent(modifiers.timePercent()))
                     .withStyle(ChatFormatting.DARK_AQUA));
-            builder.accept((switch (options.portalOpenSeconds()) {
-                case 0 -> Component.translatable("tooltip.architectstrials.challenge_scroll.portal_first");
-                case ScrollOptions.OPEN_UNTIL_TIME_LIMIT -> Component.translatable("tooltip.architectstrials.challenge_scroll.portal_time_limit");
-                default -> Component.translatable("tooltip.architectstrials.challenge_scroll.portal_seconds", options.portalOpenSeconds());
-            }).withStyle(ChatFormatting.DARK_AQUA));
-            if (options.allowReentry()) {
-                builder.accept(Component.translatable("tooltip.architectstrials.challenge_scroll.reentry").withStyle(ChatFormatting.DARK_AQUA));
-            }
+        }
+        modifiers.maxPlayers().ifPresent(players -> builder.accept((players == 0
+                ? Component.translatable("tooltip.architectstrials.challenge_scroll.modifier.players_unlimited")
+                : Component.translatable("tooltip.architectstrials.challenge_scroll.modifier.players", players)).withStyle(ChatFormatting.DARK_AQUA)));
+        if (modifiers.portalOpenPercent() != 0.0) {
+            builder.accept(Component.translatable("tooltip.architectstrials.challenge_scroll.modifier.portal", percent(modifiers.portalOpenPercent()))
+                    .withStyle(ChatFormatting.DARK_AQUA));
+        }
+        if (modifiers.allowReentry()) {
+            builder.accept(Component.translatable("tooltip.architectstrials.challenge_scroll.modifier.reentry").withStyle(ChatFormatting.DARK_AQUA));
         }
         for (ScrollEffect effect : stack.getOrDefault(ModDataComponents.SCROLL_EFFECTS.get(), ScrollEffects.NONE).entries()) {
             boolean forPlayers = effect.target() == ScrollEffect.Target.PLAYER;
@@ -97,7 +95,12 @@ public class ChallengeScrollItem extends Item {
                             : "tooltip.architectstrials.challenge_scroll.effect.mobs", effect.describe(context.tickRate()))
                     .withStyle(forPlayers ? ChatFormatting.BLUE : ChatFormatting.RED));
         }
-        int minutes = stack.getOrDefault(ModDataComponents.TIME_LIMIT.get(), ArchitectsTrialsConfig.DEFAULT_TIME_LIMIT_MINUTES.getAsInt());
-        builder.accept(Component.translatable("tooltip.architectstrials.challenge_scroll.time_limit", minutes).withStyle(ChatFormatting.DARK_GRAY));
+        builder.accept(Component.translatable("tooltip.architectstrials.challenge_scroll.challenge_rules").withStyle(ChatFormatting.DARK_GRAY));
+    }
+
+    /** Formats a percent modifier with its sign and at most one decimal, e.g. {@code +56.3 %}. */
+    private static String percent(double value) {
+        String number = value == Math.rint(value) ? Long.toString(Math.round(value)) : String.format(Locale.ROOT, "%.1f", value);
+        return (value > 0 ? "+" : "") + number;
     }
 }

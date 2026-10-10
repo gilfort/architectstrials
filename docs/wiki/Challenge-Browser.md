@@ -21,8 +21,9 @@ remembers your last selection.
 ## Details
 
 **Metadata** — name, id, source pack, theme, tier, weight with the resulting **draw chance** within its tier (e.g.
-weight 3 of a total of 8 → 37.5 %), rotation, game mode, author, creation date, player effects, player attributes
-and [ore generation](Building-Challenges#natural-ores).
+weight 3 of a total of 8 → 37.5 %), rotation, game mode,
+[run settings](Building-Challenges#run-settings-time-limit-and-players) (time limit, players, portal, re-entry), author,
+creation date, player effects, mob effects, player attributes and [ore generation](Building-Challenges#natural-ores).
 
 **Template** — what the stored structure contains:
 
