@@ -13,7 +13,6 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.TreeMap;
 
-import com.gilfort.architectstrials.ArchitectsTrials;
 import com.gilfort.architectstrials.browser.BrowserNetwork;
 import com.gilfort.architectstrials.browser.BrowserSnapshot;
 import com.gilfort.architectstrials.browser.StructureStats;
@@ -23,6 +22,7 @@ import com.gilfort.architectstrials.structure.ChallengeEffect;
 import com.gilfort.architectstrials.structure.ChallengeStructure;
 import com.gilfort.architectstrials.structure.OreGeneration;
 import com.gilfort.architectstrials.theme.ChallengeTheme;
+import com.mojang.blaze3d.platform.InputConstants;
 
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.Button;
@@ -819,11 +819,10 @@ public class ChallengeBrowserScreen extends Screen {
         if (super.mouseClicked(event, doubleClick)) {
             return true;
         }
-        if (event.button() != 0) {
+        if (event.button() != InputConstants.MOUSE_BUTTON_LEFT) {
             return false;
         }
         Runnable action = this.actionAt(event.x(), event.y());
-        ArchitectsTrials.LOGGER.debug("Challenge browser click at {}, {}: {}", event.x(), event.y(), action == null ? "nothing" : "action");
         if (action != null) {
             action.run();
             return true;
