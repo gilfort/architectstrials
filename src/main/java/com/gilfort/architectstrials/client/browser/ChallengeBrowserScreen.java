@@ -13,6 +13,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.TreeMap;
 
+import com.gilfort.architectstrials.ArchitectsTrials;
 import com.gilfort.architectstrials.browser.BrowserNetwork;
 import com.gilfort.architectstrials.browser.BrowserSnapshot;
 import com.gilfort.architectstrials.browser.StructureStats;
@@ -31,6 +32,7 @@ import net.minecraft.client.gui.screens.ConfirmScreen;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.client.renderer.RenderPipelines;
+import net.minecraft.locale.Language;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
@@ -332,7 +334,7 @@ public class ChallengeBrowserScreen extends Screen {
         this.renderDetails(graphics, mouseX, mouseY);
         super.extractRenderState(graphics, mouseX, mouseY, partialTick);
         for (Hit hit : this.hits) {
-            if (!hit.tooltip().isEmpty() && hit.contains(mouseX, mouseY)) {
+            if (hit.contains(mouseX, mouseY)) {
                 graphics.setComponentTooltipForNextFrame(this.font, hit.tooltip(), mouseX, mouseY);
             }
         }
@@ -344,7 +346,7 @@ public class ChallengeBrowserScreen extends Screen {
     }
 
     /** Draws a collapsed column: a strip with an arrow that expands it again. */
-    private void strip(GuiGraphicsExtractor graphics, int x, int mouseX, int mouseY, Runnable expand, Component tooltip) {
+    private void strip(GuiGraphicsExtractor graphics, int x, int mouseX, int mouseY, Component tooltip) {
         int y = this.top();
         int h = this.bottom() - y;
         this.panel(graphics, x, y, STRIP, h);
@@ -352,28 +354,36 @@ public class ChallengeBrowserScreen extends Screen {
             graphics.fill(x + 1, y + 1, x + STRIP - 1, y + h - 1, HOVER);
         }
         graphics.centeredText(this.font, Component.translatable("gui.architectstrials.browser.expand"), x + STRIP / 2, y + 4, WHITE);
-        this.hits.add(new Hit(x, y, x + STRIP, y + h, expand, List.of(tooltip)));
+        this.hits.add(new Hit(x, y, x + STRIP, y + h, List.of(tooltip)));
     }
 
     private void renderThemes(GuiGraphicsExtractor graphics, int mouseX, int mouseY) {
         int x = this.themesX();
         if (this.themesCollapsed) {
-            this.strip(graphics, x, mouseX, mouseY, () -> {
-                this.themesCollapsed = false;
-                this.rebuildWidgets();
-            }, Component.translatable("gui.architectstrials.browser.themes"));
+            this.strip(graphics, x, mouseX, mouseY, Component.translatable("gui.architectstrials.browser.themes"));
             return;
         }
-        int w = this.themesWidth();
         int y = this.top();
-        int h = this.bottom() - y;
-        this.panel(graphics, x, y, w, h);
+        this.panel(graphics, x, y, this.themesWidth(), this.bottom() - y);
         graphics.text(this.font, Component.translatable("gui.architectstrials.browser.themes"), x + 4, y + 4, GOLD, true);
+        this.themeScroll = this.renderRows(graphics, this.themeRows(), x, this.themeListTop(), this.themesWidth(),
+                this.bottom() - this.themeListTop(), this.themeScroll, mouseX, mouseY);
+    }
+
+    private int themeListTop() {
+        return this.top() + 16;
+    }
+
+    private int entryListTop() {
+        return this.top() + SEARCH_HEIGHT + 6;
+    }
+
+    /** @return the rows of the theme column */
+    private List<ListRow> themeRows() {
         List<ListRow> rows = new ArrayList<>();
         for (BrowserSnapshot.ThemeEntry entry : this.snapshot.themes()) {
-            int problems = entry.problemCount();
-            rows.add(new ListRow(new ChallengeTheme(entry.id()).displayName(), entry.registered() ? WHITE : RED, 0,
-                    entry.id().equals(this.theme) && !this.subs, false, problems,
+            rows.add(new ListRow(themeName(entry.id()), entry.registered() ? WHITE : RED, 0,
+                    entry.id().equals(this.theme) && !this.subs, false, entry.problemCount(),
                     Component.translatable("gui.architectstrials.browser.challenge_count", entry.challenges().size()),
                     () -> this.selectTheme(entry.id()), List.of(Component.literal(entry.id().toString()))));
         }
@@ -382,23 +392,33 @@ public class ChallengeBrowserScreen extends Screen {
         rows.add(new ListRow(Component.translatable("gui.architectstrials.browser.sub_structures"), WHITE, 0, this.subs, false, subProblems,
                 Component.translatable("gui.architectstrials.browser.challenge_count", this.snapshot.subStructures().size()),
                 this::selectSubs, List.of()));
-        this.themeScroll = this.renderRows(graphics, rows, x, y + 16, w, h - 16, this.themeScroll, mouseX, mouseY);
+        return rows;
+    }
+
+    /**
+     * Returns the display name of a theme: its translation, or only the path of its id if the resource packs
+     * provide none (the full id is in the tooltip).
+     */
+    private static Component themeName(Identifier id) {
+        String key = id.toLanguageKey("dimension");
+        return Language.getInstance().has(key) ? Component.translatable(key) : Component.literal(id.getPath());
     }
 
     private void renderEntries(GuiGraphicsExtractor graphics, int mouseX, int mouseY) {
         int x = this.entriesX();
         if (this.entriesCollapsed) {
-            this.strip(graphics, x, mouseX, mouseY, () -> {
-                this.entriesCollapsed = false;
-                this.rebuildWidgets();
-            }, this.subs ? Component.translatable("gui.architectstrials.browser.sub_structures")
+            this.strip(graphics, x, mouseX, mouseY, this.subs ? Component.translatable("gui.architectstrials.browser.sub_structures")
                     : Component.translatable("gui.architectstrials.browser.challenges"));
             return;
         }
-        int w = this.entriesWidth();
         int y = this.top();
-        int h = this.bottom() - y;
-        this.panel(graphics, x, y, w, h);
+        this.panel(graphics, x, y, this.entriesWidth(), this.bottom() - y);
+        this.entryScroll = this.renderRows(graphics, this.entryRows(), x, this.entryListTop(), this.entriesWidth(),
+                this.bottom() - this.entryListTop(), this.entryScroll, mouseX, mouseY);
+    }
+
+    /** @return the rows of the entry column: the challenges of the selected theme by tier, or the sub structures */
+    private List<ListRow> entryRows() {
         String filter = this.query.trim().toLowerCase(Locale.ROOT);
         List<ListRow> rows = new ArrayList<>();
         if (this.subs) {
@@ -409,38 +429,38 @@ public class ChallengeBrowserScreen extends Screen {
                             Component.empty(), () -> this.selectSub(sub.id()), List.of(Component.literal(sub.id().toString()))));
                 }
             }
-        } else {
-            BrowserSnapshot.ThemeEntry theme = this.theme == null ? null : this.themeEntry(this.theme);
-            Map<Integer, List<BrowserSnapshot.ChallengeEntry>> tiers = new TreeMap<>();
-            if (theme != null) {
-                for (BrowserSnapshot.ChallengeEntry challenge : theme.challenges()) {
-                    if (matches(filter, label(challenge), challenge.id())) {
-                        tiers.computeIfAbsent(challenge.metadata().tier(), tier -> new ArrayList<>()).add(challenge);
-                    }
+            return rows;
+        }
+        BrowserSnapshot.ThemeEntry theme = this.theme == null ? null : this.themeEntry(this.theme);
+        Map<Integer, List<BrowserSnapshot.ChallengeEntry>> tiers = new TreeMap<>();
+        if (theme != null) {
+            for (BrowserSnapshot.ChallengeEntry challenge : theme.challenges()) {
+                if (matches(filter, label(challenge), challenge.id())) {
+                    tiers.computeIfAbsent(challenge.metadata().tier(), tier -> new ArrayList<>()).add(challenge);
                 }
-            }
-            tiers.forEach((tier, challenges) -> {
-                boolean collapsed = this.collapsedTiers.contains(tier);
-                rows.add(new ListRow(Component.translatable(collapsed ? "gui.architectstrials.browser.tier.collapsed"
-                        : "gui.architectstrials.browser.tier.expanded", tier, challenges.size()), GOLD, 0, false, false, 0, Component.empty(), () -> {
-                            if (!this.collapsedTiers.remove(tier)) {
-                                this.collapsedTiers.add(tier);
-                            }
-                        }, List.of()));
-                if (!collapsed) {
-                    for (BrowserSnapshot.ChallengeEntry challenge : challenges) {
-                        rows.add(new ListRow(label(challenge), WHITE, 8, challenge.id().equals(this.entry), !challenge.editable(),
-                                challenge.problems().isEmpty() ? 0 : 1, Component.empty(), () -> this.selectChallenge(challenge.id()),
-                                List.of(Component.literal(challenge.id().toString()))));
-                    }
-                }
-            });
-            if (tiers.isEmpty()) {
-                rows.add(new ListRow(Component.translatable("gui.architectstrials.browser.no_challenges"), GREY, 0, false, false, 0,
-                        Component.empty(), null, List.of()));
             }
         }
-        this.entryScroll = this.renderRows(graphics, rows, x, y + SEARCH_HEIGHT + 6, w, h - SEARCH_HEIGHT - 6, this.entryScroll, mouseX, mouseY);
+        tiers.forEach((tier, challenges) -> {
+            boolean collapsed = this.collapsedTiers.contains(tier);
+            rows.add(new ListRow(Component.translatable(collapsed ? "gui.architectstrials.browser.tier.collapsed"
+                    : "gui.architectstrials.browser.tier.expanded", tier, challenges.size()), GOLD, 0, false, false, 0, Component.empty(), () -> {
+                        if (!this.collapsedTiers.remove(tier)) {
+                            this.collapsedTiers.add(tier);
+                        }
+                    }, List.of()));
+            if (!collapsed) {
+                for (BrowserSnapshot.ChallengeEntry challenge : challenges) {
+                    rows.add(new ListRow(label(challenge), WHITE, 8, challenge.id().equals(this.entry), !challenge.editable(),
+                            challenge.problems().isEmpty() ? 0 : 1, Component.empty(), () -> this.selectChallenge(challenge.id()),
+                            List.of(Component.literal(challenge.id().toString()))));
+                }
+            }
+        });
+        if (tiers.isEmpty()) {
+            rows.add(new ListRow(Component.translatable("gui.architectstrials.browser.no_challenges"), GREY, 0, false, false, 0,
+                    Component.empty(), null, List.of()));
+        }
+        return rows;
     }
 
     private static boolean matches(String filter, Component label, Identifier id) {
@@ -498,12 +518,12 @@ public class ChallengeBrowserScreen extends Screen {
             int textX = x + 4 + row.indent();
             FormattedCharSequence text = clip(this.font, row.text(), right - textX);
             graphics.text(this.font, text, textX, rowY + 2, row.color(), false);
-            if (row.action() != null) {
-                List<Component> tooltip = new ArrayList<>(row.tooltip());
-                if (row.locked()) {
-                    tooltip.add(Component.translatable("gui.architectstrials.browser.read_only"));
-                }
-                this.hits.add(new Hit(x, Math.max(y, rowY), x + w, Math.min(y + h, rowY + ROW), row.action(), tooltip));
+            List<Component> tooltip = new ArrayList<>(row.tooltip());
+            if (row.locked()) {
+                tooltip.add(Component.translatable("gui.architectstrials.browser.read_only"));
+            }
+            if (!tooltip.isEmpty()) {
+                this.hits.add(new Hit(x, Math.max(y, rowY), x + w, Math.min(y + h, rowY + ROW), tooltip));
             }
         }
         graphics.disableScissor();
@@ -518,31 +538,42 @@ public class ChallengeBrowserScreen extends Screen {
         return lines.isEmpty() ? FormattedCharSequence.EMPTY : lines.getFirst();
     }
 
-    private void renderDetails(GuiGraphicsExtractor graphics, int mouseX, int mouseY) {
-        int x = this.detailsX();
-        int y = this.top();
+    private int detailContentHeight() {
+        return this.bottom() - this.top() - (this.entry != null ? FOOTER : 0) - 4;
+    }
+
+    /** @return the detail lines, wrapped to the width of the details area */
+    private List<WrappedLine> detailWrapped() {
         int w = this.detailsWidth();
-        int h = this.bottom() - y;
-        this.panel(graphics, x, y, w, h);
-        List<Line> lines = this.detailLines();
-        int contentHeight = h - (this.entry != null ? FOOTER : 0) - 4;
         List<WrappedLine> wrapped = new ArrayList<>();
-        for (Line line : lines) {
+        for (Line line : this.detailLines()) {
             if (line.text() == null) {
                 wrapped.add(new WrappedLine(FormattedCharSequence.EMPTY, line, 0));
                 continue;
             }
-            List<FormattedCharSequence> parts = this.font.split(line.text(), Math.max(20, w - 12 - line.indent()));
-            for (FormattedCharSequence part : parts) {
+            for (FormattedCharSequence part : this.font.split(line.text(), Math.max(20, w - 12 - line.indent()))) {
                 wrapped.add(new WrappedLine(part, line, this.font.width(part)));
             }
         }
-        int max = Math.max(0, wrapped.size() * (ROW - 1) - contentHeight);
-        this.detailScroll = Math.clamp(this.detailScroll, 0, max);
+        return wrapped;
+    }
+
+    private int detailLineY(int index) {
+        return this.top() + 4 + index * (ROW - 1) - this.detailScroll;
+    }
+
+    private void renderDetails(GuiGraphicsExtractor graphics, int mouseX, int mouseY) {
+        int x = this.detailsX();
+        int y = this.top();
+        int w = this.detailsWidth();
+        this.panel(graphics, x, y, w, this.bottom() - y);
+        int contentHeight = this.detailContentHeight();
+        List<WrappedLine> wrapped = this.detailWrapped();
+        this.detailScroll = Math.clamp(this.detailScroll, 0, Math.max(0, wrapped.size() * (ROW - 1) - contentHeight));
         graphics.enableScissor(x + 1, y + 2, x + w - 1, y + 2 + contentHeight);
         for (int i = 0; i < wrapped.size(); i++) {
             WrappedLine line = wrapped.get(i);
-            int lineY = y + 4 + i * (ROW - 1) - this.detailScroll;
+            int lineY = this.detailLineY(i);
             if (lineY + ROW < y || lineY > y + contentHeight) {
                 continue;
             }
@@ -550,9 +581,9 @@ public class ChallengeBrowserScreen extends Screen {
             boolean hovered = line.line().action() != null && mouseX >= lineX && mouseX < lineX + line.width() && mouseY >= lineY
                     && mouseY < lineY + ROW - 1;
             graphics.text(this.font, line.text(), lineX, lineY, hovered ? WHITE : line.line().color(), false);
-            if (line.line().action() != null || !line.line().tooltip().isEmpty()) {
+            if (!line.line().tooltip().isEmpty()) {
                 this.hits.add(new Hit(lineX, Math.max(y, lineY), lineX + line.width(), Math.min(y + contentHeight, lineY + ROW - 1),
-                        line.line().action(), line.line().tooltip()));
+                        line.line().tooltip()));
             }
         }
         graphics.disableScissor();
@@ -791,13 +822,63 @@ public class ChallengeBrowserScreen extends Screen {
         if (event.button() != 0) {
             return false;
         }
-        for (Hit hit : List.copyOf(this.hits)) {
-            if (hit.action() != null && hit.contains(event.x(), event.y())) {
-                hit.action().run();
-                return true;
-            }
+        Runnable action = this.actionAt(event.x(), event.y());
+        ArchitectsTrials.LOGGER.debug("Challenge browser click at {}, {}: {}", event.x(), event.y(), action == null ? "nothing" : "action");
+        if (action != null) {
+            action.run();
+            return true;
         }
         return false;
+    }
+
+    /**
+     * Finds what a click at a position does, computed from the same layout the screen is drawn with.
+     *
+     * @return the action, or {@code null} if nothing is clickable there
+     */
+    private @Nullable Runnable actionAt(double mouseX, double mouseY) {
+        if (mouseY < this.top() || mouseY >= this.bottom()) {
+            return null;
+        }
+        if (mouseX >= this.themesX() && mouseX < this.themesX() + this.themesWidth()) {
+            if (this.themesCollapsed) {
+                return () -> {
+                    this.themesCollapsed = false;
+                    this.rebuildWidgets();
+                };
+            }
+            return rowAction(this.themeRows(), mouseY - this.themeListTop() + this.themeScroll);
+        }
+        if (this.entriesVisible() && mouseX >= this.entriesX() && mouseX < this.entriesX() + this.entriesWidth()) {
+            if (this.entriesCollapsed) {
+                return () -> {
+                    this.entriesCollapsed = false;
+                    this.rebuildWidgets();
+                };
+            }
+            return rowAction(this.entryRows(), mouseY - this.entryListTop() + this.entryScroll);
+        }
+        if (mouseX >= this.detailsX() && mouseY < this.top() + 2 + this.detailContentHeight()) {
+            List<WrappedLine> wrapped = this.detailWrapped();
+            for (int i = 0; i < wrapped.size(); i++) {
+                WrappedLine line = wrapped.get(i);
+                int lineY = this.detailLineY(i);
+                int lineX = this.detailsX() + 6 + line.line().indent();
+                if (line.line().action() != null && mouseX >= lineX && mouseX < lineX + line.width() && mouseY >= lineY
+                        && mouseY < lineY + ROW - 1) {
+                    return line.line().action();
+                }
+            }
+        }
+        return null;
+    }
+
+    private static @Nullable Runnable rowAction(List<ListRow> rows, double offset) {
+        if (offset < 0) {
+            return null;
+        }
+        int index = (int) (offset / ROW);
+        return index < rows.size() ? rows.get(index).action() : null;
     }
 
     @Override
@@ -829,8 +910,8 @@ public class ChallengeBrowserScreen extends Screen {
 
     // ---------------------------------------------------------------- helper records
 
-    /** A clickable area registered while rendering, used by the next click. */
-    private record Hit(double x0, double y0, double x1, double y1, @Nullable Runnable action, List<Component> tooltip) {
+    /** An area with a tooltip, registered while rendering. */
+    private record Hit(double x0, double y0, double x1, double y1, List<Component> tooltip) {
 
         boolean contains(double x, double y) {
             return x >= this.x0 && x < this.x1 && y >= this.y0 && y < this.y1;
