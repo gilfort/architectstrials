@@ -47,17 +47,36 @@ public final class StructureValidation {
      * @return the problems found, as description → number of occurrences; empty if the structure is clean
      */
     public static Map<String, Integer> validate(MinecraftServer server, ChallengeStructure structure) {
+        return validate(server, structure.structure(), readTemplate(server, structure.structure()));
+    }
+
+    /**
+     * Validates a template that has already been read with {@link #readTemplate}.
+     *
+     * @param server   the server
+     * @param template the template id (for the message if the file is missing)
+     * @param data     the raw template data, or empty if the file was not found
+     * @return the problems found, as description → number of occurrences; empty if the template is clean
+     */
+    public static Map<String, Integer> validate(MinecraftServer server, Identifier template, Optional<CompoundTag> data) {
         Map<String, Integer> problems = new TreeMap<>();
-        Optional<CompoundTag> data = readTemplate(server, structure.structure());
         if (data.isEmpty()) {
-            problems.put("template file not found: " + structure.structure(), 1);
+            problems.put("template file not found: " + template, 1);
             return problems;
         }
         new Scan(server, problems).template(data.get());
         return problems;
     }
 
-    private static Optional<CompoundTag> readTemplate(MinecraftServer server, Identifier id) {
+    /**
+     * Reads the raw NBT of a structure template file — from the datapacks or the world's generated structures —
+     * without loading it into the template cache.
+     *
+     * @param server the server
+     * @param id     the template id
+     * @return the raw data, or empty if no file exists or it cannot be read
+     */
+    public static Optional<CompoundTag> readTemplate(MinecraftServer server, Identifier id) {
         Identifier file = Identifier.fromNamespaceAndPath(id.getNamespace(), "structure/" + id.getPath() + ".nbt");
         try {
             Optional<Resource> resource = server.getResourceManager().getResource(file);

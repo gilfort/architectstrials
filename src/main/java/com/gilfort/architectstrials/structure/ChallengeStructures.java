@@ -30,16 +30,28 @@ public final class ChallengeStructures {
 
     private static Map<Identifier, ChallengeStructure> byId = Map.of();
     private static Map<Identifier, Map<Integer, List<Identifier>>> pools = Map.of();
+    private static Map<Identifier, String> sources = Map.of();
 
     private ChallengeStructures() {
     }
 
     /**
-     * Replaces the pool. Called on every datapack (re)load.
+     * Replaces the pool and the source packs. Called on every datapack (re)load.
+     *
+     * @param structures  all loaded structures by metadata id
+     * @param packSources the datapack id each metadata file comes from (US-40)
+     */
+    static void set(Map<Identifier, ChallengeStructure> structures, Map<Identifier, String> packSources) {
+        sources = Map.copyOf(packSources);
+        set(structures);
+    }
+
+    /**
+     * Replaces the pool, keeping the source packs.
      *
      * @param structures all loaded structures by metadata id
      */
-    static void set(Map<Identifier, ChallengeStructure> structures) {
+    private static void set(Map<Identifier, ChallengeStructure> structures) {
         Map<Identifier, Map<Integer, List<Identifier>>> grouped = new HashMap<>();
         structures.forEach((id, structure) -> grouped
                 .computeIfAbsent(structure.theme(), theme -> new TreeMap<>())
@@ -97,6 +109,16 @@ public final class ChallengeStructures {
      */
     public static Optional<ChallengeStructure> get(Identifier id) {
         return Optional.ofNullable(byId.get(id));
+    }
+
+    /**
+     * Returns the datapack a structure's metadata file comes from (US-40).
+     *
+     * @param id the metadata id
+     * @return the pack id (e.g. {@code file/architectstrials_structures}), or empty if unknown
+     */
+    public static Optional<String> source(Identifier id) {
+        return Optional.ofNullable(sources.get(id));
     }
 
     /**

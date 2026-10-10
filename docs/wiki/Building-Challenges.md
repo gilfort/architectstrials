@@ -93,6 +93,9 @@ Then add Player Spawn and Exit Markers, adjust loot and enemies and save it with
 
 ## Managing stored structures
 
+The [Challenge Browser](Challenge-Browser) (`/at gui`) shows all stored structures with their settings, template
+content and problems and loads them into the editor with one click. The commands:
+
 | Command | Description |
 |---|---|
 | `/at structure list [theme] [tier]` | Lists stored structures with name, tier, weight, rotation and game mode |
