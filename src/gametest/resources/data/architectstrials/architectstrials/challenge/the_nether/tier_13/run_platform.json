@@ -1,0 +1,9 @@
+{
+  "theme": "minecraft:the_nether",
+  "tier": 13,
+  "structure": "architectstrials:gametest/spawn_platform",
+  "name": "Run settings platform (US-41 test)",
+  "time_limit": 120,
+  "max_players": 2,
+  "portal_open_seconds": 60
+}

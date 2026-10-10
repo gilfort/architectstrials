@@ -18,6 +18,7 @@
     "minecraft:gameplay/respawn_anchor_works": false,
     "minecraft:gameplay/can_start_raid": false,
     "minecraft:gameplay/can_pillager_patrol_spawn": false,
+    "minecraft:gameplay/piglins_zombify": false,
     "minecraft:visual/ambient_light_color": "#0a0a0a",
     "minecraft:visual/cloud_color": "#ccffffff",
     "minecraft:visual/cloud_height": 192.33,

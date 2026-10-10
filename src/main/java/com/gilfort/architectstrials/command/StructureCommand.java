@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.UnaryOperator;
+import java.util.stream.Stream;
 
 import com.gilfort.architectstrials.ArchitectsTrials;
 import com.gilfort.architectstrials.editor.EditorCapture;
@@ -13,6 +14,8 @@ import com.gilfort.architectstrials.editor.EditorDimension;
 import com.gilfort.architectstrials.editor.EditorLoading;
 import com.gilfort.architectstrials.editor.EditorState;
 import com.gilfort.architectstrials.editor.StructureLibrary;
+import com.gilfort.architectstrials.scroll.ScrollOptions;
+import com.gilfort.architectstrials.structure.ChallengeEffect;
 import com.gilfort.architectstrials.structure.ChallengeStructure;
 import com.gilfort.architectstrials.structure.ChallengeStructures;
 import com.gilfort.architectstrials.structure.StructureValidation;
@@ -31,9 +34,13 @@ import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.commands.SharedSuggestionProvider;
 import net.minecraft.commands.arguments.IdentifierArgument;
+import net.minecraft.core.Holder;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.effect.MobEffect;
+import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.levelgen.structure.templatesystem.StructureTemplate;
 
@@ -47,6 +54,9 @@ import net.minecraft.world.level.levelgen.structure.templatesystem.StructureTemp
  * loot tables and mob effects (e.g. after a mod was removed)</li>
  * <li>{@code /architectstrials structure set <theme> <tier> <id> weight <n> | rotation <bool> | game_mode <adventure|survival>
  * | name <text>}</li>
+ * <li>{@code /architectstrials structure set <theme> <tier> <id> time_limit <seconds>|default | max_players <n>
+ * | allow_reentry <bool> | portal_open_seconds <n> | mob_effects add <effect> [amplifier] [duration] | mob_effects remove
+ * <effect> | mob_effects clear} (US-41)</li>
  * <li>{@code /architectstrials structure delete <theme> <tier> <id>} (+ {@code confirm} within 30 seconds)</li>
  * </ul>
  * Saving, editing and deleting work on the managed datapack {@link StructureLibrary} and reload datapacks
@@ -69,6 +79,12 @@ final class StructureCommand {
         return SharedSuggestionProvider.suggest(ChallengeStructures.pool(theme, tier).stream()
                 .map(id -> id.getPath().substring(id.getPath().lastIndexOf('/') + 1)), builder);
     };
+
+    private static final SuggestionProvider<CommandSourceStack> EFFECT_SUGGESTIONS = (context, builder) ->
+            SharedSuggestionProvider.suggestResource(BuiltInRegistries.MOB_EFFECT.keySet(), builder);
+
+    private static final DynamicCommandExceptionType UNKNOWN_EFFECT = new DynamicCommandExceptionType(
+            id -> Component.translatable("commands.architectstrials.structure.unknown_effect", String.valueOf(id)));
 
     private record PendingDelete(StructureLibrary.Entry entry, int expiresAt) {
     }
@@ -122,7 +138,29 @@ final class StructureCommand {
                                 .then(Commands.literal("adventure").executes(context -> set(context, s -> withGameMode(s, GameType.ADVENTURE))))
                                 .then(Commands.literal("survival").executes(context -> set(context, s -> withGameMode(s, GameType.SURVIVAL)))))
                         .then(Commands.literal("name").then(Commands.argument("name", StringArgumentType.greedyString())
-                                .executes(context -> set(context, s -> copy(s, Optional.of(StringArgumentType.getString(context, "name")), s.weight(), s.rotation()))))))))
+                                .executes(context -> set(context, s -> copy(s, Optional.of(StringArgumentType.getString(context, "name")), s.weight(), s.rotation())))))
+                        .then(Commands.literal("time_limit")
+                                .then(Commands.literal("default").executes(context -> set(context, s -> s.withRun(s.run().withTimeLimit(Optional.empty())))))
+                                .then(Commands.argument("seconds", IntegerArgumentType.integer(1)).executes(context -> set(context,
+                                        s -> s.withRun(s.run().withTimeLimit(Optional.of(IntegerArgumentType.getInteger(context, "seconds"))))))))
+                        .then(Commands.literal("max_players").then(Commands.argument("players", IntegerArgumentType.integer(0))
+                                .executes(context -> set(context, s -> s.withRun(s.run().withMaxPlayers(IntegerArgumentType.getInteger(context, "players")))))))
+                        .then(Commands.literal("allow_reentry").then(Commands.argument("allow", BoolArgumentType.bool())
+                                .executes(context -> set(context, s -> s.withRun(s.run().withAllowReentry(BoolArgumentType.getBool(context, "allow")))))))
+                        .then(Commands.literal("portal_open_seconds").then(Commands.argument("seconds", IntegerArgumentType.integer(ScrollOptions.OPEN_UNTIL_TIME_LIMIT))
+                                .executes(context -> set(context, s -> s.withRun(s.run().withPortalOpenSeconds(IntegerArgumentType.getInteger(context, "seconds")))))))
+                        .then(Commands.literal("mob_effects")
+                                .then(Commands.literal("add").then(Commands.argument("effect", IdentifierArgument.id()).suggests(EFFECT_SUGGESTIONS)
+                                        .executes(context -> addMobEffect(context, 0, MobEffectInstance.INFINITE_DURATION))
+                                        .then(Commands.argument("amplifier", IntegerArgumentType.integer(0, 255))
+                                                .executes(context -> addMobEffect(context, IntegerArgumentType.getInteger(context, "amplifier"),
+                                                        MobEffectInstance.INFINITE_DURATION))
+                                                .then(Commands.argument("duration", IntegerArgumentType.integer(MobEffectInstance.INFINITE_DURATION))
+                                                        .executes(context -> addMobEffect(context, IntegerArgumentType.getInteger(context, "amplifier"),
+                                                                IntegerArgumentType.getInteger(context, "duration")))))))
+                                .then(Commands.literal("remove").then(Commands.argument("effect", IdentifierArgument.id()).suggests(EFFECT_SUGGESTIONS)
+                                        .executes(StructureCommand::removeMobEffect)))
+                                .then(Commands.literal("clear").executes(context -> set(context, s -> s.withMobEffects(List.of()))))))))
                 .then(Commands.literal("delete").then(SubStructureCommand.delete())
                         .then(entryArguments(true, id -> id
                                 .executes(StructureCommand::requestDelete)
@@ -178,13 +216,10 @@ final class StructureCommand {
                 validation.errors().forEach(source::sendFailure);
                 return 0;
             }
-            ChallengeStructure metadata = new ChallengeStructure(entry.theme(), entry.tier(), entry.structureId(),
-                    existing.flatMap(ChallengeStructure::name), Optional.of(source.getTextName()), Optional.of(System.currentTimeMillis()),
-                    existing.map(ChallengeStructure::weight).orElse(1), existing.map(ChallengeStructure::rotation).orElse(false),
-                    existing.map(ChallengeStructure::gameMode).orElse(GameType.ADVENTURE),
-                    existing.map(ChallengeStructure::playerEffects).orElse(List.of()),
-                    existing.map(ChallengeStructure::playerAttributes).orElse(List.of()),
-                    existing.flatMap(ChallengeStructure::oreGeneration));
+            Optional<String> author = Optional.of(source.getTextName());
+            Optional<Long> created = Optional.of(System.currentTimeMillis());
+            ChallengeStructure metadata = existing.map(previous -> previous.resaved(author, created))
+                    .orElseGet(() -> new ChallengeStructure(entry.theme(), entry.tier(), entry.structureId(), Optional.empty(), author, created, 1, false));
             StructureLibrary.write(source.getServer(), entry, captured.get().template(), metadata);
             EditorState.of(source.getServer()).setLast(Optional.of(new EditorState.StructureRef(false, entry.metadataId())));
         } catch (IOException e) {
@@ -283,6 +318,23 @@ final class StructureCommand {
         }
         reloadThen(source, Component.translatable("commands.architectstrials.structure.set.success", entry.name()));
         return 1;
+    }
+
+    private static int addMobEffect(CommandContext<CommandSourceStack> context, int amplifier, int duration) throws CommandSyntaxException {
+        Holder<MobEffect> effect = effect(context);
+        ChallengeEffect added = new ChallengeEffect(effect, amplifier, duration);
+        return set(context, s -> s.withMobEffects(Stream.concat(s.mobEffects().stream().filter(existing -> !existing.effect().equals(effect)),
+                Stream.of(added)).toList()));
+    }
+
+    private static int removeMobEffect(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
+        Holder<MobEffect> effect = effect(context);
+        return set(context, s -> s.withMobEffects(s.mobEffects().stream().filter(existing -> !existing.effect().equals(effect)).toList()));
+    }
+
+    private static Holder<MobEffect> effect(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
+        Identifier id = IdentifierArgument.getId(context, "effect");
+        return BuiltInRegistries.MOB_EFFECT.get(id).orElseThrow(() -> UNKNOWN_EFFECT.create(id));
     }
 
     private static int requestDelete(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {

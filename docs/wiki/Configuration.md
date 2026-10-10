@@ -12,7 +12,7 @@ Content — themes, structures, tiers, scrolls — is **never** configured here;
 | `maxConcurrentInstances` | 4 | Maximum simultaneous instances per theme dimension; `0` = unlimited. At the limit, scrolls fail without being consumed. Every running instance brings its own mobs and spawners — raise it if your server can handle more. |
 | `structurePlacementY` | 64 | Y coordinate the bottom of every challenge structure is placed at (also the height of the editor platform and the target height of `/at theme tp` and `/at enter`). |
 | `startingRank` | 1 | Rank every player starts with in every theme; `0` blocks all scrolls until the player is upgraded. |
-| `defaultTimeLimitMinutes` | 60 | Time limit of challenges whose scroll defines none. |
+| `defaultTimeLimitSeconds` | 3600 | Time limit of challenges whose metadata defines no `time_limit`; scroll modifiers scale it. |
 | `portalTimeoutSeconds` | 60 | Seconds an opened portal waits for its player before collapsing (the scroll may then drop again, see below). |
 | `unusedPortalScrollDropChance` | 0.5 | Chance (0.0–1.0) that the scroll drops back when a portal collapses unused. |
 | `logFailedSubStructures` | false | Writes failed [sub structure](Markers#sub-structure-marker) generations (overwritten spawn / exit marker, outside the slot area, unknown id) to the log. |

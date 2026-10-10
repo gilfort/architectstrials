@@ -1,0 +1,12 @@
+{
+  "theme": "minecraft:the_nether",
+  "tier": 14,
+  "structure": "architectstrials:gametest/spawn_platform",
+  "name": "Portal open until the time runs out (US-41 test)",
+  "time_limit": 30,
+  "max_players": 0,
+  "portal_open_seconds": -1,
+  "mob_effects": [
+    {"effect": "minecraft:resistance", "amplifier": 1}
+  ]
+}

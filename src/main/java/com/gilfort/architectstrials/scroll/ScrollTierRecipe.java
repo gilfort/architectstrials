@@ -43,7 +43,7 @@ import net.minecraft.world.level.Level;
  * }
  * }</pre>
  * Tier 1 turns the Blank Challenge Scroll into a tier 1 scroll of the theme. Tier n > 1 takes a scroll of the theme
- * with tier n − 1 and raises it to n, keeping all other components (options, effects, time limit, name, …). There is
+ * with tier n − 1 and raises it to n, keeping all other components (modifiers, effects, name, …). There is
  * no result if the theme has no challenge of the tier.
  */
 public class ScrollTierRecipe extends SimpleSmithingRecipe {

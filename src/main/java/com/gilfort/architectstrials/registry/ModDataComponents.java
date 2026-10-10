@@ -7,14 +7,12 @@ import com.gilfort.architectstrials.editor.Selection;
 import com.gilfort.architectstrials.loot.LootSetup;
 import com.gilfort.architectstrials.marker.SpawnMarkerClipboard;
 import com.gilfort.architectstrials.scroll.ScrollEffects;
-import com.gilfort.architectstrials.scroll.ScrollOptions;
+import com.gilfort.architectstrials.scroll.ScrollModifiers;
 import com.gilfort.architectstrials.scroll.ScrollTarget;
 import com.gilfort.architectstrials.sub.SubStructureSetup;
 
 import net.minecraft.core.component.DataComponentType;
 import net.minecraft.core.registries.Registries;
-import net.minecraft.network.codec.ByteBufCodecs;
-import net.minecraft.util.ExtraCodecs;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.neoforge.registries.DeferredRegister;
 
@@ -32,15 +30,11 @@ public final class ModDataComponents {
             "challenge", builder -> builder.persistent(ScrollTarget.CODEC).networkSynchronized(ScrollTarget.STREAM_CODEC));
 
     /**
-     * Challenge time limit in minutes ({@code architectstrials:time_limit}); scrolls without it use the configured
-     * default.
+     * How a scroll modifies the run settings of the challenge it opens ({@code architectstrials:modifiers}, US-41);
+     * absent = the challenge's own values.
      */
-    public static final Supplier<DataComponentType<Integer>> TIME_LIMIT = DATA_COMPONENTS.registerComponentType(
-            "time_limit", builder -> builder.persistent(ExtraCodecs.POSITIVE_INT).networkSynchronized(ByteBufCodecs.VAR_INT));
-
-    /** Multiplayer options of a scroll ({@code architectstrials:options}); absent = solo default. */
-    public static final Supplier<DataComponentType<ScrollOptions>> SCROLL_OPTIONS = DATA_COMPONENTS.registerComponentType(
-            "options", builder -> builder.persistent(ScrollOptions.CODEC).networkSynchronized(ScrollOptions.STREAM_CODEC));
+    public static final Supplier<DataComponentType<ScrollModifiers>> SCROLL_MODIFIERS = DATA_COMPONENTS.registerComponentType(
+            "modifiers", builder -> builder.persistent(ScrollModifiers.CODEC).networkSynchronized(ScrollModifiers.STREAM_CODEC));
 
     /** Effect upgrades of a scroll ({@code architectstrials:effects}); absent = none. */
     public static final Supplier<DataComponentType<ScrollEffects>> SCROLL_EFFECTS = DATA_COMPONENTS.registerComponentType(

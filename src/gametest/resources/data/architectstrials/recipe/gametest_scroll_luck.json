@@ -3,8 +3,9 @@
   "template": "minecraft:paper",
   "base": "architectstrials:challenge_scroll",
   "addition": "minecraft:rabbit_foot",
-  "options": {
-    "max_players": 4
+  "modifiers": {
+    "time": 25,
+    "max_players": 3
   },
   "effects": [
     {

@@ -79,7 +79,7 @@ public final class ChallengeEffectGameTests {
         Identifier modifier = ArchitectsTrials.id("challenge_attribute_0");
 
         helper.assertTrue(InstanceManager.join(player, nether, instance), "Player could not join");
-        long remaining = instance.deadline() - ChallengeClock.now(nether.getServer());
+        long remaining = instance.remainingTicks(ChallengeClock.now(nether.getServer()));
         MobEffectInstance nightVision = player.getEffect(MobEffects.NIGHT_VISION);
         helper.assertTrue(nightVision != null && Math.abs(nightVision.getDuration() - remaining) <= 20,
                 "Permanent challenge effect does not last the remaining instance time: " + nightVision);

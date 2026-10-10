@@ -132,7 +132,7 @@ public class ChallengePortal extends Entity {
             return;
         }
         ChallengeInstance current = instance.get();
-        if (this.age - this.activeSince > InstanceManager.activePortalTicks(current.options(), current.timeLimit())) {
+        if (this.age - this.activeSince > InstanceManager.activePortalTicks(current)) {
             if (current.roster().entrants().isEmpty()) {
                 this.expire(level, themeLevel);
             } else {

@@ -1,7 +1,7 @@
 {
   "type": "minecraft:function",
   "environment": "minecraft:default",
-  "function": "architectstrials:options_time_limit_covers_portal",
+  "function": "architectstrials:options_open_until_time_limit",
   "max_ticks": 40,
   "structure": "minecraft:empty",
   "padding": 8

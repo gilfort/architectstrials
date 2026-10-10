@@ -13,6 +13,7 @@ import com.gilfort.architectstrials.registry.ModDataComponents;
 import com.gilfort.architectstrials.registry.ModItems;
 import com.gilfort.architectstrials.scroll.ScrollEffect;
 import com.gilfort.architectstrials.scroll.ScrollEffects;
+import com.gilfort.architectstrials.scroll.ScrollModifiers;
 import com.gilfort.architectstrials.scroll.ScrollOptions;
 import com.gilfort.architectstrials.scroll.ScrollTarget;
 import com.gilfort.architectstrials.scroll.ScrollUpgradeRecipe;
@@ -90,14 +91,16 @@ public final class ScrollUpgradeGameTests {
         }
         ItemStack scroll = new ItemStack(ModItems.CHALLENGE_SCROLL.get());
         scroll.set(ModDataComponents.SCROLL_TARGET.get(), new ScrollTarget(Level.NETHER.identifier(), 2));
-        scroll.set(ModDataComponents.TIME_LIMIT.get(), 7);
+        scroll.set(ModDataComponents.SCROLL_MODIFIERS.get(), new ScrollModifiers(25.0, 0.0, Optional.of(1), false));
 
         SmithingRecipeInput input = input(scroll);
         helper.assertTrue(luck.matches(input, level), "Upgrade recipe does not match a scroll");
         ItemStack upgraded = luck.assemble(input);
-        helper.assertTrue(new ScrollTarget(Level.NETHER.identifier(), 2).equals(upgraded.get(ModDataComponents.SCROLL_TARGET.get()))
-                && Integer.valueOf(7).equals(upgraded.get(ModDataComponents.TIME_LIMIT.get())), "Theme, tier or time limit were lost");
-        helper.assertTrue(new ScrollOptions(4, 0, false).equals(upgraded.get(ModDataComponents.SCROLL_OPTIONS.get())), "Option not set");
+        helper.assertTrue(new ScrollTarget(Level.NETHER.identifier(), 2).equals(upgraded.get(ModDataComponents.SCROLL_TARGET.get())),
+                "Theme or tier were lost");
+        ScrollModifiers modifiers = upgraded.get(ModDataComponents.SCROLL_MODIFIERS.get());
+        helper.assertTrue(modifiers != null && Math.abs(modifiers.timePercent() - 56.25) < 1.0E-9 && modifiers.maxPlayers().equals(Optional.of(4)),
+                "Modifiers were not combined (time x1.25 x1.25, players +1 +3): " + modifiers);
         ScrollEffects effects = upgraded.getOrDefault(ModDataComponents.SCROLL_EFFECTS.get(), ScrollEffects.NONE);
         helper.assertTrue(effects.entries().size() == 1 && effects.entries().getFirst().effect().equals(MobEffects.LUCK),
                 "Luck effect not added: " + effects);
@@ -148,7 +151,7 @@ public final class ScrollUpgradeGameTests {
             helper.assertTrue(InstanceManager.join(player, nether, instance), "Player could not join");
 
             MobEffectInstance regeneration = player.getEffect(MobEffects.REGENERATION);
-            long remaining = instance.deadline() - ChallengeClock.now(nether.getServer());
+            long remaining = instance.remainingTicks(ChallengeClock.now(nether.getServer()));
             helper.assertTrue(regeneration != null && regeneration.getAmplifier() == 0 && Math.abs(regeneration.getDuration() - remaining) <= 20,
                     "Permanent scroll effect does not last the remaining instance time on top of the player's own effect: " + regeneration);
             helper.assertFalse(regeneration.isVisible(), "Player effect shows particles");
@@ -195,6 +198,6 @@ public final class ScrollUpgradeGameTests {
     private static ScrollUpgradeRecipe recipe(ScrollEffect effect) {
         return new ScrollUpgradeRecipe(new Recipe.CommonInfo(false), Optional.of(Ingredient.of(Items.PAPER)),
                 Ingredient.of(ModItems.CHALLENGE_SCROLL.get()), Optional.of(Ingredient.of(Items.RABBIT_FOOT)),
-                ScrollUpgradeRecipe.OptionsPatch.NONE, List.of(effect));
+                ScrollModifiers.NONE, List.of(effect));
     }
 }

@@ -33,6 +33,8 @@ import net.minecraft.world.level.GameType;
  * @param playerEffects    mob effects every player gets on entry (US-36)
  * @param playerAttributes attribute modifiers every player gets while inside (US-36)
  * @param oreGeneration    natural ore generation when an instance is created (US-37), if any
+ * @param run              time limit and admission rules of the challenge (US-41)
+ * @param mobEffects       mob effects every mob of an instance gets (US-41)
  */
 public record ChallengeStructure(
         Identifier theme,
@@ -46,7 +48,9 @@ public record ChallengeStructure(
         GameType gameMode,
         List<ChallengeEffect> playerEffects,
         List<ChallengeAttribute> playerAttributes,
-        Optional<OreGeneration> oreGeneration
+        Optional<OreGeneration> oreGeneration,
+        ChallengeRunSettings run,
+        List<ChallengeEffect> mobEffects
 ) {
 
     /** Game modes a challenge may use; Creative and Spectator would bypass the challenge. */
@@ -68,13 +72,17 @@ public record ChallengeStructure(
                     .forGetter(ChallengeStructure::playerEffects),
             LenientCodecs.list(ChallengeAttribute.CODEC, "challenge player attribute").optionalFieldOf("player_attributes", List.of())
                     .forGetter(ChallengeStructure::playerAttributes),
-            OreGeneration.CODEC.optionalFieldOf("ore_generation").forGetter(ChallengeStructure::oreGeneration)
+            OreGeneration.CODEC.optionalFieldOf("ore_generation").forGetter(ChallengeStructure::oreGeneration),
+            ChallengeRunSettings.MAP_CODEC.forGetter(ChallengeStructure::run),
+            LenientCodecs.list(ChallengeEffect.CODEC, "challenge mob effect").optionalFieldOf("mob_effects", List.of())
+                    .forGetter(ChallengeStructure::mobEffects)
     ).apply(instance, ChallengeStructure::new));
 
     /** Creates the metadata, defensively copying the lists. */
     public ChallengeStructure {
         playerEffects = List.copyOf(playerEffects);
         playerAttributes = List.copyOf(playerAttributes);
+        mobEffects = List.copyOf(mobEffects);
     }
 
     /**
@@ -91,11 +99,13 @@ public record ChallengeStructure(
      */
     public ChallengeStructure(Identifier theme, int tier, Identifier structure, Optional<String> name, Optional<String> author,
             Optional<Long> created, int weight, boolean rotation) {
-        this(theme, tier, structure, name, author, created, weight, rotation, GameType.ADVENTURE, List.of(), List.of(), Optional.empty());
+        this(theme, tier, structure, name, author, created, weight, rotation, GameType.ADVENTURE, List.of(), List.of(), Optional.empty(),
+                ChallengeRunSettings.DEFAULT, List.of());
     }
 
     /**
-     * Returns a copy with other editor-managed fields; player effects, attributes and ore generation are kept.
+     * Returns a copy with other editor-managed fields; player effects, attributes, ore generation, run settings and
+     * mob effects are kept.
      *
      * @param name     the name
      * @param weight   the selection weight
@@ -105,6 +115,40 @@ public record ChallengeStructure(
      */
     public ChallengeStructure with(Optional<String> name, int weight, boolean rotation, GameType gameMode) {
         return new ChallengeStructure(this.theme, this.tier, this.structure, name, this.author, this.created, weight, rotation, gameMode,
-                this.playerEffects, this.playerAttributes, this.oreGeneration);
+                this.playerEffects, this.playerAttributes, this.oreGeneration, this.run, this.mobEffects);
+    }
+
+    /**
+     * Returns a copy with other run settings.
+     *
+     * @param newRun the run settings
+     * @return the updated metadata
+     */
+    public ChallengeStructure withRun(ChallengeRunSettings newRun) {
+        return new ChallengeStructure(this.theme, this.tier, this.structure, this.name, this.author, this.created, this.weight, this.rotation,
+                this.gameMode, this.playerEffects, this.playerAttributes, this.oreGeneration, newRun, this.mobEffects);
+    }
+
+    /**
+     * Returns a copy with other mob effects.
+     *
+     * @param effects the mob effects
+     * @return the updated metadata
+     */
+    public ChallengeStructure withMobEffects(List<ChallengeEffect> effects) {
+        return new ChallengeStructure(this.theme, this.tier, this.structure, this.name, this.author, this.created, this.weight, this.rotation,
+                this.gameMode, this.playerEffects, this.playerAttributes, this.oreGeneration, this.run, effects);
+    }
+
+    /**
+     * Returns the metadata of a newly saved template that keeps every setting of this (previous) metadata.
+     *
+     * @param newAuthor  the author of the save
+     * @param newCreated the time of the save
+     * @return the updated metadata
+     */
+    public ChallengeStructure resaved(Optional<String> newAuthor, Optional<Long> newCreated) {
+        return new ChallengeStructure(this.theme, this.tier, this.structure, this.name, newAuthor, newCreated, this.weight, this.rotation,
+                this.gameMode, this.playerEffects, this.playerAttributes, this.oreGeneration, this.run, this.mobEffects);
     }
 }

@@ -60,6 +60,11 @@ All JSON formats of the mod at a glance. `<ns>` is your datapack namespace.
 | `player_effects` | no | List of `{effect, amplifier (0), duration (-1 = whole stay)}` every player gets on entry |
 | `ore_generation` | no | Natural ores on instance creation: `biome` (required), `min_y` / `max_y` (simulated height of the lowest / highest layer; default: the biome's dimension), `density` (ore attempt factor; default: vanilla density). See [Mining rooms](Building-Challenges#natural-ores) |
 | `player_attributes` | no | List of `{attribute, amount, operation (add_value \| add_multiplied_base \| add_multiplied_total)}` while inside |
+| `mob_effects` | no | List of `{effect, amplifier (0), duration (-1 = infinite)}` every mob of the instance gets |
+| `time_limit` | no (config) | Time limit in seconds, starting with the first entry. See [Run settings](Building-Challenges#run-settings-time-limit-and-players) |
+| `max_players` | no (1) | `1` = solo, `n` = up to n players, `0` = unlimited |
+| `portal_open_seconds` | no (0) | `0` = closes after the first pass-through, `>0` = seconds open, `-1` = until the time limit expires |
+| `allow_reentry` | no (false) | Re-entry after leaving without completing |
 
 ## Sub structure metadata
 
@@ -87,8 +92,7 @@ Markers' block entities (saved with the structure):
 | Component | Format | Page |
 |---|---|---|
 | `architectstrials:challenge` | `{ "theme": "<ns>:<theme>", "tier": 2 }` | [Scrolls](Scrolls#theme-and-tier) |
-| `architectstrials:time_limit` | minutes, e.g. `30` | [Scrolls](Scrolls#time-limit) |
-| `architectstrials:options` | `{ "max_players": 4, "portal_open_seconds": 120, "allow_reentry": true }` | [Scrolls](Scrolls#multiplayer-options) |
+| `architectstrials:modifiers` | `{ "time": -50, "portal_open": 100, "max_players": 2, "allow_reentry": true }` | [Scrolls](Scrolls#time-limit-and-players-come-from-the-challenge) |
 | `architectstrials:effects` | list of effect entries (see below) | [Scrolls](Scrolls#effects) |
 
 A complete scroll as a recipe result:
@@ -98,8 +102,7 @@ A complete scroll as a recipe result:
   "id": "architectstrials:challenge_scroll",
   "components": {
     "architectstrials:challenge": { "theme": "mypack:crypt", "tier": 2 },
-    "architectstrials:time_limit": 30,
-    "architectstrials:options": { "max_players": 4, "portal_open_seconds": 60 },
+    "architectstrials:modifiers": { "time": -25, "max_players": 2 },
     "architectstrials:effects": [
       { "target": "mobs", "effect": "minecraft:glowing", "duration": -1 }
     ]
@@ -128,7 +131,7 @@ A complete scroll as a recipe result:
   "template": "minecraft:paper",
   "base": "architectstrials:challenge_scroll",
   "addition": "minecraft:rabbit_foot",
-  "options": { "max_players": 4 },
+  "modifiers": { "time": 25 },
   "effects": [ { "target": "player", "effect": "minecraft:luck", "duration": -1 } ]
 }
 ```
@@ -138,7 +141,7 @@ A complete scroll as a recipe result:
 | `template` | no | Ingredient in the template slot |
 | `base` | yes | Ingredient in the base slot (the scroll) |
 | `addition` | no | Ingredient in the addition slot |
-| `options` | no | Any of `max_players`, `portal_open_seconds`, `allow_reentry` |
+| `modifiers` | no | Any of `time`, `portal_open`, `max_players`, `allow_reentry`; combined with the scroll's (percentages multiply) |
 | `effects` | no | List of effect entries |
 
 ## Advancement criterion

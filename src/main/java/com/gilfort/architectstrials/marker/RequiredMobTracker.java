@@ -3,7 +3,6 @@ package com.gilfort.architectstrials.marker;
 import java.util.UUID;
 
 import com.gilfort.architectstrials.ArchitectsTrials;
-import com.gilfort.architectstrials.instance.ChallengeClock;
 import com.gilfort.architectstrials.instance.InstanceManager;
 
 import net.minecraft.server.level.ServerLevel;
@@ -41,9 +40,8 @@ public final class RequiredMobTracker {
      * @param mob     the spawned mob
      */
     static void markRequired(MarkerContext context, LivingEntity mob) {
-        long remaining = context.instance().deadline() - ChallengeClock.now(context.level().getServer());
-        int duration = (int) Math.max(1L, Math.min(Integer.MAX_VALUE, remaining));
-        mob.addEffect(new MobEffectInstance(MobEffects.GLOWING, duration, 0, false, false, true));
+        // The instance and its mobs end with the time limit, which only starts on the first entry.
+        mob.addEffect(new MobEffectInstance(MobEffects.GLOWING, MobEffectInstance.INFINITE_DURATION, 0, false, false, true));
         mob.getPersistentData().putString(INSTANCE_KEY, context.instance().id().toString());
         context.addRequiredMob(mob.getUUID());
     }

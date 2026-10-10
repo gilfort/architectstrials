@@ -47,11 +47,17 @@ warning in the log and removed from the pool until the next `/reload`.
 Every challenge has a time limit, shown to all participants as a boss bar ("Time left: mm:ss", red in the last
 minute):
 
-- the scroll's `architectstrials:time_limit` (minutes), otherwise `defaultTimeLimitMinutes` (default 60),
-- never shorter than the portal's open time.
+- the challenge's `time_limit` (seconds, see [Building Challenges](Building-Challenges#run-settings-time-limit-and-players)),
+  otherwise the config's `defaultTimeLimitSeconds` (default 3600),
+- scaled by the scroll's `time` modifier ([Scrolls](Scrolls#time-limit-and-players-come-from-the-challenge)).
+
+**The time starts when the first player enters.** The portal's forming phase, the structure placement and the wait
+for the first player do not count; until then no boss bar is shown and the instance never expires (an unused portal
+still collapses after `portalTimeoutSeconds`). Late joiners see the same remaining time.
 
 Participants get chat warnings at 5 and 1 minute(s) and an action-bar countdown in the last 10 seconds. When time
-is up, everyone still inside is sent back — this does **not** count as a completed run.
+is up, everyone still inside is sent back — this does **not** count as a completed run — and the instance ends,
+together with its portal.
 
 Time only runs while the server runs (it is counted in server ticks and saved with the world). Players who log
 out inside a challenge keep it alive until the time limit; if they log back in in time, they continue, otherwise

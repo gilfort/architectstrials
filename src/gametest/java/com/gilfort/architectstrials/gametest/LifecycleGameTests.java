@@ -1,10 +1,12 @@
 package com.gilfort.architectstrials.gametest;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.function.Consumer;
 
 import com.gilfort.architectstrials.ArchitectsTrials;
+import com.gilfort.architectstrials.scroll.ScrollModifiers;
 import com.gilfort.architectstrials.scroll.ScrollOptions;
 import com.gilfort.architectstrials.instance.ChallengeClock;
 import com.gilfort.architectstrials.instance.ChallengeInstance;
@@ -138,21 +140,23 @@ public final class LifecycleGameTests {
     }
 
     /**
-     * The time limit comes from the scroll's {@code architectstrials:time_limit} component.
+     * The time limit comes from the challenge (here the configured default) scaled by the scroll's time modifier,
+     * and does not run before the first entry (US-41).
      */
     private static void scrollTimeLimit(GameTestHelper helper) {
         MinecraftServer server = helper.getLevel().getServer();
         ServerPlayer player = ScrollPortalGameTests.qualified(TestPlayers.atStart(helper, GameType.SURVIVAL), PLATFORM_TIER);
         ItemStack scroll = ScrollPortalGameTests.scroll(Level.NETHER.identifier(), PLATFORM_TIER);
-        scroll.set(ModDataComponents.TIME_LIMIT.get(), 2);
+        scroll.set(ModDataComponents.SCROLL_MODIFIERS.get(), new ScrollModifiers(-50.0, 0.0, Optional.empty(), false));
         ScrollPortalGameTests.clearPortalSpace(helper);
 
         ScrollActivation.Result result = ScrollActivation.activate(player, scroll, helper.absolutePos(ScrollPortalGameTests.PORTAL), 0.0F);
         helper.assertTrue(result.succeeded(), "Scroll activation failed");
         ChallengeInstance instance = InstanceManager.data(TestPlayers.challengeLevel(helper)).get(result.portal().orElseThrow().instanceId()).orElseThrow();
-        long limit = instance.deadline() - ChallengeClock.now(server);
-        long expected = 2L * 60L * ChallengeClock.TICKS_PER_SECOND;
-        helper.assertTrue(limit <= expected && limit > expected - 40, "Time limit does not match the scroll component: " + limit);
+        long expected = InstanceManager.defaultTimeLimitTicks() / 2;
+        helper.assertTrue(instance.timeLimit() == expected, "Time limit is not the default scaled by -50 %: " + instance.timeLimit());
+        helper.assertFalse(instance.started(), "Time limit started before anyone entered");
+        helper.assertTrue(instance.remainingTicks(ChallengeClock.now(server)) == expected, "Remaining time of an unstarted instance is wrong");
         result.portal().ifPresent(portal -> portal.discard());
         TestPlayers.finish(helper, player);
     }

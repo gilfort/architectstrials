@@ -31,7 +31,8 @@ import net.minecraft.world.level.block.Rotation;
  * @param spawnPoints    the player entry points recorded from the structure's player spawn markers
  * @param exits          the positions of the exit bases recorded from the structure's exit markers
  * @param timeLimit      the total time limit in ticks (for progress displays)
- * @param deadline       the {@link ChallengeClock} value at which the time limit expires
+ * @param deadline       the {@link ChallengeClock} value at which the time limit expires, or {@link #NOT_STARTED}
+ *                       until the first player enters (US-41)
  * @param portalDeadline the clock value until which the entry portal may still let players in, or {@code -1}
  *                       once the portal is closed
  * @param options        the multiplayer options of the scroll that opened the instance
@@ -59,6 +60,9 @@ public record ChallengeInstance(
         RequiredMobs requiredMobs
 ) {
 
+    /** Value of {@link #deadline()} while nobody has entered yet: the time limit has not started. */
+    public static final long NOT_STARTED = -1L;
+
     /** Codec used to persist instances. */
     public static final Codec<ChallengeInstance> CODEC = RecordCodecBuilder.create(instance -> instance.group(
             UUIDUtil.CODEC.fieldOf("id").forGetter(ChallengeInstance::id),
@@ -72,7 +76,7 @@ public record ChallengeInstance(
             SpawnPoint.CODEC.listOf().optionalFieldOf("spawn_points", List.of()).forGetter(ChallengeInstance::spawnPoints),
             BlockPos.CODEC.listOf().optionalFieldOf("exits", List.of()).forGetter(ChallengeInstance::exits),
             Codec.LONG.optionalFieldOf("time_limit", 0L).forGetter(ChallengeInstance::timeLimit),
-            Codec.LONG.optionalFieldOf("deadline", 0L).forGetter(ChallengeInstance::deadline),
+            Codec.LONG.optionalFieldOf("deadline", NOT_STARTED).forGetter(ChallengeInstance::deadline),
             Codec.LONG.optionalFieldOf("portal_deadline", -1L).forGetter(ChallengeInstance::portalDeadline),
             ScrollOptions.CODEC.optionalFieldOf("options", ScrollOptions.DEFAULT).forGetter(ChallengeInstance::options),
             ScrollEffects.CODEC.optionalFieldOf("effects", ScrollEffects.NONE).forGetter(ChallengeInstance::effects),
@@ -124,6 +128,21 @@ public record ChallengeInstance(
      */
     public boolean ready() {
         return !this.spawnPoints.isEmpty();
+    }
+
+    /** @return {@code true} once the first player entered and the time limit runs */
+    public boolean started() {
+        return this.deadline != NOT_STARTED;
+    }
+
+    /**
+     * Returns the remaining time: until the deadline once started, otherwise the whole time limit.
+     *
+     * @param now the current {@link ChallengeClock} value
+     * @return the remaining time in ticks
+     */
+    public long remainingTicks(long now) {
+        return this.started() ? this.deadline - now : this.timeLimit;
     }
 
     /** @return the players currently belonging to the instance (online or offline) */

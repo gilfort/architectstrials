@@ -42,8 +42,9 @@ import net.neoforged.neoforge.event.entity.EntityJoinLevelEvent;
  * entry.</li>
  * <li>attribute modifiers of the challenge ({@link ChallengeStructure#playerAttributes()}) on entry, removed on
  * leaving</li>
- * <li>{@code mobs} effects of the scroll on the first entry to all loaded mobs of the instance, and from then on to
- * every mob joining the instance area (spawned by spawners or loaded with its chunk)</li>
+ * <li>mob effects of the challenge ({@link ChallengeStructure#mobEffects()}, US-41) and {@code mobs} effects of the
+ * scroll on the first entry to all loaded mobs of the instance, and from then on to every mob joining the instance
+ * area (spawned by spawners or loaded with its chunk); {@code duration -1} = infinite</li>
  * </ul>
  * Mob effects are added the vanilla way, so an existing stronger or longer effect is kept.
  */
@@ -61,7 +62,7 @@ public final class ScrollEffectApplication {
      * @param instance the instance as it was before this entry
      */
     static void onEntry(ServerPlayer player, ServerLevel level, ChallengeInstance instance) {
-        int remaining = (int) Math.max(1L, Math.min(Integer.MAX_VALUE, instance.deadline() - ChallengeClock.now(level.getServer())));
+        int remaining = (int) Math.max(1L, Math.min(Integer.MAX_VALUE, instance.remainingTicks(ChallengeClock.now(level.getServer()))));
         Optional<ChallengeStructure> structure = ChallengeStructures.get(instance.structure());
         Map<Holder<MobEffect>, List<Layer>> layers = new LinkedHashMap<>();
         for (ScrollEffect effect : instance.effects().forTarget(ScrollEffect.Target.PLAYER)) {
@@ -72,7 +73,9 @@ public final class ScrollEffectApplication {
         layers.forEach((type, typeLayers) -> applyLayers(player, type, typeLayers));
         structure.ifPresent(found -> applyAttributes(player, found.playerAttributes()));
 
-        if (instance.roster().entrants().isEmpty() && !instance.effects().forTarget(ScrollEffect.Target.MOBS).isEmpty()) {
+        boolean mobEffects = !instance.effects().forTarget(ScrollEffect.Target.MOBS).isEmpty()
+                || structure.map(found -> !found.mobEffects().isEmpty()).orElse(false);
+        if (instance.roster().entrants().isEmpty() && mobEffects) {
             AABB area = AABB.of(SlotManager.slot(level, instance.slot()).area(level.getMinY(), level.getMaxY()));
             level.getEntitiesOfClass(Mob.class, area, Mob::isAlive).forEach(mob -> applyMobEffects(mob, instance));
         }
@@ -162,6 +165,8 @@ public final class ScrollEffectApplication {
     }
 
     private static void applyMobEffects(Mob mob, ChallengeInstance instance) {
+        ChallengeStructures.get(instance.structure()).ifPresent(structure -> structure.mobEffects().forEach(effect ->
+                mob.addEffect(new MobEffectInstance(effect.effect(), effect.duration(), effect.amplifier()))));
         for (ScrollEffect effect : instance.effects().forTarget(ScrollEffect.Target.MOBS)) {
             mob.addEffect(effect.instance());
         }

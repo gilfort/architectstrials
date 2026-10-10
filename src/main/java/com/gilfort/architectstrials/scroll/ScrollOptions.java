@@ -9,10 +9,9 @@ import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.util.ExtraCodecs;
 
 /**
- * Multiplayer options of a challenge scroll, stored as data component {@code architectstrials:options}. They
- * are read when the portal opens and fixed into the instance. All fields are optional; the default is the solo
- * scroll.
- * <pre>{@code "architectstrials:options": {"max_players": 4, "portal_open_seconds": 120, "allow_reentry": true}}</pre>
+ * Admission options of an instance: who may enter and how long the portal stays open. They are computed when the
+ * portal opens from the challenge's {@link com.gilfort.architectstrials.structure.ChallengeRunSettings} and the
+ * scroll's {@link ScrollModifiers} (US-41) and fixed into the instance.
  *
  * @param maxPlayers        number of distinct players who may enter ({@code 1} = only the scroll user,
  *                          {@code 0} = unlimited); re-entries do not count

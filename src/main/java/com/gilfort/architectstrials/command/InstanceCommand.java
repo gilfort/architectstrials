@@ -11,7 +11,8 @@ import com.gilfort.architectstrials.instance.ChallengeInstance;
 import com.gilfort.architectstrials.instance.InstanceCreation;
 import com.gilfort.architectstrials.instance.InstanceManager;
 import com.gilfort.architectstrials.instance.InstancePlacements;
-import com.gilfort.architectstrials.scroll.ScrollOptions;
+import com.gilfort.architectstrials.scroll.ScrollEffects;
+import com.gilfort.architectstrials.scroll.ScrollModifiers;
 import com.gilfort.architectstrials.theme.ChallengeTheme;
 import com.gilfort.architectstrials.theme.ChallengeThemes;
 import com.gilfort.architectstrials.travel.ChallengeTravel;
@@ -71,7 +72,7 @@ final class InstanceCommand {
         List<ChallengeInstance> instances = allInstances(server).toList();
         source.sendSuccess(() -> Component.translatable("commands.architectstrials.instance.list.header", instances.size()), false);
         for (ChallengeInstance instance : instances) {
-            long seconds = Math.max(0L, instance.deadline() - now) / ChallengeClock.TICKS_PER_SECOND;
+            long seconds = Math.max(0L, instance.remainingTicks(now)) / ChallengeClock.TICKS_PER_SECOND;
             String remaining = String.format(Locale.ROOT, "%d:%02d", seconds / 60, seconds % 60);
             source.sendSuccess(() -> Component.translatable("commands.architectstrials.instance.list.entry",
                     instance.id().toString().substring(0, 8), instance.theme().toString(), instance.tier(), instance.slot(),
@@ -119,7 +120,7 @@ final class InstanceCommand {
         ChallengeTheme theme = ChallengeThemes.get(IdentifierArgument.getId(context, "theme")).orElseThrow();
         int tier = IntegerArgumentType.getInteger(context, "tier");
 
-        InstanceCreation result = InstanceManager.create(level, theme, tier, level.getRandom(), InstanceManager.defaultTimeLimitTicks(), ScrollOptions.DEFAULT);
+        InstanceCreation result = InstanceManager.create(level, theme, tier, level.getRandom(), ScrollModifiers.NONE, ScrollEffects.NONE);
         if (result instanceof InstanceCreation.Failure(Component reason)) {
             source.sendFailure(reason);
             return 0;

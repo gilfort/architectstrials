@@ -42,6 +42,12 @@ modpack to be safe).
 | `/at structure set <theme> <tier> <id> rotation <true\|false>` | Allows random rotation and mirroring |
 | `/at structure set <theme> <tier> <id> game_mode <adventure\|survival>` | Game mode players enter in (Survival for mining rooms) |
 | `/at structure set <theme> <tier> <id> name <text>` | Sets the display name |
+| `/at structure set <theme> <tier> <id> time_limit <seconds>\|default` | Time limit of the challenge (`default` = config value) |
+| `/at structure set <theme> <tier> <id> max_players <n>` | Player limit (`0` = unlimited) |
+| `/at structure set <theme> <tier> <id> portal_open_seconds <n>` | Portal open time (`0` = closes after the first player, `-1` = until the time runs out) |
+| `/at structure set <theme> <tier> <id> allow_reentry <true\|false>` | Re-entry after leaving without completing |
+| `/at structure set <theme> <tier> <id> mob_effects add <effect> [amplifier] [duration]` | Adds (or replaces) a mob effect for all mobs of the instance; duration in ticks, `-1` = infinite (default) |
+| `/at structure set <theme> <tier> <id> mob_effects remove <effect>\|clear` | Removes one or all mob effects |
 | `/at structure delete <theme> <tier> <id>` + `confirm` | Deletes a stored structure (confirm within 30 s) |
 | `/at structure delete sub <ns:id>` + `confirm` | Deletes a sub structure (confirm within 30 s) |
 
@@ -60,7 +66,7 @@ modpack to be safe).
 | Command | Description |
 |---|---|
 | `/at instance list` | Lists all instances with state, remaining time and participant count |
-| `/at instance create <theme> <tier> [join]` | Creates an instance: draws a structure, places it in a free slot and resolves its markers; `join` lets you enter at a random spawn marker |
+| `/at instance create <theme> <tier> [join]` | Creates an instance with the challenge's own run settings: draws a structure, places it in a free slot and resolves its markers; `join` lets you enter at a random spawn marker |
 | `/at instance close <id>` | Returns the participants and removes an instance |
 | `/at slot list <theme>` | Lists occupied and clearing slots of a theme dimension |
 | `/at slot allocate <theme>` | Allocates the next free slot |

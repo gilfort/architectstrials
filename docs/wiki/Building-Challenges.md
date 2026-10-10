@@ -153,6 +153,29 @@ Example: a cave carved out of stone and deepslate (deepslate in the lower part),
 `ore_generation` block with `minecraft:plains`, a Player Spawn Marker on a ledge and an Exit Marker behind a
 redstone-locked door that opens once the players reach the bottom.
 
+## Run settings: time limit and players
+
+Each challenge defines how it is played; scrolls can only modify these values
+([Scrolls](Scrolls#time-limit-and-players-come-from-the-challenge)). Add them to the structure's JSON (see
+[Datapack Reference](Datapack-Reference#structure-metadata)) or set them with `/at structure set`:
+
+```json
+"time_limit": 300,
+"max_players": 4,
+"portal_open_seconds": 120,
+"allow_reentry": true
+```
+
+| Field | Default | Description |
+|---|---|---|
+| `time_limit` | config `defaultTimeLimitSeconds` (3600) | Seconds; the time starts when the first player enters |
+| `max_players` | `1` | `1` = only the scroll user, `n` = up to n distinct players, `0` = unlimited |
+| `portal_open_seconds` | `0` | `0` = closes after the first pass-through, `>0` = open that many seconds once active, `-1` = open until the time limit expires |
+| `allow_reentry` | `false` | Players who left without completing may enter again while the portal is open |
+
+Example: a quick loot room with `"time_limit": 120` — whoever reaches the exit in time gets the
+[completion bonus](Loot#completion-bonus), everyone else keeps only what they found in the chests.
+
 ## Challenge effects and attributes
 
 A challenge can give every player its own rules — night vision in a dark cave, slowness in a swamp — independent of
@@ -176,6 +199,16 @@ the scroll. Add them to the structure's JSON (see [Datapack Reference](Datapack-
 - Leaving — by any way — removes all effects and attribute modifiers of the challenge and the scroll and gives the
   player's own effects back with the duration they had on entry.
 - Modded effects and attributes work the same; unknown ids are skipped with a warning in the log.
+
+**Mob effects:** `mob_effects` gives every mob of the instance an effect — applied to all mobs on the first entry and
+to every mob that spawns or loads afterwards, like the `mobs` effects of a scroll. Without `duration` (or with `-1`)
+the effect is infinite.
+
+```json
+"mob_effects": [
+  {"effect": "minecraft:resistance", "amplifier": 1}
+]
+```
 
 ## Sub structures
 

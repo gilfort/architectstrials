@@ -83,13 +83,16 @@ public final class InstanceLifecycle {
     }
 
     private static void update(ServerLevel level, ChallengeInstance instance, long now) {
-        long remaining = instance.deadline() - now;
-        if (remaining <= 0) {
-            expire(level, instance);
-            return;
+        // The time limit only runs once the first player entered (US-41).
+        if (instance.started()) {
+            long remaining = instance.deadline() - now;
+            if (remaining <= 0) {
+                expire(level, instance);
+                return;
+            }
+            warn(level, instance, remaining);
+            InstanceTimerBars.update(instance, remaining, onlineParticipants(level, instance));
         }
-        warn(level, instance, remaining);
-        InstanceTimerBars.update(instance, remaining, onlineParticipants(level, instance));
 
         ChallengeInstance current = instance;
         if (current.portalOpen() && now > current.portalDeadline() + PORTAL_GRACE_TICKS) {
