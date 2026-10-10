@@ -6,6 +6,7 @@
 
 **Building**
 - [Building Challenges](Building-Challenges)
+- [Challenge Browser](Challenge-Browser)
 - [Markers](Markers)
 - [Loot](Loot)
 

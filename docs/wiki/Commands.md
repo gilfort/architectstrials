@@ -27,6 +27,7 @@ modpack to be safe).
 
 | Command | Description |
 |---|---|
+| `/at gui` | Opens the [Challenge Browser](Challenge-Browser): all themes, challenges and sub structures with their settings, template content and problems; **Load to editor** |
 | `/at editor enter` | Enters the shared editor dimension |
 | `/at editor clear` + `/at editor clear confirm` | Empties the editor (confirm within 30 s) |
 | `/at editor import` (+ `confirm` above 100,000 blocks) | Copies the area selected with the Selection Tool into the empty editor; spawners become markers |

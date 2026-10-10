@@ -10,6 +10,8 @@ import java.util.function.UnaryOperator;
 import com.gilfort.architectstrials.ArchitectsTrials;
 import com.gilfort.architectstrials.editor.EditorCapture;
 import com.gilfort.architectstrials.editor.EditorDimension;
+import com.gilfort.architectstrials.editor.EditorLoading;
+import com.gilfort.architectstrials.editor.EditorState;
 import com.gilfort.architectstrials.editor.StructureLibrary;
 import com.gilfort.architectstrials.structure.ChallengeStructure;
 import com.gilfort.architectstrials.structure.ChallengeStructures;
@@ -184,6 +186,7 @@ final class StructureCommand {
                     existing.map(ChallengeStructure::playerAttributes).orElse(List.of()),
                     existing.flatMap(ChallengeStructure::oreGeneration));
             StructureLibrary.write(source.getServer(), entry, captured.get().template(), metadata);
+            EditorState.of(source.getServer()).setLast(Optional.of(new EditorState.StructureRef(false, entry.metadataId())));
         } catch (IOException e) {
             ArchitectsTrials.LOGGER.error("Could not save structure {}", entry, e);
             source.sendFailure(Component.translatable("commands.architectstrials.structure.io_error", e.getMessage()));
@@ -211,8 +214,7 @@ final class StructureCommand {
             source.sendFailure(Component.translatable("commands.architectstrials.structure.load.not_empty"));
             return 0;
         }
-        EditorCapture.place(editor, template.get());
-        EditorDimension.freeStuckPlayers(editor);
+        EditorLoading.place(editor, template.get(), new EditorState.StructureRef(false, entry.metadataId()));
         source.sendSuccess(() -> Component.translatable("commands.architectstrials.structure.load.success", entry.name()), true);
         return 1;
     }

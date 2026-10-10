@@ -7,6 +7,7 @@ import java.util.Optional;
 import com.gilfort.architectstrials.config.ArchitectsTrialsConfig;
 import com.gilfort.architectstrials.editor.EditorCapture;
 import com.gilfort.architectstrials.editor.EditorDimension;
+import com.gilfort.architectstrials.editor.EditorState;
 import com.gilfort.architectstrials.editor.Selection;
 import com.gilfort.architectstrials.editor.SelectionToolItem;
 import com.gilfort.architectstrials.editor.WorldImport;
@@ -105,6 +106,7 @@ final class EditorCommand {
         source.sendSuccess(() -> Component.translatable("commands.architectstrials.editor.clear.started"), true);
         EditorDimension.clear(editor, cleared -> source.sendSuccess(
                 () -> Component.translatable("commands.architectstrials.editor.clear.done"), true));
+        EditorState.of(source.getServer()).setLast(Optional.empty());
         return 1;
     }
 
@@ -144,6 +146,7 @@ final class EditorCommand {
     private static int runImport(CommandSourceStack source, ImportTarget target) {
         WorldImport.Result result = WorldImport.importInto(target.level(), target.box(), target.editor());
         EditorDimension.freeStuckPlayers(target.editor());
+        EditorState.of(source.getServer()).setLast(Optional.empty());
         source.sendSuccess(() -> Component.translatable("commands.architectstrials.editor.import.success", result.copiedBlocks(),
                 result.spawners(), result.vaults()), true);
         if (!result.missingEggs().isEmpty()) {

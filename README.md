@@ -14,7 +14,7 @@ complete datapack and command reference.
 
 - **Themes are dimensions** — sky, fog, light and biome ambience per theme, defined by datapack.
 - **In-game editor** — build challenges in a shared void dimension and save them into tiered structure pools
-  with one command.
+  with one command; a challenge browser (`/at gui`) shows all structures, their content and problems.
 - **Markers** — player spawns, redstone-lockable and camouflaged exits, mobs with custom equipment (optionally
   required to open the exits), spawners, trial spawners, vaults and randomly rolled sub structures; configured
   with ghost slots (no real items needed, JEI drag & drop) and copied with the Spawn Marker Tool.

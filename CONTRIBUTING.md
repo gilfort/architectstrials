@@ -76,6 +76,7 @@ Cloud sessions (claude.ai/code, auto-created `ccr-*` branches) follow the **same
 - Entity type constants in `EntityTypes`, block entity types in `BlockEntityTypes`; `ResourceKey.identifier()`.
 - Permissions: `Commands.hasPermission(Commands.LEVEL_GAMEMASTERS)`.
 - `ContainerInput` replaces `ClickType`; screens use `extractBackground(GuiGraphicsExtractor, …)`.
+- Mouse buttons: `InputConstants.MOUSE_BUTTON_LEFT` is `1` (not `0`), middle `2`, right `3` — compare `event.button()` with the constants, never with raw numbers.
 - Structure NBT block states use `id` / `properties` (not `Name` / `Properties`).
 - Loot table entry functions: `"modifier": {"type": "minecraft:set_count", …}` — the old `"functions": [...]` is
   silently ignored.

@@ -294,3 +294,35 @@ payload clamp, list blocks fixed item, no hopper access), `ghost_slots_list_and_
 - [ ] Trial Spawner copy: both pages, "at once", "Ominous: allowed", loot table / Loot Tool rewards (normal and
       ominous) are pasted.
 - [ ] Right click with the tool opens the marker GUI; left click never breaks the marker; empty tool → red message.
+
+## US-40 (#74): Challenge browser GUI (/at gui) with load to editor
+
+GameTests: `browser_snapshot` (registered / unregistered themes, sort order, source pack and read-only, statistics,
+required mobs, problems, "used by", codec round trip), `browser_template_statistics` (size, spawn / exit markers incl.
+"need required mobs", direct spawn and spawner mobs, loot table / hand-filled containers, sub structure targets),
+`browser_editor_state` (last loaded structure remembered and forgotten).
+
+- [ ] `/at gui` as operator opens the browser; as non-operator the command is unknown. Esc closes it.
+- [ ] Left column: all themes (incl. `gametest_theme`, `the_nether`) with entry count; `gametest_validation` in red
+      with a problem marker; "Sub Structures" below the line.
+- [ ] Selecting a theme folds the left column to a `←` strip; the middle shows the tiers (fold / unfold a tier by
+      clicking its header); clicking the strip unfolds the column again.
+- [ ] Search field filters the challenges by name and id.
+- [ ] Selecting a challenge folds the middle column; details show metadata, draw chance (Nether tier 1 / 3 pool test:
+      percentages add up to 100 %), effects (tier 7), ore generation (tier 8), template statistics (tier 6: required
+      mobs; tier 12: sub structure `spawn_room` as a link) and "No problems found" / the problem list.
+- [ ] Entries of the test datapack show the lock icon and "Source: … (read-only)" with the tooltip; a structure saved
+      with `editor save` shows no lock and the source `file/architectstrials_structures`.
+- [ ] Sub structure `spawn_room`: "Used by" lists the Nether tier 12 parent; clicking it opens that challenge;
+      clicking the sub structure link there jumps back.
+- [ ] Long details scroll with the mouse wheel; small window / GUI scale 4: nothing overlaps, text is cut or wrapped.
+- [ ] Load to editor with an empty editor (`editor clear confirm` first): structure is loaded, you are in the editor
+      on top of it, the browser is closed, chat says "loaded".
+- [ ] Load to editor with a build in the editor: dialog names the structure, the players in the editor and the last
+      loaded structure; Cancel keeps everything and returns to the browser; Clear and load clears, loads and enters.
+- [ ] After `editor clear confirm` or `editor import` the dialog says "unknown"; after `editor save …` it names the
+      saved structure.
+- [ ] Browser open, another operator (or the console) runs `/at structure set … weight 5` → the open browser updates
+      without closing (draw chance changes). Refresh button also updates after `/reload`.
+- [ ] Load to editor from inside a challenge: you end up in the editor; `/at exit` brings you back to the challenge
+      entry point as usual.

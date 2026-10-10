@@ -8,6 +8,8 @@ import java.util.Optional;
 import com.gilfort.architectstrials.ArchitectsTrials;
 import com.gilfort.architectstrials.editor.EditorCapture;
 import com.gilfort.architectstrials.editor.EditorDimension;
+import com.gilfort.architectstrials.editor.EditorLoading;
+import com.gilfort.architectstrials.editor.EditorState;
 import com.gilfort.architectstrials.editor.StructureLibrary;
 import com.gilfort.architectstrials.sub.SubStructure;
 import com.gilfort.architectstrials.sub.SubStructures;
@@ -96,6 +98,7 @@ final class SubStructureCommand {
             SubStructure metadata = new SubStructure(SubStructure.templateId(id), existing.flatMap(SubStructure::name),
                     Optional.of(source.getTextName()), Optional.of(System.currentTimeMillis()));
             StructureLibrary.writeSub(source.getServer(), id, captured.get().template(), metadata);
+            EditorState.of(source.getServer()).setLast(Optional.of(new EditorState.StructureRef(true, id)));
         } catch (IOException e) {
             ArchitectsTrials.LOGGER.error("Could not save sub structure {}", id, e);
             source.sendFailure(Component.translatable("commands.architectstrials.structure.io_error", e.getMessage()));
@@ -122,8 +125,7 @@ final class SubStructureCommand {
             source.sendFailure(Component.translatable("commands.architectstrials.structure.load.not_empty"));
             return 0;
         }
-        EditorCapture.place(editor, template.get());
-        EditorDimension.freeStuckPlayers(editor);
+        EditorLoading.place(editor, template.get(), new EditorState.StructureRef(true, id));
         source.sendSuccess(() -> Component.translatable("commands.architectstrials.structure.load.success", id.toString()), true);
         return 1;
     }
