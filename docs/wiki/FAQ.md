@@ -36,6 +36,21 @@ Infinite player effects of a scroll are removed on every way out of a challenge,
 the same type is given back. Finite scroll effects simply run out. If you still see a leftover effect, please
 open an issue.
 
+### Can players teleport into or out of a challenge with Waystones, warp scrolls or other mods?
+Into: no — every teleport into a challenge or the editor that is not done by the mod is cancelled. Out: yes, but it
+counts as leaving without completion (see [Sealed challenges](Instances-and-Lifecycle#sealed-challenges)). To stop
+players from using such items inside at all, put them into the item tag `architectstrials:forbidden_in_challenges`
+([Tags](Datapack-Reference#tags)).
+
+### Players capture challenge mobs and take them home.
+Capturing is allowed on purpose (e.g. to free a villager). Mobs lose their challenge effects and glow outside; their
+equipment cannot be dropped. To forbid it, add the capture tools to the item tag
+`architectstrials:forbidden_in_challenges`.
+
+### A player mined a spawner in a mining room.
+It spawns plain mobs outside challenges — marker equipment only applies inside. To prevent it, protect the spawner
+(e.g. surround it with unbreakable blocks) or forbid the tools that can mine it.
+
 ### Can I use `/at` in my datapack functions?
 Yes, but if another mod in the pack registers `/at`, it may win. `/architectstrials` always works.
 

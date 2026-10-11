@@ -186,7 +186,9 @@ public final class EquipmentListGameTests {
                 mob = (Mob) EntityType.loadEntityRecursive(input, level, EntitySpawnReason.SPAWNER, e -> e);
             }
             mob.setPos(helper.absoluteVec(new Vec3(4.5, 2, 6.5)));
-            EventHooks.finalizeMobSpawnSpawner(mob, level, level.getCurrentDifficultyAt(mob.blockPosition()), EntitySpawnReason.SPAWNER, null,
+            // Marker equipment is only applied inside challenge dimensions (US-44).
+            ServerLevel challenge = TestPlayers.challengeLevel(helper);
+            EventHooks.finalizeMobSpawnSpawner(mob, challenge, challenge.getCurrentDifficultyAt(mob.blockPosition()), EntitySpawnReason.SPAWNER, null,
                     spawner.getSpawner(), false);
             helper.assertTrue(mob.getItemBySlot(EquipmentSlot.CHEST).is(Items.DIAMOND_CHESTPLATE), "Equipment table not applied");
             if (mob.getItemBySlot(EquipmentSlot.HEAD).is(Items.GOLDEN_HELMET)) {

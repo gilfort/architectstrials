@@ -404,3 +404,31 @@ screen writes previews of three templates from all four directions into that fol
       a moment.
 - [ ] Edit mode (US-42): the form starts below the preview and still scrolls.
 - [ ] Dedicated server with a second client: previews work for remote operators.
+
+## US-44 (#82): Challenges stay sealed
+
+GameTests: `seal_foreign_travel` (foreign teleport into a challenge cancelled, mod travel passes, foreign leave restores
+game mode, removes the participant and the entry point), `seal_forbidden_use` (tagged items blocked in the air and on
+blocks, lever still reacts, tagged block items and tagged blocks not placed, nothing forbidden outside),
+`seal_mob_defusing` (challenge mob effects, glow and required instance id removed outside, other effects kept),
+`mob_marker_spawner` (marker equipment only inside challenge dimensions), `exit_redstone_lock_and_completion`
+(non-participant cannot complete).
+
+Setup: a datapack with `data/architectstrials/tags/item/forbidden_in_challenges.json` (e.g. `minecraft:ender_pearl`,
+`minecraft:lead`, a Waystones warp scroll if installed) and `tags/block/forbidden_in_challenges.json` (e.g.
+`minecraft:tnt`).
+
+- [ ] From outside: `/execute in <theme dimension> run tp @s 0 100 0` → cancelled, overlay "Challenges can only be
+      entered through their portal."; same for the editor dimension.
+- [ ] Portal, `/at enter`, `/at editor enter`, test run from the browser and every return still work.
+- [ ] Inside a challenge: `/execute in minecraft:overworld run tp @s ~ ~ ~` (or a Waystones warp) → arrive there,
+      message "You left the challenge without completing it.", game mode and effects restored, timer bar gone; the
+      instance lets you back in only if re-entry is allowed.
+- [ ] Mining room: build and light a Nether portal → going through counts as leaving the same way.
+- [ ] Ender pearl in hand inside a challenge: throwing is blocked with "You can't use this here."; right click on a
+      chest or door with it still opens them; outside the challenge pearls work.
+- [ ] Lead on a mob inside: blocked. TNT: cannot be placed inside (Survival challenge), works in the editor.
+- [ ] Capture a glowing required mob with a capture mod (if available): exit unseals as if defeated; releasing it in
+      the overworld: no glow, no challenge effects, equipment does not drop.
+- [ ] Silk-touch a marker spawner out of a mining room (if a mod allows it) and place it at home: plain mobs without
+      marker equipment.

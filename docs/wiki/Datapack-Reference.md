@@ -16,6 +16,8 @@ All JSON formats of the mod at a glance. `<ns>` is your datapack namespace.
 | `data/<ns>/loot_table/architectstrials/completion/<theme>/tier_<n>.json` | Completion bonus by convention | [Loot](Loot#completion-bonus) |
 | `data/<ns>/recipe/<name>.json` with `architectstrials:scroll_upgrade` | Scroll upgrade | [Scrolls](Scrolls#upgrades-at-the-smithing-table) |
 | `data/<ns>/advancement/…` with `architectstrials:run_completed` | Progression | [Advancements & Events](Advancements-and-Events) |
+| `data/architectstrials/tags/item/forbidden_in_challenges.json` | Items that cannot be used in challenges | [below](#tags) |
+| `data/architectstrials/tags/block/forbidden_in_challenges.json` | Blocks that cannot be placed in challenges | [below](#tags) |
 
 ## Theme list
 
@@ -143,6 +145,24 @@ A complete scroll as a recipe result:
 | `addition` | no | Ingredient in the addition slot |
 | `modifiers` | no | Any of `time`, `portal_open`, `max_players`, `allow_reentry`; combined with the scroll's (percentages multiply) |
 | `effects` | no | List of effect entries |
+
+## Tags
+
+| Tag | Effect |
+|---|---|
+| `#architectstrials:forbidden_in_challenges` (item) | Using the item inside challenges is cancelled (right / left clicks); see [Sealed challenges](Instances-and-Lifecycle#sealed-challenges) |
+| `#architectstrials:forbidden_in_challenges` (block) | Placing the block inside challenges is cancelled |
+
+Both are empty unless a datapack fills them; vanilla tag format, e.g.
+`data/architectstrials/tags/item/forbidden_in_challenges.json`:
+
+```json
+{
+  "values": ["minecraft:ender_pearl", { "id": "waystones:warp_scroll", "required": false }]
+}
+```
+
+Use `"required": false` for items of mods that may be missing. The editor dimension is not affected.
 
 ## Advancement criterion
 

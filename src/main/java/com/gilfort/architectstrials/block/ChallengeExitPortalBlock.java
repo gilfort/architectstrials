@@ -73,8 +73,8 @@ public class ChallengeExitPortalBlock extends Block {
     }
 
     /**
-     * Completes the run of a player touching a portal block, if the exit group below is open and belongs to the
-     * player's instance.
+     * Completes the run of a player touching a portal block, if the exit group below is open and belongs to an
+     * instance the player participates in and has not completed yet (US-44).
      *
      * @param level  the challenge level
      * @param pos    the position of the portal block
@@ -90,7 +90,8 @@ public class ChallengeExitPortalBlock extends Block {
             return false;
         }
         Optional<ChallengeInstance> instance = InstanceManager.findAt(level, pos)
-                .filter(found -> group.get().members().stream().anyMatch(found.exits()::contains));
+                .filter(found -> group.get().members().stream().anyMatch(found.exits()::contains))
+                .filter(found -> found.participants().contains(player.getUUID()) && !found.roster().completed().contains(player.getUUID()));
         if (instance.isEmpty()) {
             return false;
         }

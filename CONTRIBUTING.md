@@ -70,6 +70,7 @@ Cloud sessions (claude.ai/code, auto-created `ccr-*` branches) follow the **same
   - Static `ItemStack`s / components in test classes crash mod loading ("Components not bound yet") — create them
     lazily.
   - Parallel GameTests placing into the same dimension area need distinct centers.
+  - Cross-dimension teleports into challenge / editor dimensions are cancelled unless done by `ChallengeTravel` (US-44): use `TestPlayers.teleport` (mod travel) to move mock players, `TestPlayers.foreignTeleport` to test the guard.
 
 ## 26.3 API notes
 

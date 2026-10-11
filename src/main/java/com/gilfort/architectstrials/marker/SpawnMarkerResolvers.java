@@ -5,6 +5,7 @@ import java.util.Optional;
 
 import com.gilfort.architectstrials.ArchitectsTrials;
 import com.gilfort.architectstrials.block.SpawnMarkerBlockEntity;
+import com.gilfort.architectstrials.theme.ChallengeThemes;
 import com.mojang.serialization.Codec;
 
 import net.minecraft.core.BlockPos;
@@ -199,7 +200,8 @@ public final class SpawnMarkerResolvers {
     /**
      * Applies marker equipment to mobs spawned by a spawner created from a Spawner Marker. The spawner does not
      * run the mob's spawn initialization for configured entities, so it is run here before the equipment is
-     * applied.
+     * applied. Outside challenge dimensions (a mined spawner, US-44) the equipment is dropped and the mob stays a
+     * plain, naturally initialized mob.
      *
      * @param event the finalize spawn event
      */
@@ -215,7 +217,10 @@ public final class SpawnMarkerResolvers {
         if (!event.isSpawnCancelled()) {
             mob.finalizeSpawn(event.getLevel(), event.getDifficulty(), event.getSpawnType(), event.getSpawnData());
         }
-        equipment.apply(mob, mob.getRandom());
+        // A marker spawner taken out of its challenge (US-44) spawns plain vanilla mobs.
+        if (ChallengeThemes.isChallengeDimension(event.getLevel().getLevel().dimension())) {
+            equipment.apply(mob, mob.getRandom());
+        }
     }
 
     /**
