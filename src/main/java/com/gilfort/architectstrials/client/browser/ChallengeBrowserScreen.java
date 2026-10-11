@@ -875,10 +875,6 @@ public class ChallengeBrowserScreen extends Screen implements ChallengeEditor.Ho
             graphics.blit(RenderPipelines.GUI_TEXTURED, status.texture(), drawX, drawY, u0 * PreviewRenderer.WIDTH, v0 * PreviewRenderer.HEIGHT,
                     drawW, drawH, Math.round(PreviewRenderer.WIDTH * size), Math.round(PreviewRenderer.HEIGHT * size),
                     PreviewRenderer.WIDTH, PreviewRenderer.HEIGHT);
-            if (this.previewImage.contains(mouseX, mouseY)) {
-                this.hits.add(new Hit(drawX, drawY, drawX + drawW, drawY + drawH,
-                        List.of(Component.translatable("gui.architectstrials.browser.preview.controls"))));
-            }
         } else {
             Component text = switch (status.state()) {
                 case FAILED_TEMPLATE -> Component.translatable("gui.architectstrials.browser.preview.failed_template");
