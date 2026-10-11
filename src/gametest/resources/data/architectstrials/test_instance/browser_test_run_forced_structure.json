@@ -1,0 +1,8 @@
+{
+  "type": "minecraft:function",
+  "environment": "minecraft:default",
+  "function": "architectstrials:browser_test_run_forced_structure",
+  "max_ticks": 400,
+  "structure": "minecraft:empty",
+  "padding": 8
+}

@@ -78,8 +78,26 @@ public final class InstanceManager {
      */
     public static InstanceCreation create(ServerLevel level, ChallengeTheme theme, int tier, RandomSource random, ScrollModifiers modifiers,
             ScrollEffects effects) {
-        return create(level, theme, tier, random, structure -> new RunSetup(
-                (long) modifiers.timeLimitSeconds(structure.run()) * ChallengeClock.TICKS_PER_SECOND, modifiers.options(structure.run())), effects);
+        return create(level, theme, tier, random, Optional.empty(), modifiers, effects);
+    }
+
+    /**
+     * Creates an instance like {@link #create(ServerLevel, ChallengeTheme, int, RandomSource, ScrollModifiers, ScrollEffects)},
+     * optionally of exactly one structure of the pool instead of a drawn one (test runs, US-42).
+     *
+     * @param level     the level of the theme dimension
+     * @param theme     the theme
+     * @param tier      the tier
+     * @param random    the random source for structure selection and transformation
+     * @param structure the metadata id of the structure to place, or empty to draw one
+     * @param modifiers the scroll's modifiers of the run settings
+     * @param effects   the effect upgrades of the scroll, fixed into the instance
+     * @return the outcome
+     */
+    public static InstanceCreation create(ServerLevel level, ChallengeTheme theme, int tier, RandomSource random, Optional<Identifier> structure,
+            ScrollModifiers modifiers, ScrollEffects effects) {
+        return create(level, theme, tier, random, structure, drawn -> new RunSetup(
+                (long) modifiers.timeLimitSeconds(drawn.run()) * ChallengeClock.TICKS_PER_SECOND, modifiers.options(drawn.run())), effects);
     }
 
     /**
@@ -113,16 +131,20 @@ public final class InstanceManager {
      */
     public static InstanceCreation create(ServerLevel level, ChallengeTheme theme, int tier, RandomSource random,
             long timeLimitTicks, ScrollOptions options, ScrollEffects effects) {
-        return create(level, theme, tier, random, structure -> new RunSetup(timeLimitTicks, options), effects);
+        return create(level, theme, tier, random, Optional.empty(), structure -> new RunSetup(timeLimitTicks, options), effects);
     }
 
     /** Time limit and admission options of a new instance. */
     private record RunSetup(long timeLimitTicks, ScrollOptions options) {
     }
 
-    private static InstanceCreation create(ServerLevel level, ChallengeTheme theme, int tier, RandomSource random,
+    private static InstanceCreation create(ServerLevel level, ChallengeTheme theme, int tier, RandomSource random, Optional<Identifier> forced,
             Function<ChallengeStructure, RunSetup> setup, ScrollEffects effects) {
-        Optional<Identifier> drawn = ChallengeStructures.drawEnterable(level.getServer(), theme.id(), tier, random);
+        if (forced.isPresent() && !ChallengeStructures.pool(theme.id(), tier).contains(forced.get())) {
+            return new InstanceCreation.Failure(Component.translatable("message.architectstrials.instance.not_in_pool",
+                    forced.get().toString(), theme.displayName(), tier));
+        }
+        Optional<Identifier> drawn = forced.isPresent() ? forced : ChallengeStructures.drawEnterable(level.getServer(), theme.id(), tier, random);
         if (drawn.isEmpty()) {
             return new InstanceCreation.Failure(Component.translatable("message.architectstrials.instance.pool_empty",
                     theme.displayName(), tier));

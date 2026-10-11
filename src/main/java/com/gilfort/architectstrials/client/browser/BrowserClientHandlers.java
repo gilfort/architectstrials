@@ -40,6 +40,11 @@ public final class BrowserClientHandlers {
                 ChallengeBrowserScreen.current.confirmClear(payload);
             }
         });
+        event.register(BrowserNetwork.SaveResult.TYPE, (payload, context) -> {
+            if (ChallengeBrowserScreen.current != null) {
+                ChallengeBrowserScreen.current.onSaveResult(payload);
+            }
+        });
         event.register(BrowserNetwork.Close.TYPE, (payload, context) -> {
             Screen screen = Minecraft.getInstance().gui.screen();
             if (ChallengeBrowserScreen.current != null && (screen == ChallengeBrowserScreen.current || screen instanceof ConfirmScreen)) {

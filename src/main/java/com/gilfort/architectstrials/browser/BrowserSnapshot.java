@@ -71,11 +71,12 @@ public record BrowserSnapshot(List<ThemeEntry> themes, List<SubEntry> subStructu
      * @param metadata the metadata
      * @param source   the datapack the metadata comes from
      * @param editable whether it lives in the managed datapack and can be changed by the mod
+     * @param revision a hash of the metadata, sent back with edits to detect concurrent changes (US-42)
      * @param stats    the template statistics
      * @param problems validation problems, as description → occurrences
      */
-    public record ChallengeEntry(Identifier id, ChallengeStructure metadata, String source, boolean editable, StructureStats stats,
-            Map<String, Integer> problems) {
+    public record ChallengeEntry(Identifier id, ChallengeStructure metadata, String source, boolean editable, String revision,
+            StructureStats stats, Map<String, Integer> problems) {
 
         /** Codec. */
         public static final Codec<ChallengeEntry> CODEC = RecordCodecBuilder.create(instance -> instance.group(
@@ -83,6 +84,7 @@ public record BrowserSnapshot(List<ThemeEntry> themes, List<SubEntry> subStructu
                 ChallengeStructure.CODEC.fieldOf("metadata").forGetter(ChallengeEntry::metadata),
                 Codec.STRING.fieldOf("source").forGetter(ChallengeEntry::source),
                 Codec.BOOL.fieldOf("editable").forGetter(ChallengeEntry::editable),
+                Codec.STRING.fieldOf("revision").forGetter(ChallengeEntry::revision),
                 StructureStats.CODEC.fieldOf("stats").forGetter(ChallengeEntry::stats),
                 PROBLEMS_CODEC.fieldOf("problems").forGetter(ChallengeEntry::problems)
         ).apply(instance, ChallengeEntry::new));

@@ -254,5 +254,5 @@ most 128 × 128 blocks (X/Z).
 - **Rotation:** only enable it for structures that work from every direction. Markers, paintings and item
   frames rotate with the structure.
 - **Paintings** of any size keep their exact position, also when the structure is rotated or mirrored.
-- **Testing a single structure:** give it a high weight temporarily (`structure set … weight 100`) and use
-  `/at instance create <theme> <tier> join`.
+- **Testing a single structure:** use **Test run** in the [Challenge Browser](Challenge-Browser#actions) or
+  `/at instance create <theme> <tier> <id> join`.

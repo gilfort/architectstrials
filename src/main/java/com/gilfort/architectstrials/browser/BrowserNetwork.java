@@ -8,6 +8,8 @@ import com.gilfort.architectstrials.editor.EditorLoading;
 import com.gilfort.architectstrials.editor.EditorState;
 
 import net.minecraft.ChatFormatting;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.ComponentSerialization;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
@@ -173,6 +175,100 @@ public final class BrowserNetwork {
     }
 
     /**
+     * Client → server: save edited settings of a challenge structure (US-42).
+     *
+     * @param id       the metadata id
+     * @param revision the revision the edit is based on
+     * @param json     the edited metadata as JSON
+     */
+    public record Save(Identifier id, String revision, String json) implements CustomPacketPayload {
+
+        /** Payload type. */
+        public static final Type<Save> TYPE = new Type<>(ArchitectsTrials.id("browser_save"));
+
+        /** Network codec. */
+        public static final StreamCodec<RegistryFriendlyByteBuf, Save> STREAM_CODEC = StreamCodec.composite(
+                Identifier.STREAM_CODEC, Save::id,
+                ByteBufCodecs.STRING_UTF8, Save::revision,
+                ByteBufCodecs.stringUtf8(1 << 20), Save::json,
+                Save::new);
+
+        @Override
+        public Type<Save> type() {
+            return TYPE;
+        }
+    }
+
+    /**
+     * Server → client: the result of a save request.
+     *
+     * @param id     the metadata id
+     * @param status the status
+     * @param errors the field errors
+     */
+    public record SaveResult(Identifier id, ChallengeEdits.SaveStatus status, List<ChallengeEdits.FieldError> errors) implements CustomPacketPayload {
+
+        /** Payload type. */
+        public static final Type<SaveResult> TYPE = new Type<>(ArchitectsTrials.id("browser_save_result"));
+
+        private static final StreamCodec<RegistryFriendlyByteBuf, ChallengeEdits.FieldError> FIELD_ERROR = StreamCodec.composite(
+                ByteBufCodecs.STRING_UTF8, ChallengeEdits.FieldError::field,
+                ComponentSerialization.STREAM_CODEC, ChallengeEdits.FieldError::message,
+                ChallengeEdits.FieldError::new);
+
+        /** Network codec. */
+        public static final StreamCodec<RegistryFriendlyByteBuf, SaveResult> STREAM_CODEC = StreamCodec.composite(
+                Identifier.STREAM_CODEC, SaveResult::id,
+                ByteBufCodecs.idMapper(i -> ChallengeEdits.SaveStatus.values()[i], ChallengeEdits.SaveStatus::ordinal), SaveResult::status,
+                FIELD_ERROR.apply(ByteBufCodecs.list()), SaveResult::errors,
+                SaveResult::new);
+
+        @Override
+        public Type<SaveResult> type() {
+            return TYPE;
+        }
+    }
+
+    /**
+     * Client → server: delete a structure of the managed datapack (US-42).
+     *
+     * @param structure the structure
+     */
+    public record Delete(EditorState.StructureRef structure) implements CustomPacketPayload {
+
+        /** Payload type. */
+        public static final Type<Delete> TYPE = new Type<>(ArchitectsTrials.id("browser_delete"));
+
+        /** Network codec. */
+        public static final StreamCodec<RegistryFriendlyByteBuf, Delete> STREAM_CODEC = STRUCTURE_REF.map(Delete::new, Delete::structure);
+
+        @Override
+        public Type<Delete> type() {
+            return TYPE;
+        }
+    }
+
+    /**
+     * Client → server: start a test run of exactly one challenge structure (US-42).
+     *
+     * @param id the metadata id
+     */
+    public record TestRun(Identifier id) implements CustomPacketPayload {
+
+        /** Payload type. */
+        public static final Type<TestRun> TYPE = new Type<>(ArchitectsTrials.id("browser_test_run"));
+
+        /** Network codec. */
+        public static final StreamCodec<RegistryFriendlyByteBuf, TestRun> STREAM_CODEC = Identifier.STREAM_CODEC
+                .<RegistryFriendlyByteBuf>cast().map(TestRun::new, TestRun::id);
+
+        @Override
+        public Type<TestRun> type() {
+            return TYPE;
+        }
+    }
+
+    /**
      * Registers the payloads and the server handlers.
      *
      * @param event the payload registration event
@@ -184,6 +280,22 @@ public final class BrowserNetwork {
         registrar.playToClient(Update.TYPE, Update.STREAM_CODEC);
         registrar.playToClient(Busy.TYPE, Busy.STREAM_CODEC);
         registrar.playToClient(Close.TYPE, Close.STREAM_CODEC);
+        registrar.playToClient(SaveResult.TYPE, SaveResult.STREAM_CODEC);
+        registrar.playToServer(Save.TYPE, Save.STREAM_CODEC, (payload, context) -> operator(context).ifPresent(player -> {
+            ChallengeEdits.SaveResult result = ChallengeEdits.save(player.level().getServer(), payload.id(), payload.revision(), payload.json());
+            PacketDistributor.sendToPlayer(player, new SaveResult(payload.id(), result.status(), result.errors()));
+        }));
+        registrar.playToServer(Delete.TYPE, Delete.STREAM_CODEC, (payload, context) -> operator(context)
+                .ifPresent(player -> player.sendSystemMessage(ChallengeEdits.delete(player.level().getServer(), payload.structure()))));
+        registrar.playToServer(TestRun.TYPE, TestRun.STREAM_CODEC, (payload, context) -> operator(context).ifPresent(player -> {
+            Optional<Component> failure = ChallengeEdits.testRun(player, payload.id());
+            if (failure.isPresent()) {
+                player.sendSystemMessage(failure.get().copy().withStyle(ChatFormatting.RED));
+            } else {
+                ChallengeBrowser.closed(player);
+                PacketDistributor.sendToPlayer(player, new Close());
+            }
+        }));
         registrar.playToServer(Refresh.TYPE, Refresh.STREAM_CODEC, (payload, context) -> operator(context)
                 .ifPresent(ChallengeBrowser::refresh));
         registrar.playToServer(Closed.TYPE, Closed.STREAM_CODEC, (payload, context) -> {

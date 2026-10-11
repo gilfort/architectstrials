@@ -132,7 +132,7 @@ public final class ChallengeBrowser {
             }
             String source = ChallengeStructures.source(entry.getKey()).orElse("");
             byTheme.computeIfAbsent(structure.theme(), theme -> new ArrayList<>()).add(new BrowserSnapshot.ChallengeEntry(entry.getKey(),
-                    structure, source, StructureLibrary.PACK_ID.equals(source), stats, problems));
+                    structure, source, StructureLibrary.PACK_ID.equals(source), ChallengeEdits.revision(server, structure), stats, problems));
         }
         List<BrowserSnapshot.ThemeEntry> themes = new ArrayList<>();
         byTheme.forEach((theme, challenges) -> {

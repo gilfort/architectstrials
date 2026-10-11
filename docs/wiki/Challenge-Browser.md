@@ -50,6 +50,44 @@ The browser shows everything that is in the pool: the structures saved with the 
 datapacks folder. Entries from other packs show a lock and their pack in grey: the mod never changes files outside
 its own pack. Load such an entry into the editor and save it under a theme, tier and id to get an editable copy.
 
+## Editing settings
+
+Challenges saved with the editor (managed datapack, no lock) are edited right in the details: they become a form.
+Entries from other packs stay read-only.
+
+| Field | Input |
+|---|---|
+| Name | Text field (the only free text) |
+| Weight | −/+ and number; the resulting draw chance in the tier is shown next to it |
+| Rotation, re-entry | On / off |
+| Game mode | Adventure / Survival |
+| Time limit | `m:ss` (or seconds); empty = config default |
+| Players | −/+ and number; `0` = unlimited |
+| Portal | Closes after the first player / open for `m:ss` / open until the time runs out |
+| Player effects, mob effects | **+ Effect** opens a searchable list of all effects (modded ones included, with icon and id). Each row: level −/+, duration `m:ss` or "∞ whole stay", ✕ removes it |
+| Player attributes | **+ Attribute** opens the attribute list. Each row: amount (−/+ or typed), operation (add value / × base / × total), ✕; below it a hint like "base 0.1 → 0.08 (−20 %)" |
+| Ore generation | On / off; biome from a searchable list, lowest / highest layer Y (empty = dimension default), density −/+ in 0.1 steps (↺ = vanilla density) |
+
+- Changes are a **draft** on your client; changed fields are marked with ●, fields that cannot be read (e.g. `1:7x`)
+  turn red. **Save** sends all changes at once, **Discard** throws them away.
+- The server checks the values (unknown biome, name longer than 64 characters, …), writes the metadata JSON and
+  reloads the datapacks **once**. Errors are shown at the field (red, tooltip). Every open browser gets the new data.
+- If the structure was changed in the meantime (another operator, `/at structure set`), saving is refused —
+  "Changed in the meantime" — and you can reload it. Nothing is overwritten silently.
+- Selecting another entry, closing the browser, loading into the editor or starting a test run with unsaved
+  changes asks "Discard changes?" first.
+
+## Actions
+
+| Button | Description |
+|---|---|
+| **Load to editor** | See below |
+| **Test run** | Creates an instance of **exactly this** challenge with its own settings and takes you in once it is placed — no need to raise its weight. Same as `/at instance create <theme> <tier> <id> join` |
+| **Delete** | Managed pack only. A dialog names what is affected: the challenges whose Sub Structure Markers use a sub structure (they fall back to their fallback or place nothing), or that a tier loses its last challenge |
+
+Duplicating, moving to another tier or renaming work via **Load to editor** and `/at editor save` under the new
+theme, tier or id.
+
 ## Load to editor
 
 **Load to editor** loads the selected structure into the shared editor and takes you there (also from a challenge or
