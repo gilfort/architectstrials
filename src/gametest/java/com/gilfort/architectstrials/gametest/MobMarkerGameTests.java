@@ -124,7 +124,8 @@ public final class MobMarkerGameTests {
 
     /**
      * The spawner marker becomes a vanilla spawner with the egg's entity and the egg count as spawn count; mobs
-     * it spawns get their natural setup plus the marker equipment, with 0 % drop chance.
+     * it spawns get their natural setup plus the marker equipment, with 0 % drop chance. Outside challenge
+     * dimensions (a mined spawner, US-44) its mobs only get their natural setup.
      */
     private static void spawner(GameTestHelper helper) {
         ServerLevel level = helper.getLevel();
@@ -148,17 +149,31 @@ public final class MobMarkerGameTests {
 
         Mob mob;
         try (ProblemReporter.ScopedCollector reporter = new ProblemReporter.ScopedCollector(ArchitectsTrials.LOGGER)) {
-            ValueInput input = TagValueInput.create(reporter, level.registryAccess(), entity);
+            ValueInput input = TagValueInput.create(reporter, level.registryAccess(), entity.copy());
             mob = (Mob) EntityType.loadEntityRecursive(input, level, EntitySpawnReason.SPAWNER, e -> e);
         }
         helper.assertTrue(mob != null, "Spawner entity could not be loaded");
         mob.setPos(helper.absoluteVec(new Vec3(4.5, 2, 6.5)));
-        EventHooks.finalizeMobSpawnSpawner(mob, level, level.getCurrentDifficultyAt(mob.blockPosition()), EntitySpawnReason.SPAWNER, null,
+        ServerLevel challenge = TestPlayers.challengeLevel(helper);
+        EventHooks.finalizeMobSpawnSpawner(mob, challenge, challenge.getCurrentDifficultyAt(mob.blockPosition()), EntitySpawnReason.SPAWNER, null,
                 spawner.getSpawner(), false);
         helper.assertTrue(mob.getItemBySlot(EquipmentSlot.HEAD).is(Items.GOLDEN_HELMET), "Spawned skeleton has no golden helmet");
         helper.assertTrue(mob.getItemBySlot(EquipmentSlot.MAINHAND).is(Items.BOW), "Spawned skeleton has no natural bow");
         helper.assertFalse(mob.getPersistentData().contains(SpawnMarkerResolvers.EQUIPMENT_KEY), "Marker equipment was not consumed");
         assertNoDrops(helper, mob);
+
+        Mob outside;
+        try (ProblemReporter.ScopedCollector reporter = new ProblemReporter.ScopedCollector(ArchitectsTrials.LOGGER)) {
+            ValueInput input = TagValueInput.create(reporter, level.registryAccess(), entity.copy());
+            outside = (Mob) EntityType.loadEntityRecursive(input, level, EntitySpawnReason.SPAWNER, e -> e);
+        }
+        helper.assertTrue(outside != null, "Spawner entity could not be loaded");
+        outside.setPos(helper.absoluteVec(new Vec3(4.5, 2, 6.5)));
+        EventHooks.finalizeMobSpawnSpawner(outside, level, level.getCurrentDifficultyAt(outside.blockPosition()), EntitySpawnReason.SPAWNER, null,
+                spawner.getSpawner(), false);
+        helper.assertFalse(outside.getItemBySlot(EquipmentSlot.HEAD).is(Items.GOLDEN_HELMET), "Marker equipment applied outside a challenge");
+        helper.assertTrue(outside.getItemBySlot(EquipmentSlot.MAINHAND).is(Items.BOW), "Skeleton outside a challenge has no natural bow");
+        helper.assertFalse(outside.getPersistentData().contains(SpawnMarkerResolvers.EQUIPMENT_KEY), "Marker equipment key kept outside a challenge");
         helper.succeed();
     }
 

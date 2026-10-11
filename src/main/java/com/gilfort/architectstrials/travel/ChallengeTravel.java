@@ -29,6 +29,9 @@ import org.jspecify.annotations.Nullable;
  * Entering stores the player's {@link EntryPoint}; returning always brings the player back to exactly that
  * point. Every way out of a challenge (death protection, exit marker, time limit, login handling, the exit
  * command) goes through {@link #returnToEntryPoint(ServerPlayer)}.
+ * <p>
+ * Only teleports of this class may enter challenge and editor dimensions (US-44); see
+ * {@link #asModTravel(Runnable)}.
  */
 public final class ChallengeTravel {
 
@@ -40,6 +43,9 @@ public final class ChallengeTravel {
 
     /** Maximum Manhattan distance to search for a safe position around an obstructed entry point. */
     private static final int SAFE_POSITION_SEARCH_RADIUS = 8;
+
+    /** Nesting depth of teleports done by this class; foreign travel is only guarded while it is zero (US-44). */
+    private static int modTravelDepth;
 
     private ChallengeTravel() {
     }
@@ -118,7 +124,7 @@ public final class ChallengeTravel {
         if (level == null) {
             ArchitectsTrials.LOGGER.warn("Entry dimension {} of player {} no longer exists; sending them to world spawn",
                     entry.dimension().identifier(), player.getGameProfile().name());
-            player.teleport(TeleportTransition.createDefault(player, TeleportTransition.DO_NOTHING));
+            asModTravel(() -> player.teleport(TeleportTransition.createDefault(player, TeleportTransition.DO_NOTHING)));
         } else {
             Vec3 safePosition = findSafePosition(level, player, entry.position());
             float returnYaw = Mth.wrapDegrees(entry.yRot() + 180.0F);
@@ -126,11 +132,61 @@ public final class ChallengeTravel {
             Vec3 behind = safePosition.subtract(Vec3.directionFromRotation(0.0F, returnYaw).scale(ECHO_DISTANCE));
             PortalEcho.spawn(level, behind, returnYaw);
         }
-        player.setGameMode(entry.gameMode());
         player.setPortalCooldown(RETURN_PORTAL_COOLDOWN_TICKS);
+        forgetEntryPoint(player, entry);
+        return true;
+    }
+
+    /**
+     * Handles a player who left an Architect's Trials dimension by a foreign teleport (another mod, a vanilla
+     * portal, a command; US-44) like a return without completion, but leaves them where the teleport took them:
+     * restores their game mode and effects, removes them from their instance and clears the entry point.
+     *
+     * @param player the player
+     * @return {@code true} if an entry point was stored and has been cleared
+     */
+    public static boolean abandon(ServerPlayer player) {
+        Optional<EntryPoint> stored = player.getExistingData(ModAttachments.ENTRY_POINT);
+        if (stored.isEmpty()) {
+            ScrollEffectApplication.restore(player);
+            return false;
+        }
+        stored.get().instance().ifPresent(ref -> InstanceManager.leave(player.level().getServer(), ref, player.getUUID()));
+        forgetEntryPoint(player, stored.get());
+        return true;
+    }
+
+    /**
+     * Runs a teleport on behalf of this mod: the travel guard of {@link ChallengeTravelEvents} lets it pass, both
+     * into and out of challenge and editor dimensions. Every teleport of this class runs through it.
+     *
+     * @param teleport the teleport to run
+     */
+    public static void asModTravel(Runnable teleport) {
+        modTravelDepth++;
+        try {
+            teleport.run();
+        } finally {
+            modTravelDepth--;
+        }
+    }
+
+    /**
+     * Checks whether the current teleport is done by this mod (see {@link #asModTravel(Runnable)}).
+     *
+     * @return {@code true} while a teleport of this mod runs
+     */
+    public static boolean isModTravel() {
+        return modTravelDepth > 0;
+    }
+
+    /**
+     * Restores the game mode stored in the entry point, clears it and gives back the effects replaced on entry.
+     */
+    private static void forgetEntryPoint(ServerPlayer player, EntryPoint entry) {
+        player.setGameMode(entry.gameMode());
         player.removeData(ModAttachments.ENTRY_POINT);
         ScrollEffectApplication.restore(player);
-        return true;
     }
 
     /**
@@ -144,7 +200,7 @@ public final class ChallengeTravel {
         if (returnToEntryPoint(player)) {
             return true;
         }
-        player.teleport(player.findRespawnPositionAndUseSpawnBlock(false, TeleportTransition.DO_NOTHING));
+        asModTravel(() -> player.teleport(player.findRespawnPositionAndUseSpawnBlock(false, TeleportTransition.DO_NOTHING)));
         player.setPortalCooldown(RETURN_PORTAL_COOLDOWN_TICKS);
         ScrollEffectApplication.restore(player);
         return false;
@@ -164,7 +220,7 @@ public final class ChallengeTravel {
      * Teleports a player and resets their fall distance.
      */
     private static void teleport(ServerPlayer player, ServerLevel level, Vec3 position, float yRot, float xRot) {
-        player.teleport(new TeleportTransition(level, position, Vec3.ZERO, yRot, xRot, TeleportTransition.DO_NOTHING));
+        asModTravel(() -> player.teleport(new TeleportTransition(level, position, Vec3.ZERO, yRot, xRot, TeleportTransition.DO_NOTHING)));
         player.resetFallDistance();
     }
 

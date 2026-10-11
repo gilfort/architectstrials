@@ -7,6 +7,7 @@ import java.util.Map;
 import java.util.Optional;
 
 import com.gilfort.architectstrials.ArchitectsTrials;
+import com.gilfort.architectstrials.marker.RequiredMobTracker;
 import com.gilfort.architectstrials.registry.ModAttachments;
 import com.gilfort.architectstrials.scroll.ParkedEffects;
 import com.gilfort.architectstrials.scroll.ScrollEffect;
@@ -17,11 +18,18 @@ import com.gilfort.architectstrials.structure.ChallengeStructures;
 import com.gilfort.architectstrials.theme.ChallengeThemes;
 
 import net.minecraft.core.Holder;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.ListTag;
+import net.minecraft.nbt.StringTag;
+import net.minecraft.nbt.Tag;
 import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.effect.MobEffectInstance;
+import net.minecraft.world.effect.MobEffects;
+import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.ai.attributes.AttributeInstance;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
@@ -46,10 +54,16 @@ import net.neoforged.neoforge.event.entity.EntityJoinLevelEvent;
  * scroll on the first entry to all loaded mobs of the instance, and from then on to every mob joining the instance
  * area (spawned by spawners or loaded with its chunk); {@code duration -1} = infinite</li>
  * </ul>
- * Mob effects are added the vanilla way, so an existing stronger or longer effect is kept.
+ * Mob effects are added the vanilla way, so an existing stronger or longer effect is kept. Their types are listed in
+ * the mob's persistent data ({@link #APPLIED_EFFECTS_KEY}): a mob that leaves its challenge (e.g. released from a
+ * capture tool) loses them and the required-mob glow as soon as it joins a level outside challenge dimensions
+ * (US-44).
  */
 @EventBusSubscriber(modid = ArchitectsTrials.MOD_ID)
 public final class ScrollEffectApplication {
+
+    /** Key in a mob's persistent data listing the ids of the effects its instance applied (US-44). */
+    public static final String APPLIED_EFFECTS_KEY = ArchitectsTrials.MOD_ID + ":applied_effects";
 
     private ScrollEffectApplication() {
     }
@@ -155,8 +169,14 @@ public final class ScrollEffectApplication {
      */
     @SubscribeEvent
     static void onEntityJoin(EntityJoinLevelEvent event) {
-        if (!(event.getEntity() instanceof Mob mob) || !(event.getLevel() instanceof ServerLevel level)
-                || !ChallengeThemes.isChallengeDimension(level.dimension())) {
+        if (!(event.getEntity() instanceof LivingEntity living) || !(event.getLevel() instanceof ServerLevel level)) {
+            return;
+        }
+        if (!ChallengeThemes.isChallengeDimension(level.dimension())) {
+            defuse(living);
+            return;
+        }
+        if (!(living instanceof Mob mob)) {
             return;
         }
         InstanceManager.findAt(level, mob.blockPosition())
@@ -165,10 +185,44 @@ public final class ScrollEffectApplication {
     }
 
     private static void applyMobEffects(Mob mob, ChallengeInstance instance) {
-        ChallengeStructures.get(instance.structure()).ifPresent(structure -> structure.mobEffects().forEach(effect ->
-                mob.addEffect(new MobEffectInstance(effect.effect(), effect.duration(), effect.amplifier()))));
+        ChallengeStructures.get(instance.structure()).ifPresent(structure -> structure.mobEffects().forEach(effect -> {
+            mob.addEffect(new MobEffectInstance(effect.effect(), effect.duration(), effect.amplifier()));
+            markApplied(mob, effect.effect());
+        }));
         for (ScrollEffect effect : instance.effects().forTarget(ScrollEffect.Target.MOBS)) {
             mob.addEffect(effect.instance());
+            markApplied(mob, effect.effect());
+        }
+    }
+
+    /** Lists an effect type in the mob's applied effects. */
+    private static void markApplied(Mob mob, Holder<MobEffect> effect) {
+        CompoundTag data = mob.getPersistentData();
+        ListTag applied = data.getListOrEmpty(APPLIED_EFFECTS_KEY);
+        StringTag id = StringTag.valueOf(effect.getRegisteredName());
+        if (!applied.contains(id)) {
+            applied.add(id);
+        }
+        data.put(APPLIED_EFFECTS_KEY, applied);
+    }
+
+    /**
+     * Removes what a challenge gave a mob that is now outside challenge dimensions: the applied effects and the
+     * required-mob glow. Equipment stays (its drop chance stays 0 %).
+     *
+     * @param entity the entity joining a level outside challenge dimensions
+     */
+    public static void defuse(LivingEntity entity) {
+        CompoundTag data = entity.getPersistentData();
+        if (data.contains(APPLIED_EFFECTS_KEY)) {
+            for (Tag id : data.getListOrEmpty(APPLIED_EFFECTS_KEY)) {
+                id.asString().map(Identifier::tryParse).flatMap(BuiltInRegistries.MOB_EFFECT::get).ifPresent(entity::removeEffect);
+            }
+            data.remove(APPLIED_EFFECTS_KEY);
+        }
+        if (data.contains(RequiredMobTracker.INSTANCE_KEY)) {
+            entity.removeEffect(MobEffects.GLOWING);
+            data.remove(RequiredMobTracker.INSTANCE_KEY);
         }
     }
 }

@@ -9,15 +9,54 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.neoforge.event.entity.EntityTravelToDimensionEvent;
 import net.neoforged.neoforge.event.entity.player.PlayerEvent;
 
 /**
  * Game event hooks for player travel into and out of Architect's Trials dimensions.
+ * <p>
+ * Challenges stay sealed (US-44): only {@link ChallengeTravel} may bring players into challenge and editor
+ * dimensions, and leaving one by any other teleport counts as leaving without completion. Teleports within a
+ * dimension are not guarded.
  */
 @EventBusSubscriber(modid = ArchitectsTrials.MOD_ID)
 public final class ChallengeTravelEvents {
 
     private ChallengeTravelEvents() {
+    }
+
+    /**
+     * Cancels foreign travel of players into a challenge or the editor dimension (Waystones, warp scrolls,
+     * commands, vanilla portals).
+     *
+     * @param event the travel event
+     */
+    @SubscribeEvent
+    static void onTravelToDimension(EntityTravelToDimensionEvent event) {
+        if (!(event.getEntity() instanceof ServerPlayer player) || ChallengeTravel.isModTravel()
+                || player.level().dimension() == event.getDimension() || !ChallengeTravel.isModDimension(event.getDimension())) {
+            return;
+        }
+        event.setCanceled(true);
+        player.sendOverlayMessage(Component.translatable("message.architectstrials.travel_blocked"));
+    }
+
+    /**
+     * Handles players who left a challenge or the editor dimension by a foreign teleport like a return without
+     * completion; they stay where the teleport took them.
+     *
+     * @param event the dimension change event
+     */
+    @SubscribeEvent
+    static void onChangedDimension(PlayerEvent.PlayerChangedDimensionEvent event) {
+        if (!(event.getEntity() instanceof ServerPlayer player) || ChallengeTravel.isModTravel()
+                || !ChallengeTravel.isModDimension(event.getFrom())) {
+            return;
+        }
+        boolean left = ChallengeTravel.abandon(player);
+        if (left && ChallengeThemes.isChallengeDimension(event.getFrom())) {
+            player.sendSystemMessage(Component.translatable("message.architectstrials.left_by_teleport"));
+        }
     }
 
     /**

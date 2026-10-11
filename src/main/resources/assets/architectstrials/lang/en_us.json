@@ -453,6 +453,9 @@
   "message.architectstrials.save.mob_marker_empty": "Warning: the %s at %s %s %s (relative) has no spawn egg and will be removed without spawning anything.",
   "message.architectstrials.returned_on_login": "Your challenge is over – you have been returned.",
   "message.architectstrials.returned_missing_dimension": "The challenge you were in no longer exists – you have been returned.",
+  "message.architectstrials.travel_blocked": "Challenges can only be entered through their portal.",
+  "message.architectstrials.left_by_teleport": "You left the challenge without completing it.",
+  "message.architectstrials.forbidden_use": "You can't use this here.",
   "message.architectstrials.ward.saved": "The Dimension Ward saved you from death (%s) and brought you back.",
 
   "message.architectstrials.challenge_dimension.bed_disabled": "You cannot sleep or set your spawn point in a challenge dimension"

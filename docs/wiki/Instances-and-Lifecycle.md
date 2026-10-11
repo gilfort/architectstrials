@@ -42,6 +42,40 @@ warning in the log and removed from the pool until the next `/reload`.
   exists, the player goes to the world spawn.
 - Players who log in inside a challenge whose instance is over are returned automatically.
 
+## Sealed challenges
+
+Challenges are only entered and left the intended way. Everything runs on events; nothing is checked per tick.
+
+- **Teleports in are blocked.** Only the mod's own travel (portal, `/at enter`, `/at editor enter`, test runs,
+  returns) reaches a challenge or the editor dimension. Teleports by other mods (Waystones, warp scrolls, …), vanilla
+  portals or `/execute in … run tp` are cancelled with *"Challenges can only be entered through their portal."*
+  Teleports within a dimension are not affected.
+- **Teleports out count as leaving.** A player who leaves a challenge any other way (a warp scroll, a Nether portal
+  built in a mining room, a command) is handled like a return without completion, but stays where the teleport
+  took them: game mode restored, challenge and scroll effects and attribute modifiers removed (own effects given
+  back), removed from the instance (re-entry rules apply), timer bar hidden, entry point cleared. Leaving the editor
+  that way clears the entry point as well.
+- **Forbidden items and blocks.** Items in the [item tag](Datapack-Reference#tags)
+  `architectstrials:forbidden_in_challenges` cannot be used inside challenges (the editor is not affected):
+
+  | Action | Effect |
+  |---|---|
+  | Right click in the air (warp scrolls, throwables, food, bows) | cancelled |
+  | Right click on a block (placing a waystone, binding a teleport target) | item use denied; the block still reacts (chests and doors open) |
+  | Right click on a mob (capture tools, leads, name tags) | cancelled |
+  | Left click on a mob or a block | cancelled |
+
+  Blocks in the block tag `architectstrials:forbidden_in_challenges` cannot be placed in challenges, no matter by
+  whom (also by other mods' placers, as long as they fire the placement event). Players see *"You can't use this
+  here."* Not covered: passive effects of items in the inventory or curio slots, abilities on key binds, uses without
+  a player (dispensers, deployers) and armor worn on entry.
+- **Mobs taken out lose their challenge buffs.** Capturing mobs stays allowed (e.g. to "free" a villager) unless the
+  capture tool is in the item tag. A captured [required mob](Markers#direct-spawn-marker) counts as defeated. When a mob of
+  an instance appears outside challenge dimensions (released, or through a portal), it loses the challenge and scroll
+  mob effects and the required-mob glow; its equipment stays, with a 0 % drop chance.
+- **Mined spawners are plain spawners.** Marker equipment of a spawner is only applied inside challenge dimensions;
+  a spawner mined in a mining room (e.g. with a silk touch mod) spawns normal mobs elsewhere.
+
 ## Time limit
 
 Every challenge has a time limit, shown to all participants as a boss bar ("Time left: mm:ss", red in the last
@@ -83,6 +117,7 @@ Communicate it to players via your modpack's questbook. Being saved never counts
 
 ## Completing a run
 
-Walking through an open [exit](Markers#exit-marker) completes the run: the player is returned home, receives the
+Walking through an open [exit](Markers#exit-marker) completes the run of a participant of the instance who has not
+completed it yet: the player is returned home, receives the
 [completion bonus](Loot#completion-bonus), the advancement trigger fires (see
 [Advancements & Events](Advancements-and-Events)) and the player can never re-enter this instance.

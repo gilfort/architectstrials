@@ -1,6 +1,7 @@
 package com.gilfort.architectstrials.gametest;
 
 import com.gilfort.architectstrials.registry.ModAttachments;
+import com.gilfort.architectstrials.travel.ChallengeTravel;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.gametest.framework.GameTestHelper;
@@ -48,16 +49,30 @@ final class TestPlayers {
     }
 
     /**
-     * Teleports a player and completes the dimension change immediately, as a real client would
-     * acknowledge it. Without this, players are invulnerable while "changing dimension".
+     * Teleports a player as the mod itself would (passing the travel guard of US-44) and completes the dimension
+     * change immediately, as a real client would acknowledge it. Without this, players are invulnerable while
+     * "changing dimension".
      *
      * @param player   the player
      * @param level    the target level
      * @param position the target position
      */
     static void teleport(ServerPlayer player, ServerLevel level, Vec3 position) {
-        player.teleport(new TeleportTransition(level, position, Vec3.ZERO, 0.0F, 0.0F, TeleportTransition.DO_NOTHING));
+        ChallengeTravel.asModTravel(() -> foreignTeleport(player, level, position));
+    }
+
+    /**
+     * Teleports a player like another mod would (Waystones, warp scrolls): subject to the travel guard of US-44.
+     *
+     * @param player   the player
+     * @param level    the target level
+     * @param position the target position
+     * @return {@code true} if the teleport happened
+     */
+    static boolean foreignTeleport(ServerPlayer player, ServerLevel level, Vec3 position) {
+        boolean moved = player.teleport(new TeleportTransition(level, position, Vec3.ZERO, 0.0F, 0.0F, TeleportTransition.DO_NOTHING)) != null;
         player.hasChangedDimension();
+        return moved;
     }
 
     /**

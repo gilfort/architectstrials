@@ -13,6 +13,7 @@ import com.gilfort.architectstrials.instance.ChallengeInstance;
 import com.gilfort.architectstrials.instance.InstanceCreation;
 import com.gilfort.architectstrials.instance.InstanceManager;
 import com.gilfort.architectstrials.registry.ModAttachments;
+import com.gilfort.architectstrials.travel.ChallengeTravel;
 import com.gilfort.architectstrials.registry.ModBlocks;
 import com.gilfort.architectstrials.run.RunCompletedEvent;
 import com.gilfort.architectstrials.slot.SlotManager;
@@ -112,6 +113,12 @@ public final class ExitGameTests {
         int eventsBefore = COMPLETED_EVENTS.get();
         nether.setBlock(exit.west(), Blocks.AIR.defaultBlockState(), Block.UPDATE_ALL);
         helper.assertTrue(ChallengeExitBlock.isOpen(nether.getBlockState(exit)), "Removing the signal did not unlock the exit");
+        // Only participants complete through an exit (US-44): a player with an entry point who never joined does not.
+        ServerPlayer stranger = TestPlayers.atStart(helper, GameType.SURVIVAL);
+        ChallengeTravel.enter(stranger, nether, inExit, 0.0F, 0.0F, true);
+        stranger.hasChangedDimension();
+        helper.assertFalse(ChallengeExitPortalBlock.onPlayerInside(nether, exit.above(), stranger), "A non-participant completed the run");
+        ChallengeTravel.returnToEntryPoint(stranger);
         helper.assertFalse(ChallengeExitPortalBlock.onPlayerInside(nether, exit.above(4), player), "Touching above the portal space completed the run");
         helper.assertTrue(ChallengeExitPortalBlock.onPlayerInside(nether, exit.east().above(2), player), "Open exit did not complete the run");
         helper.assertFalse(ChallengeExitPortalBlock.onPlayerInside(nether, exit.above(), player), "Run was completed twice");
@@ -121,6 +128,7 @@ public final class ExitGameTests {
         helper.assertTrue(COMPLETED_EVENTS.get() == eventsBefore + 1, "RunCompletedEvent was not fired exactly once");
 
         InstanceManager.close(nether, instance.id());
+        helper.getLevel().getServer().getPlayerList().remove(stranger);
         TestPlayers.finish(helper, player);
     }
 }
