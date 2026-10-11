@@ -1,6 +1,12 @@
 package com.gilfort.architectstrials.browser;
 
+import java.io.ByteArrayOutputStream;
+import java.io.DataOutputStream;
+import java.io.IOException;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
+import java.util.HexFormat;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -22,6 +28,7 @@ import net.minecraft.core.Vec3i;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.NbtIo;
 import net.minecraft.nbt.NbtUtils;
 import net.minecraft.resources.Identifier;
 import net.minecraft.resources.ResourceKey;
@@ -56,12 +63,39 @@ public final class StructureStatistics {
         if (data.isEmpty()) {
             return StructureStats.MISSING;
         }
+        return compute(server, load(server, data.get())).withTemplateHash(hash(data.get()));
+    }
+
+    /**
+     * Loads raw template data into a fresh template, data-fixed like vanilla does, without the template cache.
+     *
+     * @param server the server
+     * @param data   the raw template data
+     * @return the template
+     */
+    public static StructureTemplate load(MinecraftServer server, CompoundTag data) {
         StructureTemplate template = new StructureTemplate();
-        CompoundTag tag = data.get().copy();
+        CompoundTag tag = data.copy();
         int version = NbtUtils.getDataVersion(tag, 500);
         template.load(server.registryAccess().lookupOrThrow(Registries.BLOCK),
                 DataFixTypes.STRUCTURE.updateToCurrentVersion(server.getFixerUpper(), tag, version));
-        return compute(server, template);
+        return template;
+    }
+
+    /**
+     * Hashes raw template data (SHA-1 of its uncompressed NBT).
+     *
+     * @param data the raw template data
+     * @return the hash as hex string
+     */
+    public static String hash(CompoundTag data) {
+        try {
+            ByteArrayOutputStream bytes = new ByteArrayOutputStream();
+            NbtIo.write(data, new DataOutputStream(bytes));
+            return HexFormat.of().formatHex(MessageDigest.getInstance("SHA-1").digest(bytes.toByteArray()));
+        } catch (IOException | NoSuchAlgorithmException e) {
+            return Integer.toHexString(data.hashCode());
+        }
     }
 
     /**
@@ -82,7 +116,7 @@ public final class StructureStatistics {
         List<StructureStats.LootCount> loot = new ArrayList<>();
         counter.loot.forEach((key, count) -> loot.add(new StructureStats.LootCount(key.kind(), key.table(), count)));
         return new StructureStats(true, size.getX(), size.getY(), size.getZ(), counter.playerSpawns, counter.exits, counter.exitsNeedMobs,
-                mobs, loot, counter.vaults, List.copyOf(counter.subStructures));
+                mobs, loot, counter.vaults, List.copyOf(counter.subStructures), "");
     }
 
     /** Grouping key of enemies. */

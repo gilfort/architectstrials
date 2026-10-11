@@ -24,12 +24,13 @@ import net.minecraft.util.StringRepresentable;
  * @param loot           loot sources grouped by kind and loot table
  * @param vaults         number of Vault Markers
  * @param subStructures  sub structure ids referenced by Sub Structure Markers (entries and fallbacks), sorted
+ * @param templateHash   a hash of the template content, the key of the client's preview cache (US-43); empty if unknown
  */
 public record StructureStats(boolean found, int sizeX, int sizeY, int sizeZ, int playerSpawns, int exits, int exitsNeedMobs,
-        List<MobCount> mobs, List<LootCount> loot, int vaults, List<Identifier> subStructures) {
+        List<MobCount> mobs, List<LootCount> loot, int vaults, List<Identifier> subStructures, String templateHash) {
 
     /** Statistics of a template that could not be found. */
-    public static final StructureStats MISSING = new StructureStats(false, 0, 0, 0, 0, 0, 0, List.of(), List.of(), 0, List.of());
+    public static final StructureStats MISSING = new StructureStats(false, 0, 0, 0, 0, 0, 0, List.of(), List.of(), 0, List.of(), "");
 
     /** Codec, used for the network transfer. */
     public static final Codec<StructureStats> CODEC = RecordCodecBuilder.create(instance -> instance.group(
@@ -43,7 +44,8 @@ public record StructureStats(boolean found, int sizeX, int sizeY, int sizeZ, int
             MobCount.CODEC.listOf().fieldOf("mobs").forGetter(StructureStats::mobs),
             LootCount.CODEC.listOf().fieldOf("loot").forGetter(StructureStats::loot),
             Codec.INT.fieldOf("vaults").forGetter(StructureStats::vaults),
-            Identifier.CODEC.listOf().fieldOf("sub_structures").forGetter(StructureStats::subStructures)
+            Identifier.CODEC.listOf().fieldOf("sub_structures").forGetter(StructureStats::subStructures),
+            Codec.STRING.optionalFieldOf("template_hash", "").forGetter(StructureStats::templateHash)
     ).apply(instance, StructureStats::new));
 
     /** Creates the statistics, defensively copying the lists. */
@@ -51,6 +53,17 @@ public record StructureStats(boolean found, int sizeX, int sizeY, int sizeZ, int
         mobs = List.copyOf(mobs);
         loot = List.copyOf(loot);
         subStructures = List.copyOf(subStructures);
+    }
+
+    /**
+     * Returns a copy with the hash of the template content.
+     *
+     * @param hash the hash
+     * @return the updated statistics
+     */
+    public StructureStats withTemplateHash(String hash) {
+        return new StructureStats(this.found, this.sizeX, this.sizeY, this.sizeZ, this.playerSpawns, this.exits, this.exitsNeedMobs, this.mobs,
+                this.loot, this.vaults, this.subStructures, hash);
     }
 
     /** The marker that spawns a group of enemies. */

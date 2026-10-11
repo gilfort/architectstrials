@@ -1,5 +1,7 @@
 package com.gilfort.architectstrials.gametest;
 
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Consumer;
@@ -9,6 +11,7 @@ import com.gilfort.architectstrials.block.ExitMarkerBlockEntity;
 import com.gilfort.architectstrials.block.SpawnMarkerBlockEntity;
 import com.gilfort.architectstrials.browser.BrowserSnapshot;
 import com.gilfort.architectstrials.browser.ChallengeBrowser;
+import com.gilfort.architectstrials.browser.PreviewNetwork;
 import com.gilfort.architectstrials.browser.StructureStatistics;
 import com.gilfort.architectstrials.browser.StructureStats;
 import com.gilfort.architectstrials.editor.EditorCapture;
@@ -19,8 +22,12 @@ import com.gilfort.architectstrials.sub.SubStructureSetup;
 import com.mojang.serialization.JsonOps;
 
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.gametest.framework.GameTestHelper;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.NbtAccounter;
+import net.minecraft.nbt.NbtIo;
 import net.minecraft.resources.Identifier;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.MinecraftServer;
@@ -32,6 +39,7 @@ import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.entity.BarrelBlockEntity;
 import net.minecraft.world.level.block.entity.ChestBlockEntity;
 import net.minecraft.world.level.levelgen.structure.BoundingBox;
+import net.minecraft.world.level.levelgen.structure.templatesystem.StructureTemplate;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.registries.RegisterEvent;
@@ -63,6 +71,7 @@ public final class BrowserGameTests {
             register(helper, "browser_snapshot", BrowserGameTests::snapshot);
             register(helper, "browser_template_statistics", BrowserGameTests::templateStatistics);
             register(helper, "browser_editor_state", BrowserGameTests::editorState);
+            register(helper, "browser_preview_template", BrowserGameTests::previewTemplate);
         });
     }
 
@@ -93,6 +102,7 @@ public final class BrowserGameTests {
         helper.assertTrue(platform.stats().found() && platform.stats().playerSpawns() >= 1 && platform.stats().exits() >= 1,
                 "Spawn platform statistics are wrong: " + platform.stats());
         helper.assertTrue(platform.problems().isEmpty(), "Clean structure reported problems: " + platform.problems());
+        helper.assertFalse(platform.stats().templateHash().isEmpty(), "Template hash is missing");
         helper.assertFalse(platform.source().isEmpty(), "Source pack is missing");
         helper.assertFalse(platform.editable(), "Structures of the test datapack must be read-only");
 
@@ -184,6 +194,32 @@ public final class BrowserGameTests {
         state.setLast(Optional.empty());
         helper.assertTrue(state.last().isEmpty(), "Last structure was not forgotten");
         state.setLast(before);
+        helper.succeed();
+    }
+
+    /**
+     * The server sends the data-fixed template of a structure with the hash the snapshot reports; a structure without
+     * template file gets an empty answer.
+     */
+    private static void previewTemplate(GameTestHelper helper) {
+        MinecraftServer server = helper.getLevel().getServer();
+        PreviewNetwork.TemplateData data = PreviewNetwork.template(server, new EditorState.StructureRef(false, SPAWN_PLATFORM));
+        helper.assertTrue(data.data().length > 0, "No template data was sent");
+        StructureStats stats = ChallengeBrowser.build(server).themes().stream().flatMap(theme -> theme.challenges().stream())
+                .filter(challenge -> challenge.id().equals(SPAWN_PLATFORM)).findFirst().orElseThrow().stats();
+        helper.assertTrue(data.hash().equals(stats.templateHash()), "Template hash differs from the snapshot");
+        try {
+            CompoundTag tag = NbtIo.readCompressed(new ByteArrayInputStream(data.data()), NbtAccounter.unlimitedHeap());
+            StructureTemplate template = new StructureTemplate();
+            template.load(BuiltInRegistries.BLOCK, tag);
+            helper.assertTrue(template.getSize().getX() == stats.sizeX() && template.getSize().getY() == stats.sizeY(),
+                    "Sent template has a different size: " + template.getSize());
+        } catch (IOException e) {
+            helper.fail("Template data could not be read: " + e.getMessage());
+            return;
+        }
+        PreviewNetwork.TemplateData missing = PreviewNetwork.template(server, new EditorState.StructureRef(true, ArchitectsTrials.id("does_not_exist")));
+        helper.assertTrue(missing.data().length == 0, "A missing template produced data");
         helper.succeed();
     }
 

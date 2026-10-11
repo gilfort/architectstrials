@@ -378,3 +378,23 @@ revision, broken JSON, unknown biome and too long name rejected), `browser_edit_
 - [ ] Delete a challenge: dialog (last one in a tier: tier warning); after deleting it disappears from the list.
       Delete a sub structure used by a challenge: dialog lists the challenge.
 - [ ] Small window / GUI scale 4: the form scrolls, buttons in the footer do not overlap.
+
+## US-43 (#77): Isometric structure preview in the GUI
+
+GameTests: `browser_snapshot` (template hash in the statistics), `browser_preview_template` (server sends the
+data-fixed template on request with the snapshot's hash; missing template → empty answer).
+Dev aid (not in the jar): create `run/architectstrials/preview-debug/.dump`, start `./gradlew runClient` — the title
+screen writes previews of three templates from all four directions into that folder.
+
+- [ ] `/at gui`, select a challenge: "Rendering preview…" briefly, then the picture; structure fits the box, up is up,
+      transparent blocks (glass) look right.
+- [ ] ↺ / ↻: four different views; the label shows "View n/4"; the chosen view stays when selecting other entries.
+- [ ] Sub structures get a preview too; an entry without template shows no preview area.
+- [ ] Close and reopen the browser (or restart the game): pictures appear immediately (loaded from
+      `<gamedir>/architectstrials/previews/`), no "Rendering…".
+- [ ] Re-save a structure with `editor save … overwrite` after changing it: the preview shows the new build.
+- [ ] Switch resource packs: previews are rendered again with the new textures.
+- [ ] Full 128 × 128 structure (Nether tier 4 or an imported area): no freeze while browsing; the picture appears after
+      a moment.
+- [ ] Edit mode (US-42): the form starts below the preview and still scrolls.
+- [ ] Dedicated server with a second client: previews work for remote operators.

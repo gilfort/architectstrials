@@ -18,6 +18,8 @@ import com.gilfort.architectstrials.browser.BrowserNetwork;
 import com.gilfort.architectstrials.browser.BrowserSnapshot;
 import com.gilfort.architectstrials.browser.ChallengeEdits;
 import com.gilfort.architectstrials.browser.StructureStats;
+import com.gilfort.architectstrials.client.browser.preview.PreviewCache;
+import com.gilfort.architectstrials.client.browser.preview.PreviewRenderer;
 import com.gilfort.architectstrials.editor.EditorState;
 import com.gilfort.architectstrials.structure.ChallengeAttribute;
 import com.gilfort.architectstrials.structure.ChallengeEffect;
@@ -43,6 +45,7 @@ import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.resources.Identifier;
 import net.minecraft.util.FormattedCharSequence;
 import net.minecraft.util.StringUtil;
+import net.minecraft.util.Util;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.entity.EntityType;
 import net.neoforged.neoforge.client.network.ClientPacketDistributor;
@@ -90,6 +93,10 @@ public class ChallengeBrowserScreen extends Screen implements ChallengeEditor.Ho
     /** The browser currently shown (also while one of its dialogs is open), or {@code null}. */
     static @Nullable ChallengeBrowserScreen current;
 
+    private static final int PREVIEW_BACKGROUND = 0xFF1E1E26;
+
+    /** The viewing direction of the previews (0–3), shared by all entries. */
+    private static int previewDirection;
     private static @Nullable Identifier rememberedTheme;
     private static boolean rememberedSubs;
     private static @Nullable Identifier rememberedEntry;
@@ -327,7 +334,7 @@ public class ChallengeBrowserScreen extends Screen implements ChallengeEditor.Ho
             if (this.editor == null || !this.editor.entry().id().equals(challenge.id())) {
                 this.editor = new ChallengeEditor(challenge, this);
             }
-            this.editList = new ChallengeEditList(this.minecraft, this.detailsX() + 1, this.top() + 2, this.detailsWidth() - 2,
+            this.editList = new ChallengeEditList(this.minecraft, this.detailsX() + 1, this.contentTop() + 2, this.detailsWidth() - 2,
                     this.detailContentHeight(), this.editor::changed, this.editor::errors);
             List<ChallengeEditList.Row> rows = new ArrayList<>(this.editor.rows(this.editList, this.font));
             List<Line> template = new ArrayList<>();
@@ -350,6 +357,18 @@ public class ChallengeBrowserScreen extends Screen implements ChallengeEditor.Ho
             this.addRenderableWidget(this.editList);
         } else {
             this.editor = null;
+        }
+
+        int previewHeight = this.previewHeight();
+        if (previewHeight > 0) {
+            int buttonX = this.detailsX() + this.detailsWidth() - 4 - 2 * 18;
+            int buttonY = this.top() + 4;
+            this.addRenderableWidget(Button.builder(Component.translatable("gui.architectstrials.browser.preview.left"), button -> {
+                previewDirection = (previewDirection + 3) % 4;
+            }).bounds(buttonX, buttonY, 16, 16).tooltip(Tooltip.create(Component.translatable("gui.architectstrials.browser.preview.left.tooltip"))).build());
+            this.addRenderableWidget(Button.builder(Component.translatable("gui.architectstrials.browser.preview.right"), button -> {
+                previewDirection = (previewDirection + 1) % 4;
+            }).bounds(buttonX + 18, buttonY, 16, 16).tooltip(Tooltip.create(Component.translatable("gui.architectstrials.browser.preview.right.tooltip"))).build());
         }
 
         int x = this.detailsX() + 4;
@@ -420,6 +439,7 @@ public class ChallengeBrowserScreen extends Screen implements ChallengeEditor.Ho
     @Override
     public void tick() {
         super.tick();
+        PreviewCache.tick();
         if (this.saveButton != null && this.editor != null) {
             this.saveButton.active = this.editor.canSave();
         }
@@ -752,7 +772,53 @@ public class ChallengeBrowserScreen extends Screen implements ChallengeEditor.Ho
     }
 
     private int detailContentHeight() {
-        return this.bottom() - this.top() - (this.entry != null ? FOOTER : 0) - 4;
+        return this.bottom() - this.contentTop() - (this.entry != null ? FOOTER : 0) - 4;
+    }
+
+    /** @return the top of the detail text or form, below the preview */
+    private int contentTop() {
+        return this.top() + this.previewHeight();
+    }
+
+    /** @return the height of the preview area (US-43), {@code 0} without a selected structure with a template */
+    private int previewHeight() {
+        if (this.selectedStats().map(StructureStats::found).orElse(false)) {
+            return Math.clamp((this.bottom() - this.top()) * 2 / 5, 80, 180);
+        }
+        return 0;
+    }
+
+    /** Draws the preview picture of the selected structure, or its loading / failure state. */
+    private void renderPreview(GuiGraphicsExtractor graphics) {
+        int height = this.previewHeight();
+        Optional<EditorState.StructureRef> selected = this.selectedRef();
+        Optional<StructureStats> stats = this.selectedStats();
+        if (height == 0 || selected.isEmpty() || stats.isEmpty()) {
+            return;
+        }
+        int x = this.detailsX() + 2;
+        int y = this.top() + 2;
+        int w = this.detailsWidth() - 4;
+        int h = height - 4;
+        graphics.fill(x, y, x + w, y + h, PREVIEW_BACKGROUND);
+        PreviewCache.Status status = PreviewCache.get(selected.get(), stats.get().templateHash(), previewDirection);
+        if (status.state() == PreviewCache.State.READY && status.texture() != null) {
+            float fit = Math.min((float) w / PreviewRenderer.WIDTH, (float) h / PreviewRenderer.HEIGHT);
+            int drawW = Math.round(PreviewRenderer.WIDTH * fit);
+            int drawH = Math.round(PreviewRenderer.HEIGHT * fit);
+            int drawX = x + (w - drawW) / 2;
+            int drawY = y + (h - drawH) / 2;
+            graphics.blit(RenderPipelines.GUI_TEXTURED, status.texture(), drawX, drawY, 0.0F, 0.0F, drawW, drawH, PreviewRenderer.WIDTH,
+                    PreviewRenderer.HEIGHT, PreviewRenderer.WIDTH, PreviewRenderer.HEIGHT);
+        } else {
+            Component text = status.state() == PreviewCache.State.FAILED
+                    ? Component.translatable("gui.architectstrials.browser.preview.failed")
+                    : Component.translatable("gui.architectstrials.browser.preview.loading", ".".repeat((int) (Util.getMillis() / 400 % 4)));
+            graphics.centeredText(this.font, text, x + w / 2, y + h / 2 - 4, status.state() == PreviewCache.State.FAILED ? RED : GREY);
+        }
+        graphics.text(this.font, Component.translatable("gui.architectstrials.browser.preview.direction." + previewDirection), x + 4, y + h - 11,
+                GREY, true);
+        graphics.horizontalLine(this.detailsX() + 1, this.detailsX() + this.detailsWidth() - 2, this.top() + height - 1, BORDER);
     }
 
     /** @return the detail lines, wrapped to the width of the details area */
@@ -772,7 +838,7 @@ public class ChallengeBrowserScreen extends Screen implements ChallengeEditor.Ho
     }
 
     private int detailLineY(int index) {
-        return this.top() + 4 + index * (ROW - 1) - this.detailScroll;
+        return this.contentTop() + 4 + index * (ROW - 1) - this.detailScroll;
     }
 
     private void renderDetails(GuiGraphicsExtractor graphics, int mouseX, int mouseY) {
@@ -780,10 +846,12 @@ public class ChallengeBrowserScreen extends Screen implements ChallengeEditor.Ho
         int y = this.top();
         int w = this.detailsWidth();
         this.panel(graphics, x, y, w, this.bottom() - y);
+        this.renderPreview(graphics);
         if (this.editList != null) {
             graphics.horizontalLine(x + 1, x + w - 2, this.bottom() - FOOTER, BORDER);
             return;
         }
+        y = this.contentTop();
         int contentHeight = this.detailContentHeight();
         List<WrappedLine> wrapped = this.detailWrapped();
         this.detailScroll = Math.clamp(this.detailScroll, 0, Math.max(0, wrapped.size() * (ROW - 1) - contentHeight));
@@ -1095,7 +1163,7 @@ public class ChallengeBrowserScreen extends Screen implements ChallengeEditor.Ho
             }
             return rowAction(this.entryRows(), mouseY - this.entryListTop() + this.entryScroll);
         }
-        if (this.editList == null && mouseX >= this.detailsX() && mouseY < this.top() + 2 + this.detailContentHeight()) {
+        if (this.editList == null && mouseX >= this.detailsX() && mouseY >= this.contentTop() && mouseY < this.contentTop() + 2 + this.detailContentHeight()) {
             List<WrappedLine> wrapped = this.detailWrapped();
             for (int i = 0; i < wrapped.size(); i++) {
                 WrappedLine line = wrapped.get(i);
@@ -1139,6 +1207,7 @@ public class ChallengeBrowserScreen extends Screen implements ChallengeEditor.Ho
     public void onClose() {
         this.leaveDraft(() -> {
             current = null;
+            PreviewCache.clear();
             ClientPacketDistributor.sendToServer(new BrowserNetwork.Closed());
             super.onClose();
         });
