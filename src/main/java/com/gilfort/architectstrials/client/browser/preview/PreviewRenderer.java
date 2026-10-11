@@ -40,9 +40,9 @@ import org.joml.Vector4f;
 public final class PreviewRenderer {
 
     /** Width of a preview image in pixels. */
-    public static final int WIDTH = 640;
+    public static final int WIDTH = 1024;
     /** Height of a preview image in pixels. */
-    public static final int HEIGHT = 400;
+    public static final int HEIGHT = 640;
 
     /** Downward tilt of the camera in degrees. */
     private static final float PITCH = 30.0F;
@@ -55,7 +55,7 @@ public final class PreviewRenderer {
     /**
      * The camera rotation of a viewing direction: the structure is turned around its vertical center, then tilted.
      *
-     * @param direction 0 = from south-east, 1 = south-west, 2 = north-west, 3 = north-east
+     * @param direction the camera position: 0 = south-east, 1 = north-east, 2 = north-west, 3 = south-west (north = −Z)
      * @return the rotation
      */
     static Matrix4f rotation(int direction) {

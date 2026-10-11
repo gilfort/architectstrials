@@ -388,7 +388,13 @@ screen writes previews of three templates from all four directions into that fol
 
 - [ ] `/at gui`, select a challenge: "Rendering preview…" briefly, then the picture; structure fits the box, up is up,
       transparent blocks (glass) look right.
-- [ ] ↺ / ↻: four different views; the label shows "View n/4"; the chosen view stays when selecting other entries.
+- [ ] Wide window: preview at the top right beside the settings / details; narrow window (GUI scale 4): above them.
+- [ ] ↺ / ↻: four views labelled "From south-east / north-east / north-west / south-west"; the redstone side of a test
+      build (east) is on the right in "From south-east"; the button tooltip names the next view; the view stays when
+      selecting other entries.
+- [ ] Mouse wheel over the picture zooms around the cursor (label shows ×n), drag moves it, right click resets; selecting
+      another entry resets the zoom.
+- [ ] Large structure: grey stage messages (fetching / preparing / rendering), never red, until the picture appears.
 - [ ] Sub structures get a preview too; an entry without template shows no preview area.
 - [ ] Close and reopen the browser (or restart the game): pictures appear immediately (loaded from
       `<gamedir>/architectstrials/previews/`), no "Rendering…".

@@ -25,8 +25,16 @@ weight 3 of a total of 8 → 37.5 %), rotation, game mode,
 [run settings](Building-Challenges#run-settings-time-limit-and-players) (time limit, players, portal, re-entry), author,
 creation date, player effects, mob effects, player attributes and [ore generation](Building-Challenges#natural-ores).
 
-**Preview** — an isometric picture of the stored structure at the top of the details, so you see at a glance which
-challenge you are talking about. ↺ / ↻ turn the view in four steps (the direction is kept while you browse).
+**Preview** — an isometric picture of the stored structure at the top right, beside the details (in narrow windows
+above them), so you see at a glance which challenge you are talking about.
+
+- ↺ / ↻ turn the view in four steps: from south-east, north-east, north-west and south-west (north = −Z, as built in
+  the editor). The direction is kept while you browse.
+- Mouse wheel over the picture zooms in (up to ×6) around the cursor, dragging moves the zoomed picture, right click
+  resets it. Zoom works on the rendered picture (1024 × 640 pixels), the angle stays the same.
+- While the picture is on its way the box says what is happening — loading, fetching the structure from the server,
+  preparing the blocks, rendering. Only a real failure (template missing or too large, rendering error) is shown in
+  red.
 
 - The picture is rendered on your client with your resource packs (modded blocks included) and lit evenly. Entities
   (item frames, armor stands, paintings), block entity renderers (chests, signs, banners) and fluids are left out;

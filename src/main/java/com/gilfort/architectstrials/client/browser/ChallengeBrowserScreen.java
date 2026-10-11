@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
+import java.util.Objects;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -95,8 +96,15 @@ public class ChallengeBrowserScreen extends Screen implements ChallengeEditor.Ho
 
     private static final int PREVIEW_BACKGROUND = 0xFF1E1E26;
 
+    private static final int SIDE_FORM_WIDTH = 340;
+    private static final int MIN_SIDE_PREVIEW = 150;
+    private static final float MAX_ZOOM = 6.0F;
+
     /** The viewing direction of the previews (0–3), shared by all entries. */
     private static int previewDirection;
+    private static float previewZoom = 1.0F;
+    private static float previewCenterU = 0.5F;
+    private static float previewCenterV = 0.5F;
     private static @Nullable Identifier rememberedTheme;
     private static boolean rememberedSubs;
     private static @Nullable Identifier rememberedEntry;
@@ -118,6 +126,8 @@ public class ChallengeBrowserScreen extends Screen implements ChallengeEditor.Ho
     private @Nullable ChallengeEditList editList;
     private @Nullable Button saveButton;
     private @Nullable Button discardButton;
+    private @Nullable PreviewBox previewImage;
+    private boolean draggingPreview;
 
     /**
      * Creates the browser, restoring the selection of the last time it was open.
@@ -334,7 +344,7 @@ public class ChallengeBrowserScreen extends Screen implements ChallengeEditor.Ho
             if (this.editor == null || !this.editor.entry().id().equals(challenge.id())) {
                 this.editor = new ChallengeEditor(challenge, this);
             }
-            this.editList = new ChallengeEditList(this.minecraft, this.detailsX() + 1, this.contentTop() + 2, this.detailsWidth() - 2,
+            this.editList = new ChallengeEditList(this.minecraft, this.detailsX() + 1, this.contentTop() + 2, this.contentWidth() - 2,
                     this.detailContentHeight(), this.editor::changed, this.editor::errors);
             List<ChallengeEditList.Row> rows = new ArrayList<>(this.editor.rows(this.editList, this.font));
             List<Line> template = new ArrayList<>();
@@ -359,16 +369,12 @@ public class ChallengeBrowserScreen extends Screen implements ChallengeEditor.Ho
             this.editor = null;
         }
 
-        int previewHeight = this.previewHeight();
-        if (previewHeight > 0) {
-            int buttonX = this.detailsX() + this.detailsWidth() - 4 - 2 * 18;
-            int buttonY = this.top() + 4;
-            this.addRenderableWidget(Button.builder(Component.translatable("gui.architectstrials.browser.preview.left"), button -> {
-                previewDirection = (previewDirection + 3) % 4;
-            }).bounds(buttonX, buttonY, 16, 16).tooltip(Tooltip.create(Component.translatable("gui.architectstrials.browser.preview.left.tooltip"))).build());
-            this.addRenderableWidget(Button.builder(Component.translatable("gui.architectstrials.browser.preview.right"), button -> {
-                previewDirection = (previewDirection + 1) % 4;
-            }).bounds(buttonX + 18, buttonY, 16, 16).tooltip(Tooltip.create(Component.translatable("gui.architectstrials.browser.preview.right.tooltip"))).build());
+        PreviewBox box = this.previewBox();
+        if (box != null) {
+            int buttonX = box.x() + box.w() - 2 - 2 * 18;
+            int buttonY = box.y() + 2;
+            this.addRenderableWidget(this.directionButton("left", 3, buttonX, buttonY));
+            this.addRenderableWidget(this.directionButton("right", 1, buttonX + 18, buttonY));
         }
 
         int x = this.detailsX() + 4;
@@ -406,6 +412,17 @@ public class ChallengeBrowserScreen extends Screen implements ChallengeEditor.Ho
             this.addRenderableWidget(Button.builder(Component.translatable("gui.architectstrials.browser.delete"),
                     button -> this.confirmDelete(selected.get())).bounds(x, y, 56, 20).build());
         }
+    }
+
+    /** Creates a button that turns the preview to the previous or next direction; its tooltip names the target view. */
+    private Button directionButton(String key, int step, int x, int y) {
+        Button button = Button.builder(Component.translatable("gui.architectstrials.browser.preview." + key), pressed -> {
+            previewDirection = (previewDirection + step) % 4;
+            this.rebuildWidgets();
+        }).bounds(x, y, 16, 16).build();
+        button.setTooltip(Tooltip.create(Component.translatable("gui.architectstrials.browser.preview.turn",
+                Component.translatable("gui.architectstrials.browser.preview.direction." + (previewDirection + step) % 4))));
+        return button;
     }
 
     /** Asks before deleting a structure, naming what is affected. */
@@ -516,11 +533,20 @@ public class ChallengeBrowserScreen extends Screen implements ChallengeEditor.Ho
         this.remember();
     }
 
+    private static void resetZoom() {
+        previewZoom = 1.0F;
+        previewCenterU = 0.5F;
+        previewCenterV = 0.5F;
+    }
+
     private boolean isEdited(@Nullable Identifier id) {
         return this.editor != null && id != null && this.editor.entry().id().equals(id);
     }
 
     private void remember() {
+        if (!Objects.equals(rememberedEntry, this.entry)) {
+            resetZoom();
+        }
         rememberedTheme = this.theme;
         rememberedSubs = this.subs;
         rememberedEntry = this.entry;
@@ -775,32 +801,66 @@ public class ChallengeBrowserScreen extends Screen implements ChallengeEditor.Ho
         return this.bottom() - this.contentTop() - (this.entry != null ? FOOTER : 0) - 4;
     }
 
-    /** @return the top of the detail text or form, below the preview */
-    private int contentTop() {
-        return this.top() + this.previewHeight();
+    /**
+     * Where the preview is drawn (US-43): beside the details at the top right when the panel is wide enough for the
+     * form plus a useful picture, otherwise above the details.
+     *
+     * @param x    the left edge
+     * @param y    the top edge
+     * @param w    the width
+     * @param h    the height
+     * @param side {@code true} if the preview stands beside the details
+     */
+    private record PreviewBox(int x, int y, int w, int h, boolean side) {
+
+        boolean contains(double mouseX, double mouseY) {
+            return mouseX >= this.x && mouseX < this.x + this.w && mouseY >= this.y && mouseY < this.y + this.h;
+        }
     }
 
-    /** @return the height of the preview area (US-43), {@code 0} without a selected structure with a template */
-    private int previewHeight() {
-        if (this.selectedStats().map(StructureStats::found).orElse(false)) {
-            return Math.clamp((this.bottom() - this.top()) * 2 / 5, 80, 180);
+    private @Nullable PreviewBox previewBox() {
+        if (!this.selectedStats().map(StructureStats::found).orElse(false)) {
+            return null;
         }
-        return 0;
+        int width = this.detailsWidth();
+        int sideWidth = width - SIDE_FORM_WIDTH;
+        int maxHeight = (this.bottom() - this.top() - FOOTER) * 3 / 5;
+        if (sideWidth >= MIN_SIDE_PREVIEW) {
+            int w = Math.min(sideWidth, maxHeight * PreviewRenderer.WIDTH / PreviewRenderer.HEIGHT);
+            int h = w * PreviewRenderer.HEIGHT / PreviewRenderer.WIDTH;
+            return new PreviewBox(this.detailsX() + width - w - 3, this.top() + 3, w, h, true);
+        }
+        int h = Math.clamp((this.bottom() - this.top()) * 2 / 5, 80, 180) - 4;
+        return new PreviewBox(this.detailsX() + 2, this.top() + 2, width - 4, h, false);
+    }
+
+    /** @return the top of the detail text or form: below a preview above the details, otherwise the panel top */
+    private int contentTop() {
+        PreviewBox box = this.previewBox();
+        return box == null || box.side() ? this.top() : box.y() + box.h() + 2;
+    }
+
+    /** @return the width of the detail text or form: the panel minus a preview beside it */
+    private int contentWidth() {
+        PreviewBox box = this.previewBox();
+        return box == null || !box.side() ? this.detailsWidth() : box.x() - this.detailsX() - 3;
     }
 
     /** Draws the preview picture of the selected structure, or its loading / failure state. */
-    private void renderPreview(GuiGraphicsExtractor graphics) {
-        int height = this.previewHeight();
+    private void renderPreview(GuiGraphicsExtractor graphics, int mouseX, int mouseY) {
+        PreviewBox box = this.previewBox();
         Optional<EditorState.StructureRef> selected = this.selectedRef();
         Optional<StructureStats> stats = this.selectedStats();
-        if (height == 0 || selected.isEmpty() || stats.isEmpty()) {
+        this.previewImage = null;
+        if (box == null || selected.isEmpty() || stats.isEmpty()) {
             return;
         }
-        int x = this.detailsX() + 2;
-        int y = this.top() + 2;
-        int w = this.detailsWidth() - 4;
-        int h = height - 4;
+        int x = box.x();
+        int y = box.y();
+        int w = box.w();
+        int h = box.h();
         graphics.fill(x, y, x + w, y + h, PREVIEW_BACKGROUND);
+        graphics.outline(x - 1, y - 1, w + 2, h + 2, BORDER);
         PreviewCache.Status status = PreviewCache.get(selected.get(), stats.get().templateHash(), previewDirection);
         if (status.state() == PreviewCache.State.READY && status.texture() != null) {
             float fit = Math.min((float) w / PreviewRenderer.WIDTH, (float) h / PreviewRenderer.HEIGHT);
@@ -808,22 +868,42 @@ public class ChallengeBrowserScreen extends Screen implements ChallengeEditor.Ho
             int drawH = Math.round(PreviewRenderer.HEIGHT * fit);
             int drawX = x + (w - drawW) / 2;
             int drawY = y + (h - drawH) / 2;
-            graphics.blit(RenderPipelines.GUI_TEXTURED, status.texture(), drawX, drawY, 0.0F, 0.0F, drawW, drawH, PreviewRenderer.WIDTH,
-                    PreviewRenderer.HEIGHT, PreviewRenderer.WIDTH, PreviewRenderer.HEIGHT);
+            this.previewImage = new PreviewBox(drawX, drawY, drawW, drawH, box.side());
+            float size = 1.0F / previewZoom;
+            float u0 = Math.clamp(previewCenterU - size / 2.0F, 0.0F, 1.0F - size);
+            float v0 = Math.clamp(previewCenterV - size / 2.0F, 0.0F, 1.0F - size);
+            graphics.blit(RenderPipelines.GUI_TEXTURED, status.texture(), drawX, drawY, u0 * PreviewRenderer.WIDTH, v0 * PreviewRenderer.HEIGHT,
+                    drawW, drawH, Math.round(PreviewRenderer.WIDTH * size), Math.round(PreviewRenderer.HEIGHT * size),
+                    PreviewRenderer.WIDTH, PreviewRenderer.HEIGHT);
+            if (this.previewImage.contains(mouseX, mouseY)) {
+                this.hits.add(new Hit(drawX, drawY, drawX + drawW, drawY + drawH,
+                        List.of(Component.translatable("gui.architectstrials.browser.preview.controls"))));
+            }
         } else {
-            Component text = status.state() == PreviewCache.State.FAILED
-                    ? Component.translatable("gui.architectstrials.browser.preview.failed")
-                    : Component.translatable("gui.architectstrials.browser.preview.loading", ".".repeat((int) (Util.getMillis() / 400 % 4)));
-            graphics.centeredText(this.font, text, x + w / 2, y + h / 2 - 4, status.state() == PreviewCache.State.FAILED ? RED : GREY);
+            Component text = switch (status.state()) {
+                case FAILED_TEMPLATE -> Component.translatable("gui.architectstrials.browser.preview.failed_template");
+                case FAILED_RENDER -> Component.translatable("gui.architectstrials.browser.preview.failed_render");
+                default -> Component.translatable("gui.architectstrials.browser.preview.stage."
+                        + status.state().name().toLowerCase(Locale.ROOT), ".".repeat((int) (Util.getMillis() / 400 % 4)));
+            };
+            int color = status.state().failed() ? RED : GREY;
+            List<FormattedCharSequence> lines = this.font.split(text, Math.max(20, w - 12));
+            int textY = y + h / 2 - lines.size() * 5;
+            for (FormattedCharSequence line : lines) {
+                graphics.centeredText(this.font, line, x + w / 2, textY, color);
+                textY += 10;
+            }
         }
-        graphics.text(this.font, Component.translatable("gui.architectstrials.browser.preview.direction." + previewDirection), x + 4, y + h - 11,
-                GREY, true);
-        graphics.horizontalLine(this.detailsX() + 1, this.detailsX() + this.detailsWidth() - 2, this.top() + height - 1, BORDER);
+        MutableComponent label = Component.translatable("gui.architectstrials.browser.preview.direction." + previewDirection).copy();
+        if (previewZoom > 1.001F) {
+            label.append(Component.translatable("gui.architectstrials.browser.preview.zoom", ChallengeDraft.formatNumber(Math.round(previewZoom * 10.0F) / 10.0)));
+        }
+        graphics.text(this.font, label, x + 4, y + h - 11, GREY, true);
     }
 
     /** @return the detail lines, wrapped to the width of the details area */
     private List<WrappedLine> detailWrapped() {
-        int w = this.detailsWidth();
+        int w = this.contentWidth();
         List<WrappedLine> wrapped = new ArrayList<>();
         for (Line line : this.detailLines()) {
             if (line.text() == null) {
@@ -846,12 +926,13 @@ public class ChallengeBrowserScreen extends Screen implements ChallengeEditor.Ho
         int y = this.top();
         int w = this.detailsWidth();
         this.panel(graphics, x, y, w, this.bottom() - y);
-        this.renderPreview(graphics);
+        this.renderPreview(graphics, mouseX, mouseY);
         if (this.editList != null) {
             graphics.horizontalLine(x + 1, x + w - 2, this.bottom() - FOOTER, BORDER);
             return;
         }
         y = this.contentTop();
+        w = this.contentWidth();
         int contentHeight = this.detailContentHeight();
         List<WrappedLine> wrapped = this.detailWrapped();
         this.detailScroll = Math.clamp(this.detailScroll, 0, Math.max(0, wrapped.size() * (ROW - 1) - contentHeight));
@@ -1125,6 +1206,14 @@ public class ChallengeBrowserScreen extends Screen implements ChallengeEditor.Ho
         if (super.mouseClicked(event, doubleClick)) {
             return true;
         }
+        if (this.previewImage != null && this.previewImage.contains(event.x(), event.y())) {
+            if (event.button() == InputConstants.MOUSE_BUTTON_RIGHT) {
+                resetZoom();
+            } else if (event.button() == InputConstants.MOUSE_BUTTON_LEFT) {
+                this.draggingPreview = true;
+            }
+            return true;
+        }
         if (event.button() != InputConstants.MOUSE_BUTTON_LEFT) {
             return false;
         }
@@ -1187,7 +1276,46 @@ public class ChallengeBrowserScreen extends Screen implements ChallengeEditor.Ho
     }
 
     @Override
+    public boolean mouseDragged(MouseButtonEvent event, double dx, double dy) {
+        if (this.draggingPreview && this.previewImage != null) {
+            float size = 1.0F / previewZoom;
+            previewCenterU = clampCenter(previewCenterU - (float) dx / this.previewImage.w() * size, size);
+            previewCenterV = clampCenter(previewCenterV - (float) dy / this.previewImage.h() * size, size);
+            return true;
+        }
+        return super.mouseDragged(event, dx, dy);
+    }
+
+    @Override
+    public boolean mouseReleased(MouseButtonEvent event) {
+        this.draggingPreview = false;
+        return super.mouseReleased(event);
+    }
+
+    /** Zooms the preview around the point under the cursor, which stays where it is. */
+    private void zoomPreview(double mouseX, double mouseY, double scrollY) {
+        PreviewBox image = this.previewImage;
+        float oldSize = 1.0F / previewZoom;
+        float fx = (float) (mouseX - image.x()) / image.w();
+        float fy = (float) (mouseY - image.y()) / image.h();
+        float u = Math.clamp(previewCenterU - oldSize / 2.0F, 0.0F, 1.0F - oldSize) + fx * oldSize;
+        float v = Math.clamp(previewCenterV - oldSize / 2.0F, 0.0F, 1.0F - oldSize) + fy * oldSize;
+        previewZoom = Math.clamp(previewZoom * (scrollY > 0 ? 1.25F : 0.8F), 1.0F, MAX_ZOOM);
+        float size = 1.0F / previewZoom;
+        previewCenterU = clampCenter(u - fx * size + size / 2.0F, size);
+        previewCenterV = clampCenter(v - fy * size + size / 2.0F, size);
+    }
+
+    private static float clampCenter(float center, float size) {
+        return Math.clamp(center, size / 2.0F, 1.0F - size / 2.0F);
+    }
+
+    @Override
     public boolean mouseScrolled(double mouseX, double mouseY, double scrollX, double scrollY) {
+        if (this.previewImage != null && this.previewImage.contains(mouseX, mouseY)) {
+            this.zoomPreview(mouseX, mouseY, scrollY);
+            return true;
+        }
         int delta = (int) (-scrollY * ROW * 2);
         if (!this.themesCollapsed && mouseX >= this.themesX() && mouseX < this.themesX() + this.themesWidth()) {
             this.themeScroll += delta;

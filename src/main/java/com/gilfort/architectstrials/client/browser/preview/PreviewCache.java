@@ -51,12 +51,30 @@ public final class PreviewCache {
 
     /** State of one picture. */
     public enum State {
-        /** Loading from disk, waiting for the template, tesselating or rendering. */
-        LOADING,
+        /** Looking for the picture on disk. */
+        LOADING_DISK,
+        /** Waiting for the template from the server. */
+        LOADING_TEMPLATE,
+        /** Reducing the template to its visible faces (worker thread). */
+        LOADING_MESH,
+        /** Waiting to be rendered or being rendered. */
+        LOADING_RENDER,
         /** Ready to draw. */
         READY,
-        /** The template is missing, too large or could not be rendered. */
-        FAILED
+        /** The server could not send the template (missing file or too large). */
+        FAILED_TEMPLATE,
+        /** The template arrived but could not be turned into a picture. */
+        FAILED_RENDER;
+
+        /** @return {@code true} while the picture is still on its way */
+        public boolean loading() {
+            return this.ordinal() <= LOADING_RENDER.ordinal();
+        }
+
+        /** @return {@code true} if there will be no picture */
+        public boolean failed() {
+            return this == FAILED_TEMPLATE || this == FAILED_RENDER;
+        }
     }
 
     /**
@@ -67,8 +85,9 @@ public final class PreviewCache {
      */
     public record Status(State state, @Nullable Identifier texture) {
 
-        static final Status LOADING = new Status(State.LOADING, null);
-        static final Status FAILED = new Status(State.FAILED, null);
+        static Status of(State state) {
+            return new Status(state, null);
+        }
     }
 
     private static final Map<String, Status> PICTURES = new HashMap<>();
@@ -93,14 +112,14 @@ public final class PreviewCache {
      */
     public static Status get(EditorState.StructureRef structure, String hash, int direction) {
         if (hash.isEmpty()) {
-            return Status.FAILED;
+            return Status.of(State.FAILED_TEMPLATE);
         }
         String key = key(hash, direction);
         Status status = PICTURES.get(key);
         if (status != null) {
             return status;
         }
-        PICTURES.put(key, Status.LOADING);
+        PICTURES.put(key, Status.of(State.LOADING_DISK));
         Path file = file(key);
         CompletableFuture.supplyAsync(() -> readImage(file), Util.backgroundExecutor()).thenAcceptAsync(image -> {
             if (!PICTURES.containsKey(key)) {
@@ -113,17 +132,19 @@ public final class PreviewCache {
                 queueRender(structure, hash, direction, key);
             }
         }, Minecraft.getInstance());
-        return Status.LOADING;
+        return Status.of(State.LOADING_DISK);
     }
 
     private static void queueRender(EditorState.StructureRef structure, String hash, int direction, String key) {
         if (FAILED_TEMPLATES.contains(hash)) {
-            PICTURES.put(key, Status.FAILED);
+            PICTURES.put(key, Status.of(State.FAILED_TEMPLATE));
             return;
         }
-        if (!MESHES.containsKey(hash) && REQUESTED.add(hash)) {
+        CompletableFuture<StructureMesh> mesh = MESHES.get(hash);
+        if (mesh == null && REQUESTED.add(hash)) {
             ClientPacketDistributor.sendToServer(new PreviewNetwork.RequestTemplate(structure));
         }
+        PICTURES.put(key, Status.of(mesh == null ? State.LOADING_TEMPLATE : mesh.isDone() ? State.LOADING_RENDER : State.LOADING_MESH));
         QUEUED_DIRECTIONS.put(key, direction);
         QUEUED_HASHES.put(key, hash);
         RENDER_QUEUE.add(key);
@@ -148,6 +169,7 @@ public final class PreviewCache {
         Holder<Biome> plains = minecraft.level.registryAccess().lookupOrThrow(Registries.BIOME).get(Biomes.PLAINS).<Holder<Biome>>map(holder -> holder)
                 .orElse(null);
         byte[] bytes = data.data();
+        setLoading(hash, State.LOADING_MESH);
         MESHES.put(hash, CompletableFuture.supplyAsync(() -> {
             try (InputStream stream = new ByteArrayInputStream(bytes)) {
                 CompoundTag tag = NbtIo.readCompressed(stream, NbtAccounter.unlimitedHeap());
@@ -170,13 +192,14 @@ public final class PreviewCache {
                 continue;
             }
             if (FAILED_TEMPLATES.contains(hash)) {
-                PICTURES.put(key, Status.FAILED);
+                PICTURES.put(key, Status.of(State.FAILED_TEMPLATE));
                 continue;
             }
             if (mesh == null || !mesh.isDone()) {
                 RENDER_QUEUE.add(key);
                 continue;
             }
+            PICTURES.put(key, Status.of(State.LOADING_RENDER));
             QUEUED_HASHES.remove(key);
             int direction = QUEUED_DIRECTIONS.remove(key);
             StructureMesh built;
@@ -184,7 +207,9 @@ public final class PreviewCache {
                 built = mesh.join();
             } catch (RuntimeException e) {
                 ArchitectsTrials.LOGGER.warn("Could not build the preview mesh of template {}", hash, e);
-                markFailed(hash);
+                PICTURES.replaceAll((other, status) -> other.startsWith(hash + "_") && status.state().loading()
+                        ? Status.of(State.FAILED_RENDER) : status);
+                MESHES.remove(hash);
                 return;
             }
             try {
@@ -198,7 +223,7 @@ public final class PreviewCache {
                 });
             } catch (RuntimeException e) {
                 ArchitectsTrials.LOGGER.warn("Could not render the preview of template {}", hash, e);
-                PICTURES.put(key, Status.FAILED);
+                PICTURES.put(key, Status.of(State.FAILED_RENDER));
             }
             return;
         }
@@ -206,7 +231,11 @@ public final class PreviewCache {
 
     private static void markFailed(String hash) {
         FAILED_TEMPLATES.add(hash);
-        PICTURES.replaceAll((key, status) -> key.startsWith(hash + "_") && status.state() == State.LOADING ? Status.FAILED : status);
+        PICTURES.replaceAll((key, status) -> key.startsWith(hash + "_") && status.state().loading() ? Status.of(State.FAILED_TEMPLATE) : status);
+    }
+
+    private static void setLoading(String hash, State state) {
+        PICTURES.replaceAll((key, status) -> key.startsWith(hash + "_") && status.state().loading() ? Status.of(state) : status);
     }
 
     private static void ready(String key, NativeImage image) {
