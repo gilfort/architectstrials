@@ -25,6 +25,28 @@ weight 3 of a total of 8 → 37.5 %), rotation, game mode,
 [run settings](Building-Challenges#run-settings-time-limit-and-players) (time limit, players, portal, re-entry), author,
 creation date, player effects, mob effects, player attributes and [ore generation](Building-Challenges#natural-ores).
 
+**Preview** — an isometric picture of the stored structure at the top right, beside the details (in narrow windows
+above them), so you see at a glance which challenge you are talking about.
+
+- ↺ / ↻ turn the view in four steps: from south-east, north-east, north-west and south-west (north = −Z, as built in
+  the editor). The direction is kept while you browse.
+- Mouse wheel over the picture zooms in (up to ×6) around the cursor, dragging moves the zoomed picture, right click
+  resets it. Zoom works on the rendered picture (1024 × 640 pixels), the angle stays the same.
+- While the picture is on its way the box says what is happening — loading, fetching the structure from the server,
+  preparing the blocks, rendering. Only a real failure (template missing or too large, rendering error) is shown in
+  red.
+
+- The picture is rendered on your client with your resource packs (modded blocks included) and lit evenly. Entities
+  (item frames, armor stands, paintings), block entity renderers (chests, signs, banners) and fluids are left out;
+  Sub Structure Markers are shown as markers, not as one of their random variants.
+- Only when a picture is missing the server sends the template; your client renders it once and keeps it in
+  `<gamedir>/architectstrials/previews/`. The file name contains a hash of the template and of your active resource
+  packs, so an unchanged structure is never rendered again, and a re-saved structure or other resource packs get a
+  fresh picture automatically. Delete the folder to free disk space — pictures are simply rendered again.
+- Large structures are reduced to their visible surface first (on a worker thread); while that runs, "Rendering
+  preview…" is shown and the rest of the details stay usable. Templates whose compressed data exceeds 16 MB get no
+  preview.
+
 **Template** — what the stored structure contains:
 
 - size (X × Y × Z),

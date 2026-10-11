@@ -2,6 +2,8 @@ package com.gilfort.architectstrials.client.browser;
 
 import com.gilfort.architectstrials.ArchitectsTrials;
 import com.gilfort.architectstrials.browser.BrowserNetwork;
+import com.gilfort.architectstrials.browser.PreviewNetwork;
+import com.gilfort.architectstrials.client.browser.preview.PreviewCache;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.ConfirmScreen;
@@ -45,12 +47,14 @@ public final class BrowserClientHandlers {
                 ChallengeBrowserScreen.current.onSaveResult(payload);
             }
         });
+        event.register(PreviewNetwork.TemplateData.TYPE, (payload, context) -> PreviewCache.onTemplate(payload));
         event.register(BrowserNetwork.Close.TYPE, (payload, context) -> {
             Screen screen = Minecraft.getInstance().gui.screen();
             if (ChallengeBrowserScreen.current != null && (screen == ChallengeBrowserScreen.current || screen instanceof ConfirmScreen)) {
                 Minecraft.getInstance().gui.setScreen(null);
             }
             ChallengeBrowserScreen.current = null;
+            PreviewCache.clear();
         });
     }
 }
